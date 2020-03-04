@@ -204,12 +204,6 @@ RELEASE_TYPES = set([
 ])
 
 
-def get_session():
-    session = requests.Session()
-    session.auth = HTTPSPNEGOAuth(opportunistic_auth=True)
-    return session
-
-
 def diff_settings(settings, params):
     """
     Diff the "live" settings against our Ansible parameters.
