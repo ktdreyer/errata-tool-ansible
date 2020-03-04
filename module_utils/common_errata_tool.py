@@ -248,7 +248,11 @@ def describe_changes(changes):
 
 
 def user_id(client, login_name):
-    """ Convert a user login_name to an id """
+    """
+    Convert a user login_name to an id
+
+    Needed for products (ERRATA-9706) and releases (ERRATA-9719)
+    """
     response = client.get('api/v1/user/%s' % login_name)
     if response.status_code == 400:
         data = response.json()
