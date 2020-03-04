@@ -173,19 +173,6 @@ class WorkflowRulesScraper(object):
         return results
 
 
-BUGZILLA_STATES = set([
-    'ASSIGNED',
-    'CLOSED',
-    'MODIFIED',
-    'NEW',
-    'ON_DEV',
-    'ON_QA',
-    'POST',
-    'RELEASE_PENDING',
-    'VERIFIED',
-])
-
-
 class DefaultSolutions(IntEnum):
     """
     Again, the reason we track ID mappings is because the HTML

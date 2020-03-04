@@ -1,3 +1,4 @@
+from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import get_product
 
 
@@ -72,6 +73,21 @@ PRODUCT = {
         }
     }
 }
+
+
+def test_bugzilla_states():
+    expected = set([
+        'ASSIGNED',
+        'CLOSED',
+        'MODIFIED',
+        'NEW',
+        'ON_DEV',
+        'ON_QA',
+        'POST',
+        'RELEASE_PENDING',
+        'VERIFIED',
+    ])
+    assert BUGZILLA_STATES == expected
 
 
 class TestGetCdnRepo(object):

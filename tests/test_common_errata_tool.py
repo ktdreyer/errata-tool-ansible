@@ -1,26 +1,10 @@
 import pytest
 from requests.exceptions import HTTPError
-from ansible.module_utils.common_errata_tool import BUGZILLA_STATES
 from ansible.module_utils.common_errata_tool import RELEASE_TYPES
 from ansible.module_utils.common_errata_tool import DefaultSolutions
 from ansible.module_utils.common_errata_tool import diff_settings
 from ansible.module_utils.common_errata_tool import describe_changes
 from ansible.module_utils.common_errata_tool import user_id
-
-
-def test_bugzilla_states():
-    expected = set([
-        'ASSIGNED',
-        'CLOSED',
-        'MODIFIED',
-        'NEW',
-        'ON_DEV',
-        'ON_QA',
-        'POST',
-        'RELEASE_PENDING',
-        'VERIFIED',
-    ])
-    assert BUGZILLA_STATES == expected
 
 
 @pytest.mark.parametrize("name,expected", [
