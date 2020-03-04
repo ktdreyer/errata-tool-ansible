@@ -122,7 +122,7 @@ class WorkflowRulesScraper(object):
     (ints) instead of names (human-readable strings):
 
       POST to /products (see ERRATA-9706)
-      POST and PUT to /api/v1/releases (no ERRATA ticket yet)
+      POST and PUT to /api/v1/releases (ERRATA-9719)
 
     When we fix these, we will no longer need this WorkflowRulesScraper class.
     """
