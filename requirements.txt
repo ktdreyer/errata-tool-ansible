@@ -1,0 +1,4 @@
+ansible
+lxml
+requests
+requests-gssapi
