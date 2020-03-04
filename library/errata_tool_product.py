@@ -95,6 +95,19 @@ options:
 '''
 
 
+BUGZILLA_STATES = set([
+    'ASSIGNED',
+    'CLOSED',
+    'MODIFIED',
+    'NEW',
+    'ON_DEV',
+    'ON_QA',
+    'POST',
+    'RELEASE_PENDING',
+    'VERIFIED',
+])
+
+
 class InvalidInputError(Exception):
     """ Invalid user input for a parameter """
     def __init__(self, param, value):
@@ -110,7 +123,7 @@ def validate_params(module, params):
     parameter.
     """
     for state in params['valid_bug_states']:
-        if state not in common_errata_tool.BUGZILLA_STATES:
+        if state not in BUGZILLA_STATES:
             raise InvalidInputError('valid_bug_states', state)
     solution = params['default_solution'].upper()
     try:
