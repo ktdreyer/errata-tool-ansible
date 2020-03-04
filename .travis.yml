@@ -9,6 +9,7 @@ jobs:
   include:
   - python: 3.7
     after_success:
+    - pip install coveralls
     - coveralls
 
 cache:
