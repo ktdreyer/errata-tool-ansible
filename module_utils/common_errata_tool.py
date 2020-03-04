@@ -92,7 +92,7 @@ class PushTargetScraper(object):
 
     def _scrape_content(self, content):
         """
-        :param str content: HTML from the "edit" web page.
+        :param str content: HTML from the "new product" web page.
         """
         doc = html.document_fromstring(content)
         inputs = doc.xpath('//input[@name="product[push_targets][]"]')
