@@ -1,6 +1,9 @@
 errata-tool-ansible
 ===================
 
+.. image:: https://travis-ci.org/ktdreyer/errata-tool-ansible.svg?branch=master
+             :target: https://travis-ci.org/ktdreyer/errata-tool-ansible
+
 Ansible modules to manage Errata Tool resources.
 
 This is not about installing the Errata Tool. Instead, it is a way to
