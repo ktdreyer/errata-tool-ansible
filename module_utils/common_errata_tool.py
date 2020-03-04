@@ -11,9 +11,12 @@ class PushTargetScraper(object):
     """
     Scrape the Push Target name-to-id mappings.
 
-    This is not ideal, for reasons described below. The reason we track ID
-    mappings is because at least one HTML form (product configuration) only
-    accepts push target ID numbers.
+    The ET server currently requires that we POST PushTarget ID integers
+    instead of names. This applies to the following resources:
+
+      products (ERRATA-9706)
+      product_versions (ERRATA-9714)
+      variants (ERRATA-9717)
 
     See /developer-guide/push-push-targets-options-and-tasks.html for
     information about Push Targets. This class uses the same string names
@@ -29,11 +32,6 @@ class PushTargetScraper(object):
     hard-code these ID numbers in the client here because nothing guarantees
     the accidental order that ActiveRecord has inserted the records over the
     years.
-
-    TODO: Improve this situation in the following ways:
-    - Add a full create/update REST API for products.
-    - Add the ability specify "allowed push targets" by name for all the other
-      resources that need that.
 
     Once we have the ability to edit all Push Target settings by name instead
     of ID, we can delete this method.
