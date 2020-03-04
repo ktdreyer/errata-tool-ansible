@@ -120,7 +120,14 @@ def validate_params(module, params):
 
 
 def get_product(client, short_name):
-    """ See ERRATA-9422 """
+    """
+    Get a single product by name.
+
+    :param Client: common_errata_tool.Client instance
+    :param str short_name: Product short name, eg RHCEPH
+    :returns: a dict of information about this product, or None if the Errata
+              Tool has no product with this short_name
+    """
     endpoint = 'api/v1/products/%s' % short_name
     response = client.get(endpoint)
     if response.status_code != 200:
