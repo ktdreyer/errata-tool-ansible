@@ -136,6 +136,24 @@ Errata Tool.
         push_targets: []
 
 
+errata_tool_user
+----------------
+
+The ``errata_tool_user`` module can create or update Users within the Errata
+Tool.
+
+.. code-block:: yaml
+
+    - name: Add program manager Errata Tool account
+      errata_tool_user:
+        login_name: coolprogrammanager@redhat.com
+        realname: Cool ProgramManager
+        organization: Program Management
+        receives_mail: false
+        roles:
+        - pm
+
+
 Errata Tool environment
 -----------------------
 These modules operate on the production Errata Tool environment by default.
