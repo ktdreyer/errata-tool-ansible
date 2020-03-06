@@ -250,12 +250,12 @@ def ensure_product_version(client, params, check_mode):
 
 def run_module():
     module_args = dict(
-        product=dict(type='str', required=True),
-        name=dict(type='str', required=True),
-        description=dict(type='str', required=True),
-        rhel_release_name=dict(type='str', required=True),
-        sig_key_name=dict(type='str', default='redhatrelease2', required=False),
-        default_brew_tag=dict(type='str', required=True),
+        product=dict(required=True),
+        name=dict(required=True),
+        description=dict(required=True),
+        rhel_release_name=dict(required=True),
+        sig_key_name=dict(default='redhatrelease2', required=False),
+        default_brew_tag=dict(required=True),
         is_server_only=dict(type='bool', required=True),
         enabled=dict(type='bool', default=True, required=False),
         allow_rhn_debuginfo=dict(type='bool', required=True),
