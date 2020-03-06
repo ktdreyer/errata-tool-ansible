@@ -133,7 +133,7 @@ def get_product_version(client, product, name):
     # push_targets
     push_targets = [t['name'] for t in data['relationships']['push_targets']]
     product_version['push_targets'] = push_targets
-    # Add in our product name, to simplify diff_product_version().
+    # Add in our product name, to simplify diff_settings().
     product_version['product'] = product
     # Add in our product_version id, to support edit_product_version()
     product_version['id'] = data['id']
@@ -222,7 +222,7 @@ def edit_product_version(client, product_version, differences):
     :param dict product_version: Product Version to change
     :param list differences: Settings to change for this Product Version. This
                              is a list of three-element tuples from
-                             diff_product_version().
+                             diff_settings().
     """
     pv = {}
     for difference in differences:
