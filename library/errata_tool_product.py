@@ -329,7 +329,7 @@ def run_module():
         ftp_path=dict(default=""),
         ftp_subdir=dict(),
         internal=dict(type='bool', default=False),
-        default_docs_reviewer=dict(default=None),
+        default_docs_reviewer=dict(),
         push_targets=dict(type='list', required=True),
         default_solution=dict(required=True),
         state_machine_rule_set=dict(required=True),
