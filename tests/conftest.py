@@ -40,9 +40,11 @@ def pytest_sessionstart(session):
 
 
 @pytest.fixture()
-def client(requests_mock):
+def client(monkeypatch, requests_mock):
     """ Return a common_errata_tool.Client that can mock requests. """
     from ansible.module_utils.common_errata_tool import Client
+    monkeypatch.delenv('ERRATA_TOOL_URL', raising=False)
+    monkeypatch.delenv('ERRATA_TOOL_AUTH', raising=False)
     c = Client()
     c.session.mount('http', requests_mock._adapter)
     c.session.mount('https', requests_mock._adapter)
