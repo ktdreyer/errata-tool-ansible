@@ -200,20 +200,6 @@ def create_product_version(client, product, params):
     set_push_targets(client, product, params['name'], params['push_targets'])
 
 
-def diff_product_version(product_version, params):
-    differences = []
-    for key in params:
-        current_value = product_version[key]
-        new_value = params[key]
-        if isinstance(new_value, list):
-            # Need to do the comparison with sets.
-            current_value = set(current_value)
-            new_value = set(new_value)
-        if current_value != new_value:
-            differences.append((key, current_value, new_value))
-    return differences
-
-
 def edit_product_version(client, product_version, differences):
     """
     Edit an existing product.
