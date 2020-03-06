@@ -321,7 +321,7 @@ def ensure_release(client, params, check_mode):
 
 def run_module():
     module_args = dict(
-        product=dict(default=None),
+        product=dict(),
         name=dict(required=True),
         description=dict(required=True),
         type=dict(required=True),
@@ -331,8 +331,8 @@ def run_module():
         enable_batching=dict(type='bool', default=True),
         program_manager=dict(required=True),
         blocker_flags=dict(type='list', default=[]),
-        internal_target_release=dict(default=None),
-        zstream_target_release=dict(default=None),
+        internal_target_release=dict(),
+        zstream_target_release=dict(),
         ship_date=dict(required=True),
         allow_shadow=dict(type='bool', required=True),
         allow_blocker=dict(type='bool', required=True),
