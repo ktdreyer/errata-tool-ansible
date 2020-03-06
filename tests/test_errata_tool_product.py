@@ -90,7 +90,7 @@ def test_bugzilla_states():
     assert BUGZILLA_STATES == expected
 
 
-class TestGetCdnRepo(object):
+class TestGetProduct(object):
 
     def test_not_found(self, client):
         client.adapter.register_uri(
