@@ -99,7 +99,7 @@ Errata Tool.
         enabled: true
         active: true
         enable_batching: false
-        program_manager: anharris
+        program_manager: coolmanager@redhat.com
         blocker_flags:
         - ceph-4
         internal_target_release: ""
