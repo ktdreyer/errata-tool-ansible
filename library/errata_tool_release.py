@@ -321,18 +321,18 @@ def ensure_release(client, params, check_mode):
 
 def run_module():
     module_args = dict(
-        product=dict(default=None, required=False),
+        product=dict(default=None),
         name=dict(required=True),
         description=dict(required=True),
         type=dict(required=True),
         product_versions=dict(type='list', required=True),
-        enabled=dict(type='bool', default=True, required=False),
-        active=dict(type='bool', default=True, required=False),
-        enable_batching=dict(type='bool', default=True, required=False),
+        enabled=dict(type='bool', default=True),
+        active=dict(type='bool', default=True),
+        enable_batching=dict(type='bool', default=True),
         program_manager=dict(required=True),
-        blocker_flags=dict(type='list', default=[], required=False),
-        internal_target_release=dict(default=None, required=False),
-        zstream_target_release=dict(default=None, required=False),
+        blocker_flags=dict(type='list', default=[]),
+        internal_target_release=dict(default=None),
+        zstream_target_release=dict(default=None),
         ship_date=dict(required=True),
         allow_shadow=dict(type='bool', required=True),
         allow_blocker=dict(type='bool', required=True),
@@ -340,9 +340,9 @@ def run_module():
         allow_pkg_dupes=dict(type='bool', required=True),
         supports_component_acl=dict(type='bool', required=True),
         limit_bugs_by_product=dict(type='bool', required=True),
-        state_machine_rule_set=dict(default=None, required=False),
-        pelc_product_version_name=dict(default=None, required=False),
-        brew_tags=dict(type='list', default=[], required=False),
+        state_machine_rule_set=dict(default=None),
+        pelc_product_version_name=dict(default=None),
+        brew_tags=dict(type='list', default=[]),
     )
     module = AnsibleModule(
         argument_spec=module_args,
