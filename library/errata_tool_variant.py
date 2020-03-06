@@ -263,13 +263,13 @@ def ensure_variant(client, params, check_mode):
 
 def run_module():
     module_args = dict(
-        name=dict(type='str', required=True),
-        description=dict(type='str', required=True),
-        cpe=dict(type='str', required=True),
+        name=dict(required=True),
+        description=dict(required=True),
+        cpe=dict(required=True),
         enabled=dict(type='bool', default=True, required=False),
         buildroot=dict(type='bool', default=False, required=False),
-        product_version=dict(type='str', required=True),
-        rhel_variant=dict(type='str', required=True),
+        product_version=dict(required=True),
+        rhel_variant=dict(required=True),
         push_targets=dict(type='list', required=True),
     )
     module = AnsibleModule(
