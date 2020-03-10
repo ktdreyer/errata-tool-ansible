@@ -264,6 +264,10 @@ class Client(object):
         if auth == 'kerberos':
             self.session.auth = HTTPSPNEGOAuth(opportunistic_auth=True)
 
+    def delete(self, endpoint, **kwargs):
+        url = posixpath.join(self.baseurl, endpoint)
+        return self.session.delete(url, **kwargs)
+
     def get(self, endpoint, **kwargs):
         url = posixpath.join(self.baseurl, endpoint)
         return self.session.get(url, **kwargs)
