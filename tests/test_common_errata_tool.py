@@ -102,3 +102,11 @@ class TestClient(object):
         method = getattr(client, verb)
         response = method('api/v1/foobar', json={'mykey': 'myval'})
         assert response.request.body == b'{"mykey": "myval"}'
+
+    def test_delete(self, client):
+        client.adapter.register_uri(
+            'DELETE',
+            'https://errata.devel.redhat.com/api/v1/foobar',
+            status_code=204)
+        response = client.delete('api/v1/foobar')
+        assert response.request.method == 'DELETE'
