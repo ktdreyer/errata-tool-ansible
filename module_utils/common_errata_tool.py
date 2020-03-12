@@ -4,7 +4,7 @@ import re
 from enum import IntEnum
 import posixpath
 import requests
-from requests_gssapi import HTTPSPNEGOAuth
+from requests_gssapi import HTTPSPNEGOAuth, DISABLED
 
 
 class PushTargetScraper(object):
@@ -262,7 +262,8 @@ class Client(object):
         self.session = requests.Session()
         auth = os.getenv('ERRATA_TOOL_AUTH', 'kerberos')
         if auth == 'kerberos':
-            self.session.auth = HTTPSPNEGOAuth(opportunistic_auth=True)
+            self.session.auth = HTTPSPNEGOAuth(opportunistic_auth=True,
+                                               mutual_authentication=DISABLED)
 
     def delete(self, endpoint, **kwargs):
         url = posixpath.join(self.baseurl, endpoint)
