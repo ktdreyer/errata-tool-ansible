@@ -340,8 +340,8 @@ def run_module():
         allow_pkg_dupes=dict(type='bool', required=True),
         supports_component_acl=dict(type='bool', required=True),
         limit_bugs_by_product=dict(type='bool', required=True),
-        state_machine_rule_set=dict(default=None),
-        pelc_product_version_name=dict(default=None),
+        state_machine_rule_set=dict(),
+        pelc_product_version_name=dict(),
         brew_tags=dict(type='list', default=[]),
     )
     module = AnsibleModule(
