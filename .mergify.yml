@@ -2,8 +2,8 @@ pull_request_rules:
   - name: automatic merge for master when CI passes
     conditions:
       - author=ktdreyer
-      - status-success=continuous-integration/travis-ci/pr
-      - status-success=continuous-integration/travis-ci/push
+      - status-success=Travis CI - Pull Request
+      - status-success=Travis CI - Branch
       - base=master
     actions:
       merge:
