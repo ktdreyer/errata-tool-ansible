@@ -58,8 +58,8 @@ options:
        - One or more push targets (specify a list)
        - See /developer-guide/push-push-targets-options-and-tasks.html
          for more explanation about these push targets.
-       - Leave this as an empty list in order to inherit the push targets from
-         the parent product or product_version.
+       - This list must be a subset of the push targets that are set at the
+         parent product version level.
      choices: [rhn_live, rhn_stage, ftp, cdn, cdn_stage, altsrc, cdn_docker,
                cdn_docker_stage]
      required: true
