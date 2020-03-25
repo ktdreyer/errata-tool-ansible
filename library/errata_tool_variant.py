@@ -60,7 +60,7 @@ options:
          for more explanation about these push targets.
        - This list must be a subset of the push targets that are set at the
          parent product version level.
-     choices: [rhn_live, rhn_stage, ftp, cdn, cdn_stage, altsrc, cdn_docker,
+     choices: [rhn_live, rhn_stage, cdn, cdn_stage, altsrc, cdn_docker,
                cdn_docker_stage]
      required: true
 '''
