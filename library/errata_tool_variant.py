@@ -182,8 +182,8 @@ def scrape_error_explanation(response):
     """
     content = response.text
     doc = html.document_fromstring(content)
-    lis = doc.xpath('//div[@class="errorExplanation"]/li')
-    errors = [li.text_content.strip() for li in lis]
+    lis = doc.xpath('//div[@class="errorExplanation"]//li/text()')
+    errors = [li.strip() for li in lis]
     return errors
 
 
