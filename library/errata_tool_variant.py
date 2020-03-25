@@ -214,6 +214,11 @@ def handle_form_errors(response):
     if 'errorExplanation' in response.text:
         errors = scrape_error_explanation(response)
         raise RuntimeError(errors)
+    if response.status_code == 403:
+        # Possibly a lack of permissions (eg. setting the CPE text).
+        # Not sure what exactly to screen-scrape here, so we'll raise the
+        # whole response body for logging for now.
+        raise RuntimeError(response.text)
     response.raise_for_status()
 
 
