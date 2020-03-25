@@ -30,8 +30,12 @@ options:
      required: true
    cpe:
      description:
+       - This requires secalert or admin permissions. Very few people have
+         permissions to configure the cpe text value. If you omit this value,
+         Ansible will not set it during variant creation or edit it on an
+         existing variant.
        - example: "cpe:/a:redhat:ceph_storage:4::el8"
-     required: true
+     required: false
    enabled:
      required: false
      default: true
@@ -191,7 +195,8 @@ def html_form_data(client, params):
     data['variant[rhel_variant_id]'] = rhel_variant['id']
     data['variant[name]'] = params['name']
     data['variant[description]'] = params['description']
-    data['variant[cpe]'] = params['cpe']
+    if params['cpe'] is not None:
+        data['variant[cpe]'] = params['cpe']
     # push targets need scraper
     push_target_scraper = common_errata_tool.PushTargetScraper(client)
     push_target_ints = push_target_scraper.convert_to_ints(params['push_targets'])
@@ -265,7 +270,7 @@ def run_module():
     module_args = dict(
         name=dict(required=True),
         description=dict(required=True),
-        cpe=dict(required=True),
+        cpe=dict(),
         enabled=dict(type='bool', default=True),
         buildroot=dict(type='bool', default=False),
         product_version=dict(required=True),
