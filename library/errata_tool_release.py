@@ -97,8 +97,11 @@ options:
      default: false
      required: false
    allow_blocker:
+     description:
+       - Only relevant for QuarterlyUpdate releases.
      choices: [true, false]
-     required: true
+     default: false
+     required: false
    allow_exception:
      choices: [true, false]
      required: true
@@ -342,7 +345,7 @@ def run_module():
         zstream_target_release=dict(),
         ship_date=dict(),
         allow_shadow=dict(type='bool', default=False),
-        allow_blocker=dict(type='bool', required=True),
+        allow_blocker=dict(type='bool', default=False),
         allow_exception=dict(type='bool', required=True),
         allow_pkg_dupes=dict(type='bool', required=True),
         supports_component_acl=dict(type='bool', required=True),
