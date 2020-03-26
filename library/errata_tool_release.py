@@ -110,9 +110,11 @@ options:
      required: false
    allow_pkg_dupes:
      description:
-       - Allow duplicate advisories for packages
+       - Allow duplicate advisories for packages. Only relevant for
+         QuarterlyUpdate releases.
      choices: [true, false]
-     required: true
+     default: false
+     required: false
    supports_component_acl:
      description:
        - If true, every Bugzilla ticket's component must be on the Approved
@@ -350,7 +352,7 @@ def run_module():
         allow_shadow=dict(type='bool', default=False),
         allow_blocker=dict(type='bool', default=False),
         allow_exception=dict(type='bool', default=False),
-        allow_pkg_dupes=dict(type='bool', required=True),
+        allow_pkg_dupes=dict(type='bool', default=False),
         supports_component_acl=dict(type='bool', required=True),
         limit_bugs_by_product=dict(type='bool', required=True),
         state_machine_rule_set=dict(),
