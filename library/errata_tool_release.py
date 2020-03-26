@@ -103,8 +103,11 @@ options:
      default: false
      required: false
    allow_exception:
+     description:
+       - Only relevant for QuarterlyUpdate releases.
      choices: [true, false]
-     required: true
+     default: false
+     required: false
    allow_pkg_dupes:
      description:
        - Allow duplicate advisories for packages
@@ -346,7 +349,7 @@ def run_module():
         ship_date=dict(),
         allow_shadow=dict(type='bool', default=False),
         allow_blocker=dict(type='bool', default=False),
-        allow_exception=dict(type='bool', required=True),
+        allow_exception=dict(type='bool', default=False),
         allow_pkg_dupes=dict(type='bool', required=True),
         supports_component_acl=dict(type='bool', required=True),
         limit_bugs_by_product=dict(type='bool', required=True),
