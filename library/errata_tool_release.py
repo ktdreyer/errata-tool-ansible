@@ -86,7 +86,10 @@ options:
        - Default ship date for new advisories. "YYYY-MM-DD"
        - Note that you cannot use YAML's native date type here. You must quote
          the date value so that YAML passes a string to Ansible.
-     required: true
+       - If the release is a QuarterlyUpdate release, ship_date is required.
+         If it is ZStream or Async, ship_date is not required.
+     required: true for QuarterlyUpdate releases only, false for others
+     default: null
    allow_shadow:
      choices: [true, false]
      required: true
@@ -200,7 +203,8 @@ def get_release(client, name):
     # The API returns a full timestamp "ship_date", but we only accept
     # "YYYY-MM-DD" in Ansible. "dateutil" would be more robust, but I'm trying
     # to keep the dependencies light for this initial implementation.
-    release['ship_date'] = release['ship_date'][:10]
+    if release['ship_date'] is not None:
+        release['ship_date'] = release['ship_date'][:10]
 
     return release
 
@@ -333,7 +337,7 @@ def run_module():
         blocker_flags=dict(type='list', default=[]),
         internal_target_release=dict(),
         zstream_target_release=dict(),
-        ship_date=dict(required=True),
+        ship_date=dict(),
         allow_shadow=dict(type='bool', required=True),
         allow_blocker=dict(type='bool', required=True),
         allow_exception=dict(type='bool', required=True),
