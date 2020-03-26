@@ -120,8 +120,10 @@ options:
        - If true, every Bugzilla ticket's component must be on the Approved
          Component List (true) for this release. If false, ET will not consult
          the Bugzilla Approved Component List for this release.
+       - Only relevant for QuarterlyUpdate releases.
      choices: [true, false]
-     required: true
+     default: false
+     required: false
    limit_bugs_by_product:
      choices: [true, false]
      required: true
@@ -353,7 +355,7 @@ def run_module():
         allow_blocker=dict(type='bool', default=False),
         allow_exception=dict(type='bool', default=False),
         allow_pkg_dupes=dict(type='bool', default=False),
-        supports_component_acl=dict(type='bool', required=True),
+        supports_component_acl=dict(type='bool', default=False),
         limit_bugs_by_product=dict(type='bool', required=True),
         state_machine_rule_set=dict(),
         pelc_product_version_name=dict(),
