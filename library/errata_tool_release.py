@@ -91,8 +91,11 @@ options:
      required: true for QuarterlyUpdate releases only, false for others
      default: null
    allow_shadow:
+     description:
+       - Only relevant for QuarterlyUpdate releases.
      choices: [true, false]
-     required: true
+     default: false
+     required: false
    allow_blocker:
      choices: [true, false]
      required: true
@@ -338,7 +341,7 @@ def run_module():
         internal_target_release=dict(),
         zstream_target_release=dict(),
         ship_date=dict(),
-        allow_shadow=dict(type='bool', required=True),
+        allow_shadow=dict(type='bool', default=False),
         allow_blocker=dict(type='bool', required=True),
         allow_exception=dict(type='bool', required=True),
         allow_pkg_dupes=dict(type='bool', required=True),
