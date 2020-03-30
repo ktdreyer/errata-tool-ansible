@@ -28,6 +28,28 @@ class TestGetUser(object):
         user = get_user(client, 'me@redhat.com')
         assert user is None
 
+    def test_found_http_404(self, client):
+        # ET currently returns HTTP 404 for users with some Kerberos realm
+        # suffixes.
+        # Delete this test when ERRATA-9723 is resolved.
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@IPA.REDHAT.COM',
+            status_code=404)
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/user/find_user',
+            headers={
+                'Location': 'https://errata.devel.redhat.com/user/123456',
+            },
+            status_code=302)
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/123456',
+            json=USER)
+        user = get_user(client, 'me@IPA.REDHAT.COM')
+        assert user == USER
+
     def test_not_found(self, client):
         # This test will match the ET server once ERRATA-9723 is resolved.
         client.adapter.register_uri(
