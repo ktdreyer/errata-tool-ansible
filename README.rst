@@ -135,6 +135,30 @@ Errata Tool.
         rhel_variant: 8Base
         push_targets: []
 
+errata_tool_cdn_repo
+--------------------
+
+The ``errata_tool_cdn_repo`` module can create or update CDN Repos within the
+Errata Tool.
+
+.. code-block:: yaml
+
+    - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
+      errata_tool_cdn_repo:
+        name: redhat-rhceph-rhceph-4-rhel8
+        release_type: Primary
+        content_type: Docker
+        variants:
+        - 8Base-RHCEPH-4.0-Tools
+        packages:
+          rhceph-container:
+          - latest
+          - "{{ '{{' }}version{{ '}}' }}"
+          - "{{ '{{' }}version{{ '}}' }}-{{ '{{' }}release{{ '}}' }}"
+
+Note that if you want to use a tag string like ``{{version}}`` for your
+package, you must escape the double brackets for Ansible, like
+``"{{ '{{' }}version{{ '}}' }}"``.
 
 errata_tool_user
 ----------------
