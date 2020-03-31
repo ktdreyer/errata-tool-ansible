@@ -187,6 +187,21 @@ def scrape_error_explanation(response):
     return errors
 
 
+def scrape_error_message(response):
+    """
+    Return the text inside "<div class="error-message"> ... </div>"
+    in this HTML response.
+
+    :param response: Requests.response object
+    :returns: message text (str)
+    """
+    content = response.text
+    doc = html.document_fromstring(content)
+    divs = doc.xpath('//div[@id="error-message"]//text()')
+    errors = [div.strip() for div in divs]
+    return errors
+
+
 def html_form_data(client, params):
     """ Transform our Ansible params into an HTML form "data" for POST'ing.
     """
@@ -220,8 +235,9 @@ def handle_form_errors(response):
         raise RuntimeError(response.text)
     if response.status_code == 403:
         # Possibly a lack of permissions (eg. setting the CPE text).
-        # Not sure what exactly to screen-scrape here, so we'll raise the
-        # whole response body for logging for now.
+        errors = scrape_error_message(response)
+        if errors:
+            raise RuntimeError(errors)
         raise RuntimeError(response.text)
     response.raise_for_status()
 
