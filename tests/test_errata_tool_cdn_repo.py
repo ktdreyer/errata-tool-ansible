@@ -323,8 +323,8 @@ class TestGetPackageTags(object):
                 '{{version}}': {'id': 13859},
                 'latest': {'id': 13860},
                 'my-variant-restricted-tag': {
-                  'variant': '8Base-RHCEPH-4.0-Tools',
-                  'id': 99999,
+                    'variant': '8Base-RHCEPH-4.0-Tools',
+                    'id': 99999,
                 }
             },
         }
