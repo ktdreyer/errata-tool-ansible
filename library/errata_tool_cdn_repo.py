@@ -56,6 +56,25 @@ options:
      required: true
 '''
 
+EXAMPLES = '''
+- name: create cdn repositories
+  hosts: localhost
+  tasks:
+  - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
+    errata_tool_cdn_repo:
+      name: redhat-rhceph-rhceph-4-rhel8
+      release_type: Primary
+      content_type: Docker
+      variants:
+      - 8Base-RHCEPH-4.0-Tools
+      - 8Base-RHCEPH-4.1-Tools
+      packages:
+        rhceph-container:
+        - latest
+        - "{{ '{{' }}version{{ '}}' }}"
+        - "{{ '{{' }}version{{ '}}' }}-{{ '{{' }}release{{ '}}' }}"
+'''
+
 CDN_RELEASE_TYPES = [
     'Primary',
     'EUS',
