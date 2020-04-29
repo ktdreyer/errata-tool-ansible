@@ -52,7 +52,10 @@ options:
      description:
        - A dict of packages for this CDN repo. Each dict key is the package
          name, and the value is the list of tags for the package.
-       - TODO: allow tags to be strings or dicts.
+       - Each tag can be a string or a dict. If the tag is a string, the
+         Errata Tool will apply this package's tag to all variants. If the tag
+         is a dict, the Errata Tool will apply the package's tag to the single
+         variant that you specify in the dict.
      required: true
 '''
 
@@ -73,6 +76,20 @@ EXAMPLES = '''
         - latest
         - "{{ '{{' }}version{{ '}}' }}"
         - "{{ '{{' }}version{{ '}}' }}-{{ '{{' }}release{{ '}}' }}"
+
+  - name: Add a repo with a restricted tag
+    errata_tool_cdn_repo:
+      name: redhat-fooproduct-1-rhel8
+      release_type: Primary
+      content_type: Docker
+      variants:
+      - 8Base-FOO-1.0-Tools
+      - 8Base-FOO-1.1-Tools
+      packages:
+        foo-container:
+        - latest
+        - my-restricted-variant-tag:
+            variant: 8Base-FOO-1.0-Tools
 '''
 
 CDN_RELEASE_TYPES = [
