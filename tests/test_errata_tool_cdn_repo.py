@@ -307,6 +307,30 @@ class TestGetCdnRepo(object):
         }
         assert cdn_repo == expected
 
+    def test_no_packages(self, client):
+        cdn_repo = deepcopy(CDN_REPO)
+        del cdn_repo['relationships']['packages']
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/cdn_repos',
+            json={'data': [cdn_repo]})
+        name = 'redhat-rhceph-rhceph-4-rhel8'
+        cdn_repo = get_cdn_repo(client, name)
+        expected = {
+            'id': 11010,
+            'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'release_type': 'Primary',
+            'use_for_tps': False,
+            'content_type': 'Docker',
+            'arch': 'multi',
+            'variants': [
+                '8Base-RHCEPH-4.0-Tools',
+                '8Base-RHCEPH-4.1-Tools',
+            ],
+            'package_names': []
+        }
+        assert cdn_repo == expected
+
 
 class TestGetPackageTags(object):
 
