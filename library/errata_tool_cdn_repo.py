@@ -199,8 +199,8 @@ def get_cdn_repo(client, name, cdn_repo_data=None):
     cdn_repo['variants'] = variants
 
     # packages (names only)
-    package_names = [package['name'] for package in
-                     cdn_repo_data['relationships']['packages']]
+    packages = cdn_repo_data['relationships'].get('packages', [])
+    package_names = [package['name'] for package in packages]
     cdn_repo['package_names'] = package_names
     return cdn_repo
 
