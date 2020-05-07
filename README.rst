@@ -231,8 +231,6 @@ TODO
 
 * Integration tests
 
-* Maybe package as an `Ansible Collection
+* Package as an `Ansible Collection
   <https://galaxy.ansible.com/docs/contributing/creating_collections.html>`_
-  so that this can easily live alongside koji-ansible. This will depend on
-  some `usability features in ansible-galaxy
-  <https://github.com/ansible/ansible/pull/65676>`_.
+  so that this can easily live alongside koji-ansible.
