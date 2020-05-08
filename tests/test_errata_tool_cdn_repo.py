@@ -770,7 +770,7 @@ class TestMain(object):
         return fake
 
     @pytest.fixture
-    def module_args(self):
+    def container_module_args(self):
         return {
             'name': 'redhat-rhceph-rhceph-4-rhel8',
             'release_type': 'Primary',
@@ -787,8 +787,8 @@ class TestMain(object):
             ]},
         }
 
-    def test_simple(self, module_args):
-        set_module_args(module_args)
+    def test_simple_container(self, container_module_args):
+        set_module_args(container_module_args)
         with pytest.raises(AnsibleExitJson) as exit:
             main()
         result = exit.value.args[0]
@@ -800,20 +800,20 @@ class TestMain(object):
         ('Debuginfo', 'x86_64'),
         ('Source',    'x86_64'),
     ])
-    def test_default_arch(self, module_args, fake_ensure_cdn_repo,
+    def test_default_arch(self, container_module_args, fake_ensure_cdn_repo,
                           content_type, expected):
-        module_args['arch'] = None
-        module_args['content_type'] = content_type
-        set_module_args(module_args)
+        container_module_args['arch'] = None
+        container_module_args['content_type'] = content_type
+        set_module_args(container_module_args)
         with pytest.raises(AnsibleExitJson):
             main()
         _, _, params = fake_ensure_cdn_repo.args
         assert params['arch'] == expected
 
-    def test_docker_arch_fail(self, module_args):
-        module_args['content_type'] = 'Docker'
-        module_args['arch'] = 'x86_64'
-        set_module_args(module_args)
+    def test_docker_arch_fail(self, container_module_args):
+        container_module_args['content_type'] = 'Docker'
+        container_module_args['arch'] = 'x86_64'
+        set_module_args(container_module_args)
         with pytest.raises(AnsibleFailJson) as exit:
             main()
         result = exit.value.args[0]
