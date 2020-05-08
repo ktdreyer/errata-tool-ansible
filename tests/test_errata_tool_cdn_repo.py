@@ -745,6 +745,28 @@ class TestEnsureCdnRepo(object):
         assert result['changed'] is True
         assert set(result['stdout_lines']) == set(expected_stdout_lines)
 
+    def test_no_packages(self, client):
+        params = {
+            'name': 'rhceph-4-tools-for-rhel-8-x86_64-rpms',
+            'release_type': 'Primary',
+            'content_type': 'Binary',
+            'use_for_tps': True,
+            'arch': 'x86_64',
+            'variants': ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools'],
+            'packages': {},
+        }
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/cdn_repos',
+            json={'data': []})
+        check_mode = True
+        result = ensure_cdn_repo(client, check_mode, params)
+        expected = {
+            'changed': True,
+            'stdout_lines': ['created rhceph-4-tools-for-rhel-8-x86_64-rpms'],
+        }
+        assert result == expected
+
 
 class TestMain(object):
 
@@ -786,6 +808,21 @@ class TestMain(object):
                     {'variant': '8Base-RHCEPH-4.0-Tools'}}
             ]},
         }
+
+    def test_simple_rpms(self):
+        module_args = {
+            'name': 'rhceph-4-tools-for-rhel-8-x86_64-rpms',
+            'release_type': 'Primary',
+            'content_type': 'Binary',
+            'use_for_tps': True,
+            'arch': 'x86_64',
+            'variants': ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools'],
+        }
+        set_module_args(module_args)
+        with pytest.raises(AnsibleExitJson) as exit:
+            main()
+        result = exit.value.args[0]
+        assert result['changed'] is True
 
     def test_simple_container(self, container_module_args):
         set_module_args(container_module_args)

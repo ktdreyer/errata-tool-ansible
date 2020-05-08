@@ -56,13 +56,29 @@ options:
          Errata Tool will apply this package's tag to all variants. If the tag
          is a dict, the Errata Tool will apply the package's tag to the single
          variant that you specify in the dict.
-     required: true
+       - If you omit this parameter, Ansible will remove all the existing
+         packages from this repository. You should omit this parameter for
+         repositories that are not content_type: Docker.
+     required: false
+     default: {} (no packages)
 '''
 
 EXAMPLES = '''
 - name: create cdn repositories
   hosts: localhost
   tasks:
+
+  - name: Add rhceph-4-tools-for-rhel-8-x86_64-rpms cdn repo
+    errata_tool_cdn_repo:
+      name: redhat-rhceph-rhceph-4-rhel8
+      release_type: Primary
+      content_type: Binary
+      use_for_tps: True
+      arch: x86_64
+      variants:
+      - 8Base-RHCEPH-4.0-Tools
+      - 8Base-RHCEPH-4.1-Tools
+
   - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
     errata_tool_cdn_repo:
       name: redhat-rhceph-rhceph-4-rhel8
@@ -525,7 +541,7 @@ def run_module():
         arch=dict(),
         use_for_tps=dict(type='bool', default=False),
         variants=dict(type='list', required=True),
-        packages=dict(type='dict', required=True),
+        packages=dict(type='dict', default={}),
     )
     module = AnsibleModule(
         argument_spec=module_args,
