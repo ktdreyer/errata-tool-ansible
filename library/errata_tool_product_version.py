@@ -101,6 +101,10 @@ options:
        - What are the consequences of a completely empty brew_tag list? This
          might be answered in ERRATA-9713.
      required: true
+requirements:
+  - "python >= 2.7"
+  - "lxml"
+  - "requests-gssapi"
 '''
 
 

@@ -63,6 +63,10 @@ options:
      choices: [rhn_live, rhn_stage, cdn, cdn_stage, altsrc, cdn_docker,
                cdn_docker_stage]
      required: true
+requirements:
+  - "python >= 2.7"
+  - "lxml"
+  - "requests-gssapi"
 '''
 
 

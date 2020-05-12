@@ -150,6 +150,10 @@ options:
        - Set to an empty list "[]" to simply inherit the brew_tags
          configuration from this release's ... Product Versions?.
      required: true
+requirements:
+  - "python >= 2.7"
+  - "lxml"
+  - "requests-gssapi"
 '''
 
 

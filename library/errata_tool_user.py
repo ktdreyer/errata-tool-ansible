@@ -49,6 +49,10 @@ options:
      description:
        - A list of roles for this user, for example ["pm"]
      required: false
+requirements:
+  - "python >= 2.7"
+  - "lxml"
+  - "requests-gssapi"
 '''
 
 
