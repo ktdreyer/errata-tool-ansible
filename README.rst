@@ -178,6 +178,23 @@ Tool.
         - pm
 
 
+Python dependencies
+-------------------
+
+These Ansible modules require the `requests-gssapi
+<https://pypi.org/project/requests-gssapi/>`_ and `lxml
+<https://pypi.org/project/lxml/>`_ Python libraries. You must install these
+libraries on the host where Ansible will execute (typically localhost).
+
+On RHEL 7::
+
+    yum -y install python-requests-gssapi python-lxml
+
+On RHEL 8 and Fedora::
+
+    yum -y install python3-requests-gssapi python3-lxml
+
+
 Errata Tool environment
 -----------------------
 These modules operate on the production Errata Tool environment by default.

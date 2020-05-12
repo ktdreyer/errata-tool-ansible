@@ -61,6 +61,10 @@ options:
          repositories that are not content_type: Docker.
      required: false
      default: {} (no packages)
+requirements:
+  - "python >= 2.7"
+  - "lxml"
+  - "requests-gssapi"
 '''
 
 EXAMPLES = '''

@@ -92,6 +92,10 @@ options:
    text_only_advisories_require_dists:
      choices: [true, false]
      default: true
+requirements:
+  - "python >= 2.7"
+  - "lxml"
+  - "requests-gssapi"
 '''
 
 
