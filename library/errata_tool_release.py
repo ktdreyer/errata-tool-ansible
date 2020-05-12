@@ -1,7 +1,5 @@
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
-from lxml import html
-import re
 
 
 ANSIBLE_METADATA = {
