@@ -179,7 +179,10 @@ def scrape_pre(response):
 
 def scrape_error_explanation(response):
     """
-    Return the text inside "<div class="errorExplanation"> ... </div>" in this HTML response.
+    Return the text inside the errorExplanation HTML
+
+    Looks for "<div class="errorExplanation"> ... </div>" in this HTML
+    response.
 
     :param response: Requests.response object
     :returns: message text (str)
