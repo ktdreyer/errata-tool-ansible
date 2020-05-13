@@ -228,8 +228,8 @@ def html_form_data(client, params):
     if params['cpe'] is not None:
         data['variant[cpe]'] = params['cpe']
     # push targets need scraper
-    push_target_scraper = common_errata_tool.PushTargetScraper(client)
-    push_target_ints = push_target_scraper.convert_to_ints(params['push_targets'])
+    scraper = common_errata_tool.PushTargetScraper(client)
+    push_target_ints = scraper.convert_to_ints(params['push_targets'])
     data['variant[push_targets][]'] = push_target_ints
     data['variant[buildroot]'] = int(params['buildroot'])
     return data
