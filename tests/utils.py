@@ -2,6 +2,7 @@
 Test helpers, copied from ansible's test/units/modules/utils.py
 """
 
+import os
 import json
 
 from ansible.module_utils import basic
@@ -35,3 +36,17 @@ def exit_json(*args, **kwargs):
 def fail_json(*args, **kwargs):
     kwargs['failed'] = True
     raise AnsibleFailJson(kwargs)
+
+
+def load_json(filename):
+    """
+    Load a JSON fixture file from disk
+
+    :returns: dict
+    """
+    tests_dir = os.path.dirname(os.path.abspath(__file__))
+    fixtures_dir = os.path.join(tests_dir, 'fixtures')
+    path = os.path.join(fixtures_dir, filename)
+    with open(path) as json_file:
+        data = json.load(json_file)
+    return data
