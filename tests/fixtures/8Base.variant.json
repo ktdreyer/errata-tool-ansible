@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "id": 2235,
+      "type": "variants",
+      "attributes": {
+        "name": "8Base",
+        "description": "Dummy RHEL8 variant for layered products configuration",
+        "cpe": "",
+        "enabled": true,
+        "buildroot": false,
+        "relationships": {
+          "product": {
+            "id": 16,
+            "name": "Red Hat Enterprise Linux",
+            "short_name": "RHEL"
+          },
+          "product_version": {
+            "id": 883,
+            "name": "RHEL-8"
+          },
+          "rhel_release": {
+            "id": 87,
+            "name": "RHEL-8"
+          },
+          "rhel_variant": {
+            "id": 2235,
+            "name": "8Base"
+          }
+        }
+      }
+    }
+  ]
+}

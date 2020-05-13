@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "id": 2341,
+      "type": "variants",
+      "attributes": {
+        "name": "8Base-RHCEPH-4.0-Tools",
+        "description": "Red Hat Ceph Storage 4.0 Tools",
+        "cpe": "cpe:/a:redhat:ceph_storage:4::el8",
+        "enabled": true,
+        "buildroot": false,
+        "relationships": {
+          "product": {
+            "id": 104,
+            "name": "Red Hat Ceph Storage",
+            "short_name": "RHCEPH"
+          },
+          "product_version": {
+            "id": 929,
+            "name": "RHCEPH-4.0-RHEL-8"
+          },
+          "rhel_release": {
+            "id": 87,
+            "name": "RHEL-8"
+          },
+          "rhel_variant": {
+            "id": 2235,
+            "name": "8Base"
+          }
+        }
+      }
+    }
+  ]
+}
