@@ -23,6 +23,7 @@ PROD = 'https://errata.devel.redhat.com'
 
 
 class FakeErrorResponse(object):
+    """ Fake requests.Response """
     pass
 
 
