@@ -1,8 +1,5 @@
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.six import string_types
 from ansible.module_utils import common_errata_tool
-from lxml import html
-import re
 
 
 ANSIBLE_METADATA = {
@@ -70,60 +67,6 @@ requirements:
 '''
 
 
-def normalize_scraped(text):
-    """
-    Transform human-readable values that we've scraped from the webpage
-    """
-    lower = text.lower()
-    if lower == 'none':
-        return None
-    if ',' in lower:
-        sections = re.split(', *', lower)
-        return [normalize_scraped(section) for section in sections]
-    return re.sub(r'[^a-z0-9]', '_', lower)
-
-
-def scrape_variant_view(client, product_version, variant):
-    """
-    Scrape the one attribute we need: push_targets.
-
-    ERRATA-9708
-
-    :returns: a single key dict, {'push_targets': [...]}
-    """
-    keys_to_scrape = [
-        'allowable_push_targets',
-    ]
-    url = 'product_versions/%s/variants/%s' % (product_version, variant)
-    r = client.get(url)
-    r.raise_for_status()
-    content = r.text
-    doc = html.document_fromstring(content)
-    rows = doc.xpath('//table[@class="fields"]/tr')
-    data = {}
-    for row in rows:
-        items = row.xpath('td//text()')
-        items = [item.strip() for item in items]
-        name = normalize_scraped(items[0])
-        if name not in keys_to_scrape:
-            continue
-        if len(items) == 1:
-            value = None
-        else:
-            value = items[1]
-        if name == 'allowable_push_targets':
-            name = 'push_targets'
-            value = normalize_scraped(value)
-            if value is None:
-                value = []
-            if isinstance(value, string_types):
-                value = [value]
-        data[name] = value
-    if not data:
-        raise RuntimeError('scraper found nothing')
-    return data
-
-
 def get_variant(client, name):
     """
     Get information about a variant in the Errata Tool, and simplify it into
@@ -155,134 +98,47 @@ def get_variant(client, name):
     variant['product'] = relationships['product']['short_name']
     variant['product_version'] = relationships['product_version']['name']
     variant['rhel_variant'] = relationships['rhel_variant']['name']
-    # push_targets is not yet available (ERRATA-9708)
-    if 'push_targets' in relationships:
-        push_targets = [pt['name'] for pt in relationships['push_targets']]
-        variant['push_targets'] = push_targets
-    else:
-        # screen-scrape push_targets
-        additional = scrape_variant_view(client, variant['product_version'],
-                                         name)
-        variant.update(additional)
+    push_targets = [pt['name'] for pt in relationships['push_targets']]
+    variant['push_targets'] = push_targets
     return variant
 
 
-def scrape_pre(response):
-    """
-    Return the text inside "<pre> ... </pre>" in this HTML response.
-
-    :param response: Requests.response object
-    :returns: message text (str)
-    """
-    content = response.text
-    doc = html.document_fromstring(content)
-    pres = doc.xpath('//pre')
-    if len(pres) != 1:
-        print('expected 1 <pre>, found %s' % len(pres))
-        raise ValueError(response.text)
-    pre = pres[0]
-    message = pre.text_content().strip()
-    return message
-
-
-def scrape_error_explanation(response):
-    """
-    Return the text inside the errorExplanation HTML
-
-    Looks for "<div class="errorExplanation"> ... </div>" in this HTML
-    response.
-
-    :param response: Requests.response object
-    :returns: message text (str)
-    """
-    content = response.text
-    doc = html.document_fromstring(content)
-    lis = doc.xpath('//div[@class="errorExplanation"]//li/text()')
-    errors = [li.strip() for li in lis]
-    return errors
-
-
-def scrape_error_message(response):
-    """
-    Return the text inside "<div class="error-message"> ... </div>"
-    in this HTML response.
-
-    :param response: Requests.response object
-    :returns: message text (str)
-    """
-    content = response.text
-    doc = html.document_fromstring(content)
-    divs = doc.xpath('//div[@id="error-message"]//text()')
-    errors = [div.strip() for div in divs]
-    return errors
-
-
-def html_form_data(client, params):
-    """ Transform our Ansible params into an HTML form "data" for POST'ing.
-    """
-    data = {}
-    rhel_variant = get_variant(client, params['rhel_variant'])
-    data['variant[rhel_variant_id]'] = rhel_variant['id']
-    data['variant[name]'] = params['name']
-    data['variant[description]'] = params['description']
-    if params['cpe'] is not None:
-        data['variant[cpe]'] = params['cpe']
-    # push targets need scraper
-    scraper = common_errata_tool.PushTargetScraper(client)
-    push_target_ints = scraper.convert_to_ints(params['push_targets'])
-    data['variant[push_targets][]'] = push_target_ints
-    data['variant[buildroot]'] = int(params['buildroot'])
-    return data
-
-
-def handle_form_errors(response):
-    # If there are incorrect or missing fields, we will receive a HTTP 200
-    # with a list of the wrong fields, or just an HTTP 500 error.
-    if response.status_code == 500:
-        message = scrape_pre(response)
-        raise RuntimeError(message)
-    if 'errorExplanation' in response.text:
-        errors = scrape_error_explanation(response)
-        if errors:
-            raise RuntimeError(errors)
-        # scrape_error_explanation() failed in some way. Fall back to raising
-        # the entire HTML body:
-        raise RuntimeError(response.text)
-    if response.status_code == 403:
-        # Possibly a lack of permissions (eg. setting the CPE text).
-        errors = scrape_error_message(response)
-        if errors:
-            raise RuntimeError(errors)
-        raise RuntimeError(response.text)
-    response.raise_for_status()
-
-
 def create_variant(client, params):
-    """ See ERRATA-9717 for official create API """
-    # Form is /product_versions/RHCEPH-4.0-RHEL-8/variants/new
-    data = html_form_data(client, params)
-    url = 'product_versions/%s/variants' % params['product_version']
-    response = client.post(url, data=data)
-    handle_form_errors(response)
+    """
+    Create a new ET variant
+
+    :param client: Errata Client
+    :param dict params: ansible module params
+    """
+    data = {'variant': params}
+    response = client.post('api/v1/variants', json=data)
+    if response.status_code != 201:
+        data = response.json()
+        raise ValueError(data['error'])
 
 
-def edit_variant(client, product_version, variant_id, params):
+def edit_variant(client, variant_id, differences):
     """
     Edit an existing variant.
 
     See ERRATA-9717 for official edit API.
 
     :param client: Errata Client
-    :param str product_version: name of the PV for this variant
     :param int variant_id: ID number for the variant
-    :param dict params: ansible module params
+    :param list differences: changes to make
     """
-    endpoint = 'product_versions/%s/variants/%d' % (product_version,
-                                                    variant_id)
-    data = html_form_data(client, params)
-    data['_method'] = 'patch'
-    response = client.post(endpoint, data=data)
-    handle_form_errors(response)
+    # Create a Ansible params-like dict for the API.
+    params = {}
+    for difference in differences:
+        key, _, new = difference
+        params[key] = new
+    endpoint = 'api/v1/variants/%d' % variant_id
+    data = {'variant': params}
+    response = client.put(endpoint, json=data)
+    # TODO: verify 200 is the right code to expect here?
+    if response.status_code != 200:
+        data = response.json()
+        raise ValueError(data['error'])
 
 
 def ensure_variant(client, params, check_mode):
@@ -304,8 +160,7 @@ def ensure_variant(client, params, check_mode):
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
         if not check_mode:
-            edit_variant(client, variant['product_version'], variant['id'],
-                         params)
+            edit_variant(client, variant['id'], differences)
     return result
 
 

@@ -9,6 +9,7 @@
         "cpe": "cpe:/a:redhat:ceph_storage:4::el8",
         "enabled": true,
         "buildroot": false,
+        "tps_stream": "RHEL-8-Main-Base",
         "relationships": {
           "product": {
             "id": 104,
@@ -26,7 +27,13 @@
           "rhel_variant": {
             "id": 2235,
             "name": "8Base"
-          }
+          },
+          "push_targets": [
+            {
+              "id": 4,
+              "name": "cdn"
+            }
+          ]
         }
       }
     }
