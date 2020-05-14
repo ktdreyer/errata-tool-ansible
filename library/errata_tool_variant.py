@@ -125,6 +125,14 @@ def scrape_variant_view(client, product_version, variant):
 
 
 def get_variant(client, name):
+    """
+    Get information about a variant in the Errata Tool, and simplify it into
+    a format we can compare with our Ansible parameters.
+
+    :param client: Errata Client
+    :param str name: Variant name to search
+    :returns: dict of information about this variant, or None
+    """
     # We cannot get the name directly yet, ERRATA-9715
     # r = client.get('api/v1/variants/%s' % name)
     r = client.get('api/v1/variants?filter[name]=%s' % name)
