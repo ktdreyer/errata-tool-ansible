@@ -230,7 +230,8 @@ def get_cdn_repo(client, name, cdn_repo_data=None):
 
     :param client: Errata Client
     :param str name: CDN Repository name
-    :param dict name: cdn_repo_data (eg. from an earlier POST response)
+    :param dict cdn_repo_data: data about this CDN repository (eg. from an
+                               earlier POST response).
     :returns: dict of information about this CDN repository
     """
     if cdn_repo_data is None:
