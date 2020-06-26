@@ -90,6 +90,10 @@ options:
      choices: [true, false]
      default: false
    text_only_advisories_require_dists:
+     description:
+       - Does the product require channels or repos for text-only advisories?
+         For instance many Middleware products have no presence on RHN or RHSM,
+         so set this to false to allow pushes without channels or repos.
      choices: [true, false]
      default: true
 requirements:
