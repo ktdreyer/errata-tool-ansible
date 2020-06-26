@@ -30,7 +30,7 @@ options:
      required: true
    content_type:
      description:
-       - "Binary" for RPMs, "Docker" for containers.
+       - '"Binary" for RPMs, "Docker" for containers.'
      choices: [Binary, Debuginfo, Source, Docker]
      required: true
    variants:
@@ -42,7 +42,7 @@ options:
        - The architecture for this CDN repo. You can only set this for
          non-Docker (ie RPM) repos. Docker will always be "multi".
      choices: [i386, ia64, s390, x86_64, s390x, ppc, ppc64, aarch64, ppc64le]
-     default: "x86_64" for RPMs, "multi" for Docker.
+     default: '"x86_64" for RPMs, "multi" for Docker.'
    use_for_tps:
      description:
        - Use TPS for Scheduling
@@ -56,11 +56,11 @@ options:
          Errata Tool will apply this package's tag to all variants. If the tag
          is a dict, the Errata Tool will apply the package's tag to the single
          variant that you specify in the dict.
-       - If you omit this parameter, Ansible will remove all the existing
+       - "If you omit this parameter, Ansible will remove all the existing
          packages from this repository. You should omit this parameter for
-         repositories that are not content_type: Docker.
+         repositories that are not content_type: Docker."
      required: false
-     default: {} (no packages)
+     default: "{} (no packages)"
 requirements:
   - "python >= 2.7"
   - "lxml"
