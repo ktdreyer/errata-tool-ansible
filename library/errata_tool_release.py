@@ -19,21 +19,21 @@ description:
 options:
    product:
      description:
-       - example: RHCEPH
+       - "example: RHCEPH"
        - Async releases do not require a product.
      required: false
      default: null
    name:
      description:
-       - example: rhceph-4.0
+       - "example: rhceph-4.0"
      required: true
    description:
      description:
-       - example: Red Hat Ceph Storage 4.0
+       - "example: Red Hat Ceph Storage 4.0"
      required: true
    type:
      description:
-       - example: QuarterlyUpdate
+       - "example: QuarterlyUpdate"
      choices: [QuarterlyUpdate, Zstream, Async]
      required: true
    product_versions:
@@ -63,7 +63,7 @@ options:
    blocker_flags:
      description:
        - Bugzilla blocker flags (specify a list).
-       - Example: [ceph-3.0, devel_ack, qa_ack, pm_ack]
+       - "Example: [ceph-3.0, devel_ack, qa_ack, pm_ack]"
        - Optional for Async errata (or all advisories at this point?)
      required: false
      default: []
