@@ -86,7 +86,6 @@ options:
          the date value so that YAML passes a string to Ansible.
        - If the release is a QuarterlyUpdate release, ship_date is required.
          If it is ZStream or Async, ship_date is not required.
-     required: true for QuarterlyUpdate releases only, false for others
      default: null
    allow_shadow:
      description:
