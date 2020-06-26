@@ -19,11 +19,11 @@ description:
 options:
    name:
      description:
-       - example: 8Base-RHCEPH-4.0-Tools
+       - "example: 8Base-RHCEPH-4.0-Tools"
      required: true
    description:
      description:
-       - example: Red Hat Ceph Storage 4.0 Tools
+       - "example: Red Hat Ceph Storage 4.0 Tools"
      required: true
    cpe:
      description:
@@ -31,7 +31,7 @@ options:
          permissions to configure the cpe text value. If you omit this value,
          Ansible will not set it during variant creation or edit it on an
          existing variant.
-       - example: "cpe:/a:redhat:ceph_storage:4::el8"
+       - "example: cpe:/a:redhat:ceph_storage:4::el8"
      required: false
    enabled:
      description:
@@ -46,11 +46,11 @@ options:
      default: false
    product_version:
      description:
-       - example: RHCEPH-4.0-RHEL-8
+       - "example: RHCEPH-4.0-RHEL-8"
      required: true
    rhel_variant:
      description:
-       - example: 8Base
+       - "example: 8Base"
        - I'm guessing that only Layered Products require this, so it should
          not really be mandatory, but I'm unfamiliar with how RHEL itself is
          configured in the Errata Tool.
