@@ -34,9 +34,14 @@ options:
        - example: "cpe:/a:redhat:ceph_storage:4::el8"
      required: false
    enabled:
+     description:
+       - Enable or disable this variant.
      required: false
      default: true
    buildroot:
+     description:
+       - Buildroot variant would not be shipped anywhere but would provide the
+         basis in which to push the sources to git.centos.org.
      required: false
      default: false
    product_version:
