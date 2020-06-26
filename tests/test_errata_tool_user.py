@@ -77,3 +77,16 @@ class TestCreateUser(object):
             'https://errata.devel.redhat.com/api/v1/user',
             status_code=201)
         create_user(client, USER)
+        history = client.adapter.request_history
+        assert len(history) == 1
+        expected = {
+            'email_address': 'me@redhat.com',
+            'enabled': True,
+            'id': 123456,
+            'login_name': 'me@redhat.com',
+            'organization': 'Engineering',
+            'realname': 'Me Myself',
+            'receives_mail': False,
+            'roles': ['devel']
+        }
+        assert history[0].json() == expected
