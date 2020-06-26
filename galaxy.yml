@@ -8,7 +8,7 @@ authors:
 license:
   - GPL-3.0-or-later
 tags:
-  - errata-tool
+  - packaging
 repository: https://github.com/ktdreyer/errata-tool-ansible
 homepage: https://github.com/ktdreyer/errata-tool-ansible
 issues: https://github.com/ktdreyer/errata-tool-ansible/issues
