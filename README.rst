@@ -247,7 +247,3 @@ TODO
 * Unit tests
 
 * Integration tests
-
-* Package as an `Ansible Collection
-  <https://galaxy.ansible.com/docs/contributing/creating_collections.html>`_
-  so that this can easily live alongside koji-ansible.

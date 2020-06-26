@@ -13,6 +13,14 @@ jobs:
     - pip install coveralls
     - coveralls
 
+  - name: test collection build
+    install: pip install ansible
+    script: tests/integration/collection.sh
+    addons:
+     apt:
+       packages:
+       - pandoc
+
 cache:
   directories:
   - $HOME/.cache/pip
