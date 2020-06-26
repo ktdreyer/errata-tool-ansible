@@ -1,0 +1,50 @@
+#!/bin/bash
+set -eux
+
+# Construct our Ansible Collection in a temporary "_build" directory.
+
+TOPDIR=$(dirname "$(readlink -f "$0")")
+
+cd $TOPDIR
+
+rm -rf _build
+mkdir _build
+cd _build
+
+mkdir plugins
+cp $TOPDIR/COPYING .
+cp -r $TOPDIR/library/ plugins/modules
+cp -r $TOPDIR/module_utils/ plugins/module_utils/
+
+# Make our common_errata_tool imports compatible with Ansible Collections.
+sed -i \
+  -e  's/from ansible.module_utils import common_errata_tool/from ansible_collections.ktdreyer.errata_tool_ansible.plugins.module_utils import common_errata_tool/' \
+  plugins/modules/*.py
+
+# Sanity-check that we converted everything:
+set +x
+IMPORTS=$(grep "import " plugins/modules/*.py)
+COMMON_KOJI_IMPORTS=$(echo $IMPORTS | grep common_errata_tool)
+MISSED_IMPORTS=$(echo $COMMON_KOJI_IMPORTS | grep -v ansible_collections || :)
+set -x
+if [[ ! -z $MISSED_IMPORTS ]]; then
+  echo Failed to convert some files for ansible_collections:
+  echo $MISSED_IMPORTS
+  exit 1
+fi
+
+# Convert README from reStructuredText to Markdown.
+# Ansible Galaxy's Markdown engine plays best with markdown_strict.
+pandoc $TOPDIR/README.rst -f rst -t markdown_strict -o README.md
+
+# Determine our semver-compatible version number from Git.
+BASE_COMMIT=$(git rev-list --max-parents=0 HEAD)
+COMMIT_COUNT=$(($(git rev-list --count $BASE_COMMIT..HEAD) - 1))
+COMMIT_ABBREV=$(git rev-parse --short=8 HEAD)
+
+# Versions will always be 0.0.XXX, plus the Git commit sha identifier.
+VERSION="0.0.${COMMIT_COUNT}+git.${COMMIT_ABBREV}"
+
+sed $TOPDIR/galaxy.yml -e "s/{{ version }}/$VERSION/" > galaxy.yml
+
+ansible-galaxy collection build

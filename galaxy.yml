@@ -1,0 +1,14 @@
+namespace: ktdreyer
+name: errata_tool_ansible
+version: "{{ version }}"
+description: Ansible modules to manage Red Hat Errata Tool resources
+readme: README.md
+authors:
+  - Ken Dreyer <kdreyer@redhat.com>
+license:
+  - GPL-3.0-or-later
+tags:
+  - errata-tool
+repository: https://github.com/ktdreyer/errata-tool-ansible
+homepage: https://github.com/ktdreyer/errata-tool-ansible
+issues: https://github.com/ktdreyer/errata-tool-ansible/issues
