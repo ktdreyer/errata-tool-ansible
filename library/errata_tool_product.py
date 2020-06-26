@@ -21,19 +21,19 @@ description:
 options:
    short_name:
      description:
-       - example: RHCEPH
+       - "example: RHCEPH"
      required: true
    name:
      description:
-       - example: Red Hat Ceph Storage
+       - "example: Red Hat Ceph Storage"
      required: true
    description:
      description:
-       - example: Red Hat Ceph Storage
+       - "example: Red Hat Ceph Storage"
      required: true
    bugzilla_product:
      description:
-       - example: null
+       - "example: null"
      required: false
    bugzilla_states:
      description:
@@ -47,11 +47,11 @@ options:
      default: true
    ftp_path:
      description:
-       - example: null
+       - "example: null"
      default: false
    ftp_subdir:
      description:
-       - example: RHCEPH
+       - "example: RHCEPH"
      default: false
    internal:
      description:
@@ -79,14 +79,14 @@ options:
    state_machine_rule_set:
      description:
        - Workflow Rule Set
-     choices: See https://errata.devel.redhat.com/workflow_rules
+     choices: ["See https://errata.devel.redhat.com/workflow_rules"]
      required: true
    move_bugs_on_qe:
      description:
-       - "true" means: move the bugs to ON_QA when the advisory moves to QE
-         state.
-       - "false" means: move the bugs to ON_QA as soon as the bugs are
-         attached to the advisory.
+       - '"true" means: move the bugs to ON_QA when the advisory moves to QE
+         state.'
+       - '"false" means: move the bugs to ON_QA as soon as the bugs are
+         attached to the advisory.'
      choices: [true, false]
      default: false
    text_only_advisories_require_dists:
