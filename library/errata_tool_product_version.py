@@ -19,19 +19,20 @@ description:
 options:
    product:
      description:
-       - Product for this Product Version - example: RHCEPH
+       - Product for this Product Version
+       - "example: RHCEPH"
      required: true
    name:
      description:
-       - example: RHCEPH-4.0-RHEL-8
+       - "example: RHCEPH-4.0-RHEL-8"
      required: true
    description:
      description:
-       - example: Red Hat Ceph Storage 4.0
+       - "example: Red Hat Ceph Storage 4.0"
      required: true
    rhel_release_name:
      description:
-       - example: RHEL-8
+       - "example: RHEL-8"
      required: true
    sig_key_name:
      description:
@@ -45,7 +46,7 @@ options:
      description:
        - The default brew tag to use when validating that a build can be added
          to an advisory
-       - example: ceph-4.0-rhel-8-candidate
+       - "example: ceph-4.0-rhel-8-candidate"
        - You must specify this tag as one of the elements in the brew_tags
          list (see ERRATA-9713)
      required: true
@@ -61,8 +62,8 @@ options:
      default: true
    allow_rhn_debuginfo:
      description:
-       - "true" if -debuginfo rpms from this product version can be shipped to
-         RHN
+       - '"true" if -debuginfo rpms from this product version can be shipped to
+         RHN'
      choices: [true, false]
      required: true
    allow_buildroot_push:
