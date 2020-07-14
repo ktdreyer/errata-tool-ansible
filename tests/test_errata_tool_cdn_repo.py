@@ -578,6 +578,18 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
         assert len(client.adapter.request_history) == 2
         assert client.adapter.request_history[1].method == 'PUT'
 
+    def test_add_one_from_zero(self, client, name, check_mode):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/cdn_repo_package_tags',
+            json={'data': []})
+        packages = {'rhceph-container': {'latest': {}}}
+        result = ensure_packages_tags(client, name, check_mode, packages)
+        expected = ['adding "latest" tag template to "rhceph-container"']
+        assert result == expected
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'POST'
+
 
 class TestEnsurePackageTagsCheckMode(EnsurePackageTagsBase):
     """
