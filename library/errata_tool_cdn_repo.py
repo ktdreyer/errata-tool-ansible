@@ -195,9 +195,11 @@ def get_package_tags(client, name):
     :returns: dict of "packages: tag_templates". Each tag_template is a dict.
               If it has a "variant" key, then it is restricted to a variant.
               If it has no "variant" key, there are no restrictions for this
-              repo's package's tag_template.
+              repo's package's tag_template. If a package in this repo has no
+              tags, you must discover it with get_cdn_repo(), because this API
+              will not return it.
     """
-    # We will query all the packages for this repo.
+    # We will query all the packages' tags for this repo.
     # Example for looking up one single package in one single repo:
     # https://errata.devel.redhat.com/api/v1/cdn_repo_package_tags?filter[package_name]=ubi8-container&filter[cdn_repo_name]=redhat-ubi8
     page_number = 0
@@ -479,7 +481,7 @@ def ensure_packages_tags(client, name, check_mode, packages):
     current = get_package_tags(client, name)
 
     for package_name in packages:
-        current_tags = current[package_name]
+        current_tags = current.get(package_name, [])
         desired_tags = packages[package_name]
 
         package_changes = ensure_package_tags(client,
