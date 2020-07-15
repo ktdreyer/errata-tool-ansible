@@ -153,12 +153,12 @@ Errata Tool.
         packages:
           rhceph-container:
           - latest
-          - "{{ '{{' }}version{{ '}}' }}"
-          - "{{ '{{' }}version{{ '}}' }}-{{ '{{' }}release{{ '}}' }}"
+          - "{% raw %}{{version}}{% endraw %}"
+          - "{% raw %}{{version}}-{{release}}{% endraw %}"
 
 Note that if you want to use a tag string like ``{{version}}`` for your
-package, you must escape the double brackets for Ansible, like
-``"{{ '{{' }}version{{ '}}' }}"``.
+package, you must escape the double brackets for Ansible with the
+``{% raw %} ... {% endraw %}`` syntax.
 
 errata_tool_user
 ----------------
