@@ -324,7 +324,8 @@ def add_package_tag(client, repo_name, package_name, tag_template, variant):
     response = client.post(endpoint, json=json)
     if response.status_code != 201:
         data = response.json()
-        raise ValueError(data['error'])
+        message = 'request: %s, error: %s' % (json, data['error'])
+        raise ValueError(message)
 
 
 def edit_package_tag(client, tag_id, desired_tag):
