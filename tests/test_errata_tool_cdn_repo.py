@@ -406,7 +406,12 @@ class TestAddPackageTag(object):
             json={'status': 400, 'error': 'Bad Request'})
         with pytest.raises(ValueError) as err:
             add_package_tag(client, '', '', 'latest', None)
-        assert str(err.value) == 'Bad Request'
+        request = {'cdn_repo_package_tag':
+                   {'cdn_repo_name': '',
+                    'package_name': '',
+                    'tag_template': 'latest'}}
+        expected = 'request: %s, error: Bad Request' % request
+        assert str(err.value) == expected
 
 
 class TestNormalize(object):
