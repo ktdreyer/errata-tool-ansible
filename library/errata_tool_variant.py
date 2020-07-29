@@ -51,10 +51,16 @@ options:
    rhel_variant:
      description:
        - "example: 8Base"
-       - I'm guessing that only Layered Products require this, so it should
-         not really be mandatory, but I'm unfamiliar with how RHEL itself is
-         configured in the Errata Tool.
-     required: true
+       - When rhel_variant is missing then current variant is marked as
+         rhel_variant.
+         Layered Products ruquire this.
+       - When rhel_variant is not defined then tps_stream has to be defined.
+     required: false
+   tps_stream:
+     description:
+       - "example: RHEL-7"
+       - Required for base variants which has rhel_variant empty.
+     required: false
    push_targets:
      description:
        - One or more push targets (specify a list)
@@ -148,6 +154,14 @@ def ensure_variant(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
     name = params['name']
     variant = get_variant(client, name)
+
+    # When rhel_variant is not set then it's the variant is rhel_variant
+    # and requires tps_stream, otherwise tps_stream cannot be passed
+    if params['rhel_variant'] is None:
+        params.pop('rhel_variant')
+    else:
+        params.pop('tps_stream')
+
     if not variant:
         result['changed'] = True
         result['stdout_lines'] = ['created %s variant' % name]
@@ -175,7 +189,8 @@ def run_module():
         enabled=dict(type='bool', default=True),
         buildroot=dict(type='bool', default=False),
         product_version=dict(required=True),
-        rhel_variant=dict(required=True),
+        rhel_variant=dict(),
+        tps_stream=dict(),
         push_targets=dict(type='list', required=True),
     )
     module = AnsibleModule(
