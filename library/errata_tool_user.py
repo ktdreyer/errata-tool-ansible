@@ -148,6 +148,10 @@ def ensure_user(client, params, check_mode):
             create_user(client, params)
         return result
     user_id = user.pop('id')
+    # Don't print a diff for organization if it was omitted
+    if params['organization'] is None:
+        params.pop('organization')
+
     differences = common_errata_tool.diff_settings(user, params)
     if differences:
         result['changed'] = True
