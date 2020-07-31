@@ -31,7 +31,7 @@ options:
      description:
        - "example: Red Hat Ceph Storage"
      required: true
-   bugzilla_product:
+   bugzilla_product_name:
      description:
        - "example: null"
      required: false
