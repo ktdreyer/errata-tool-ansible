@@ -96,6 +96,34 @@ class TestCreateUser(object):
         }
         assert history[0].json() == expected
 
+    def test_receives_mail_includes_email_address(self, client):
+        """
+        When the user wants to set "receives_mail: true", we must always send
+        the email_address attribute in the POST call. CLOUDWF-2817
+        """
+        params = deepcopy(USER)
+        params['receives_mail'] = True
+        # Ansible will default "email_address" to "None":
+        params['email_address'] = None
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/api/v1/user',
+            status_code=201)
+        create_user(client, params)
+        history = client.adapter.request_history
+        assert len(history) == 1
+        expected = {
+            'email_address': 'me@redhat.com',
+            'enabled': True,
+            'id': 123456,
+            'login_name': 'me@redhat.com',
+            'organization': 'Engineering',
+            'realname': 'Me Myself',
+            'receives_mail': True,
+            'roles': ['devel']
+        }
+        assert history[0].json() == expected
+
 
 class TestEditUser(object):
 
@@ -214,3 +242,34 @@ class TestEnsureUser(object):
         check_mode = False
         result = ensure_user(client, params, check_mode)
         assert result == {'changed': False, 'stdout_lines': []}
+
+    def test_receives_mail_includes_email_address(self, client, params):
+        """
+        When the user wants to keep "receives_mail: true", we must always send
+        the email_address attribute in every PUT call. CLOUDWF-2817
+        """
+        user = deepcopy(USER)
+        user['receives_mail'] = True
+        params['receives_mail'] = True
+        # Test changing an unrelated attribute (realname) here:
+        params['realname'] = 'Mr. Name Changer'
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json=user)
+        client.adapter.register_uri(
+            'PUT',
+            'https://errata.devel.redhat.com/api/v1/user/123456',
+            status_code=200)
+        check_mode = False
+        result = ensure_user(client, params, check_mode)
+        assert result['changed'] is True
+        assert result['stdout_lines'] == ['changing realname from Me Myself '
+                                          'to Mr. Name Changer']
+        history = client.adapter.request_history
+        assert len(history) == 2
+        expected = {
+            'email_address': 'me@redhat.com',
+            'realname': 'Mr. Name Changer',
+        }
+        assert history[1].json() == expected
