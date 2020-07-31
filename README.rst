@@ -69,7 +69,7 @@ Versions within the Errata Tool.
         is_oval_product: false
         is_rhel_addon: false
         is_server_only: false
-        rhel_release_name: rhel-8
+        rhel_release_name: RHEL-8
         sig_key_name: redhatrelease2
         allow_buildroot_push: false
         push_targets:
