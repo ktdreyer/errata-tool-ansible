@@ -48,7 +48,7 @@ options:
          to an advisory
        - "example: ceph-4.0-rhel-8-candidate"
        - You must specify this tag as one of the elements in the brew_tags
-         list (see ERRATA-9713)
+         list (see CLOUDWF-2)
      required: true
    is_server_only:
      description:
@@ -98,9 +98,9 @@ options:
          builds are tagged with this Brew tag in order to attach to an
          advisory.
        - You must specify the default_brew_tag as one of the elements
-         in this list (see ERRATA-9713)
+         in this list (see CLOUDWF-2)
        - What are the consequences of a completely empty brew_tag list? This
-         might be answered in ERRATA-9713.
+         might be answered in CLOUDWF-2.
      required: true
 requirements:
   - "python >= 2.7"
@@ -118,7 +118,7 @@ class InvalidInputError(Exception):
 
 def get_product_version(client, product, name):
     # We cannot query directly by name yet if the name as a "." character.
-    # See ERRATA-9712.
+    # See CLOUDWF-3.
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
     # ... this would also change the returned data structure slightly (the
     # results would not be in a list.)
@@ -161,7 +161,7 @@ def set_push_targets(client, product, product_version, push_targets):
     """
     Set push targest through the web form.
 
-    This is a temporary hack until we have API support in ERRATA-9714
+    This is a temporary hack until we have API support in CLOUDWF-5
 
     :param str product: product name
     :param str product_version: product version name (or id)

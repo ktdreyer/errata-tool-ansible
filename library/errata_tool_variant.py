@@ -87,7 +87,7 @@ def get_variant(client, name):
     :param str name: Variant name to search
     :returns: dict of information about this variant, or None
     """
-    # We cannot get the name directly yet, ERRATA-9715
+    # We cannot get the name directly yet, CLOUDWF-4
     # r = client.get('api/v1/variants/%s' % name)
     r = client.get('api/v1/variants?filter[name]=%s' % name)
     r.raise_for_status()
@@ -102,7 +102,7 @@ def get_variant(client, name):
     variant['id'] = variant_data['id']
     # Unique to this variants API endpoint:
     # "relationships" are nested inside "attributes".
-    # API Doc fix at ERRATA-9716
+    # API Doc fix at CLOUDWF-308
     attributes = variant_data['attributes']
     variant.update(attributes)
     relationships = variant.pop('relationships')
@@ -131,8 +131,6 @@ def create_variant(client, params):
 def edit_variant(client, variant_id, differences):
     """
     Edit an existing variant.
-
-    See ERRATA-9717 for official edit API.
 
     :param client: Errata Client
     :param int variant_id: ID number for the variant

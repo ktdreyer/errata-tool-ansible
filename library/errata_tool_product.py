@@ -31,7 +31,7 @@ options:
      description:
        - "example: Red Hat Ceph Storage"
      required: true
-   bugzilla_product:
+   bugzilla_product_name:
      description:
        - "example: null"
      required: false
@@ -268,10 +268,10 @@ def handle_form_errors(response):
 
 
 def create_product(client, params):
-    """ See ERRATA-9706 for official create API """
+    """ See CLOUDWF-7 for official create API """
     data = html_form_data(client, params)
 
-    # Hack for ERRATA-9703:
+    # Hack for CLOUDWF-309:
     # If there are any push targets, then create the product *without* push
     # targets first, and then edit the product with the push targets.
     saved_push_targets = data.pop('product[push_targets][]')
@@ -279,7 +279,7 @@ def create_product(client, params):
     response = client.post('products', data=data)
     handle_form_errors(response)
 
-    # Hack for ERRATA-9703, part 2:
+    # Hack for CLOUDWF-309, part 2:
     # Edit product we just created so that we can set the push targets.
     if saved_push_targets:
         # Get the new product ID for the product we just created.
@@ -294,7 +294,7 @@ def edit_product(client, product_id, params):
     """
     Edit an existing product.
 
-    See ERRATA-9706 for official edit API.
+    See CLOUDWF-7 for official edit API.
 
     :param client: Errata Client
     :param int product_id: ID of the product we will edit
