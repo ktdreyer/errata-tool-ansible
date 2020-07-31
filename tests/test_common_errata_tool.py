@@ -58,9 +58,9 @@ class TestUserID(object):
         result = user_id(client, 'cooluser@redhat.com')
         assert result == 123456
 
-    def test_errors_pre_errata_9723(self, client):
-        # This test simulates the HTTP 500 error described in ERRATA-9723.
-        # Delete this test after ERRATA-9723 is resolved.
+    def test_errors_pre_cloudwf_8(self, client):
+        # This test simulates the HTTP 500 error described in CLOUDWF-8.
+        # Delete this test after CLOUDWF-8 is resolved.
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
@@ -70,7 +70,7 @@ class TestUserID(object):
             user_id(client, 'noexist@redhat.com')
 
     def test_errors(self, client):
-        # This test simulates the expected HTTP 400 error after ERRATA-9723 is
+        # This test simulates the expected HTTP 400 error after CLOUDWF-8 is
         # resolved.
         json = {'errors': {'login_name': ['noexist@redhat.com not found.']}}
         client.adapter.register_uri(

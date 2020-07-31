@@ -20,7 +20,7 @@ class TestGetUser(object):
 
     def test_not_found_http_500(self, client):
         # ET currently returns HTTP 500 for missing users.
-        # Delete this test when ERRATA-9723 is resolved.
+        # Delete this test when CLOUDWF-8 is resolved.
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
@@ -31,7 +31,7 @@ class TestGetUser(object):
     def test_found_http_404(self, client):
         # ET currently returns HTTP 404 for users with some Kerberos realm
         # suffixes.
-        # Delete this test when ERRATA-9723 is resolved.
+        # Delete this test when CLOUDWF-8 is resolved.
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@IPA.REDHAT.COM',
@@ -51,7 +51,7 @@ class TestGetUser(object):
         assert user == USER
 
     def test_not_found(self, client):
-        # This test will match the ET server once ERRATA-9723 is resolved.
+        # This test will match the ET server once CLOUDWF-8 is resolved.
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
