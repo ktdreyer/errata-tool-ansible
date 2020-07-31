@@ -176,7 +176,7 @@ def validate_params(module, params):
 
 
 def get_release(client, name):
-    # cannot get releases directly by name, ERRATA-9718
+    # cannot get releases directly by name, CLOUDWF-1
     r = client.get('api/v1/releases?filter[name]=%s' % name)
     r.raise_for_status()
     data = r.json()
@@ -256,7 +256,7 @@ def api_data(client, params):
     # Are those really a valid settings? grep errata-rails.git for more
     # references to find out. That whole POST /api/v1/releases section of the
     # docs could probably use a review.
-    # ERRATA-9719 is an RFE for specifying all values by name instead of ID.
+    # CLOUDWF-298 is an RFE for specifying all values by name instead of ID.
     release = params.copy()
     # Update the values for ones that the REST API will accept:
     if 'product' in release:
@@ -336,7 +336,7 @@ def ensure_release(client, params, check_mode):
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
         if not check_mode:
-            # ERRATA-9867: we must send product_version_ids in every request,
+            # CLOUDWF-6: we must send product_version_ids in every request,
             # or the server will reset the product versions to an empty list.
             changing_product_versions = False
             for difference in differences:

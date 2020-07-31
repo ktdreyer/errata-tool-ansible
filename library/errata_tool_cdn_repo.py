@@ -237,7 +237,7 @@ def get_cdn_repo(client, name, cdn_repo_data=None):
     :returns: dict of information about this CDN repository
     """
     if cdn_repo_data is None:
-        # ERRATA-9728 to get cdn_repos directly by name.
+        # CLOUDWF-316 to get cdn_repos directly by name.
         response = client.get('api/v1/cdn_repos?filter[name]=%s' % name)
         response.raise_for_status()
         json = response.json()
@@ -529,7 +529,7 @@ def ensure_cdn_repo(client, check_mode, params):
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
         if not check_mode:
-            # ERRATA-9728 to access cdn_repos directly by name.
+            # CLOUDWF-316 to access cdn_repos directly by name.
             edit_cdn_repo(client, cdn_repo['id'], differences)
 
     # packages (from /api/v1/cdn_repo_package_tags):
@@ -569,7 +569,7 @@ def run_module():
             params['arch'] = 'x86_64'
 
     # The ET server does not stop users from setting Docker repos to other
-    # arches (ERRATA-9726). We will guard that here for now.
+    # arches (CLOUDWF-271). We will guard that here for now.
     if params['content_type'] == 'Docker' and params['arch'] != 'multi':
         module.fail_json(msg='arch must be "multi" for Docker repos')
 

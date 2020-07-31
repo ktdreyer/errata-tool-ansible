@@ -25,7 +25,7 @@ from utils import AnsibleFailJson
 PROD = 'https://errata.devel.redhat.com'
 
 # From /api/v1/cdn_repos/?filter[name]=redhat-rhceph-rhceph-4-rhel8
-# See ERRATA-9728
+# See CLOUDWF-316
 CDN_REPO = {
     "id": 11010,
     "type": "cdn_repos",

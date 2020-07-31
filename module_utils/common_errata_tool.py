@@ -14,8 +14,8 @@ class PushTargetScraper(object):
     The ET server currently requires that we POST PushTarget ID integers
     instead of names. This applies to the following resources:
 
-      products (ERRATA-9706)
-      product_versions (ERRATA-9714)
+      products (CLOUDWF-7)
+      product_versions (CLOUDWF-5)
 
     See /developer-guide/push-push-targets-options-and-tasks.html for
     information about Push Targets. This class uses the same string names
@@ -118,8 +118,8 @@ class WorkflowRulesScraper(object):
     There are two endpoints that require us to send Workflow Rule ID numbers
     (ints) instead of names (human-readable strings):
 
-      POST to /products (see ERRATA-9706)
-      POST and PUT to /api/v1/releases (ERRATA-9719)
+      POST to /products (see CLOUDWF-7)
+      POST and PUT to /api/v1/releases (CLOUDWF-298)
 
     When we fix these, we will no longer need this WorkflowRulesScraper class.
     """
@@ -229,7 +229,7 @@ def user_id(client, login_name):
     """
     Convert a user login_name to an id
 
-    Needed for products (ERRATA-9706) and releases (ERRATA-9719)
+    Needed for products (CLOUDWF-7) and releases (CLOUDWF-298)
     """
     response = client.get('api/v1/user/%s' % login_name)
     if response.status_code == 400:
