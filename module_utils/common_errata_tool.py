@@ -16,7 +16,6 @@ class PushTargetScraper(object):
 
       products (ERRATA-9706)
       product_versions (ERRATA-9714)
-      variants (ERRATA-9717)
 
     See /developer-guide/push-push-targets-options-and-tasks.html for
     information about Push Targets. This class uses the same string names

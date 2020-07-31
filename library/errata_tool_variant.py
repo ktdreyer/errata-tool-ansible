@@ -126,8 +126,6 @@ def edit_variant(client, variant_id, differences):
     """
     Edit an existing variant.
 
-    See ERRATA-9717 for official edit API.
-
     :param client: Errata Client
     :param int variant_id: ID number for the variant
     :param list differences: changes to make
