@@ -117,7 +117,7 @@ class InvalidInputError(Exception):
 
 
 def get_product_version(client, product, name):
-    # We cannot query directly by name yet if the name as a "." character.
+    # We cannot query directly by name yet if the name has a "." character.
     # See CLOUDWF-3.
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
     # ... this would also change the returned data structure slightly (the
