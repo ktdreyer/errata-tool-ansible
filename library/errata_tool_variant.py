@@ -155,13 +155,6 @@ def ensure_variant(client, params, check_mode):
     name = params['name']
     variant = get_variant(client, name)
 
-    # When rhel_variant is not set then it's the variant is rhel_variant
-    # and requires tps_stream, otherwise tps_stream cannot be passed
-    if params['rhel_variant'] is None:
-        params.pop('rhel_variant')
-    else:
-        params.pop('tps_stream')
-
     if not variant:
         result['changed'] = True
         result['stdout_lines'] = ['created %s variant' % name]
@@ -200,6 +193,16 @@ def run_module():
 
     check_mode = module.check_mode
     params = module.params
+
+    # When a user omits rhel_variant, then this is a RHEL variant and we
+    # require tps_stream.
+    if params['rhel_variant'] is None:
+        params.pop('rhel_variant')
+        if params['tps_stream'] is None:
+            module.fail_json(msg='RHEL variants require tps_stream.')
+    else:
+        # This is a layered product and we ignore tps_stream.
+        params.pop('tps_stream')
 
     client = common_errata_tool.Client()
 
