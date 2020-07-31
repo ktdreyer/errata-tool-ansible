@@ -35,11 +35,12 @@ options:
      description:
        - "example: null"
      required: false
-   bugzilla_states:
+   valid_bug_states:
      description:
-       - Valid bug states
+       - A list of valid Bugzilla bug states
      choices: [NEW, ASSIGNED, ON_DEV, POST, MODIFIED, ON_QA, VERIFIED]
-     required: true
+     required: false
+     default: [MODIFIED, VERIFIED]
    active:
      description:
        - Is the product active for Errata filing?
@@ -332,7 +333,7 @@ def run_module():
         name=dict(required=True),
         description=dict(required=True),
         bugzilla_product_name=dict(default=''),
-        valid_bug_states=dict(type='list'),
+        valid_bug_states=dict(type='list', default=['MODIFIED', 'VERIFIED']),
         active=dict(type='bool', default=True),
         ftp_path=dict(default=""),
         ftp_subdir=dict(),
