@@ -194,7 +194,11 @@ def get_release(client, name):
     release['product'] = release_data['relationships']['product']['short_name']
 
     # program_manager
-    release['program_manager'] = release_data['relationships']['program_manager']['login_name']
+    program_manager = release_data['relationships']['program_manager']
+    if program_manager:
+        release['program_manager'] = program_manager['login_name']
+    else:
+        release['program_manager'] = None
 
     # state_machine_rule_set
     state_machine_rule_set = release_data['relationships']['state_machine_rule_set']
