@@ -211,6 +211,21 @@ environment variable::
 
   ERRATA_TOOL_URL=https://other.env/ ERRATA_TOOL_AUTH=notkerberos ansible-playbook ...
 
+You can use Ansible's ``environment`` setting with your tasks or playbooks.
+Here's an example playbook that calls a custom role with those variables set:
+
+.. code-block:: yaml
+
+    - name: ensure ET configuration
+      gather_facts: no
+      hosts: localhost
+      connection: local
+      environment:
+        ERRATA_TOOL_URL: https://other.env/
+        ERRATA_TOOL_AUTH: notkerberos
+      roles:
+        - my-custom-et-role
+
 There is no support for HTTP Basic auth at this time.
 
 File paths
