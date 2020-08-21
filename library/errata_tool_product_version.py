@@ -124,6 +124,12 @@ def get_product_version(client, product, name):
     # results would not be in a list.)
     url = 'api/v1/products/%s/product_versions/?filter[name]=%s' % (product, name)
     r = client.get(url)
+    # If the product does not exist yet, we'll get a 404 error for this GET
+    # request. It's nice that raise_for_status() gives us the full URL that we
+    # tried because then users can verify they are using the proper ET
+    # environment. Maybe we could log a more specific error message for that
+    # condition so that it's easier for the user to understand the problem,
+    # like "does https://errata.devel.redhat.com/products/RHCEPH exist yet?"
     r.raise_for_status()
     data = r.json()
     product_versions = data['data']
