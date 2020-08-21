@@ -122,7 +122,8 @@ def get_product_version(client, product, name):
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
     # ... this would also change the returned data structure slightly (the
     # results would not be in a list.)
-    url = 'api/v1/products/%s/product_versions/?filter[name]=%s' % (product, name)
+    url = 'api/v1/products/%s/product_versions/?filter[name]=%s' % (
+        product, name)
     r = client.get(url)
     # If the product does not exist yet, we'll get a 404 error for this GET
     # request. It's nice that raise_for_status() gives us the full URL that we
