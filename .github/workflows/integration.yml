@@ -1,0 +1,21 @@
+name: Run integration tests against ET dev server
+
+on: push
+
+jobs:
+  integration:
+    runs-on:
+      - self-hosted
+      - et-integration
+    steps:
+      - uses: actions/checkout@v1
+      - name: Reset ET server database
+        run: |
+          pushd /home/cloud-user/errata-rails
+          sudo -E docker-compose exec -T dev /code/bin/rake db:reset db:fixtures:load > /dev/null
+          popd
+      - name: Run integration tests
+        run: |
+          ansible-playbook --version
+          curl -I localhost:3000
+          ./tests/integration/run.sh

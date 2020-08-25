@@ -1,0 +1,29 @@
+- name: Add Create1 product
+  errata_tool_product:
+    short_name: RHCREATE1
+    name: Red Hat Create1 Product
+    description: Red Hat Create1 Product
+    bugzilla_product_name: ""
+    valid_bug_states:
+      - ASSIGNED
+      - MODIFIED
+      - NEW
+      - ON_DEV
+      - ON_QA
+      - POST
+      - VERIFIED
+    active: true
+    ftp_subdir: RHCREATE1
+    internal: false
+    default_docs_reviewer: docs-errata-list@redhat.com
+    push_targets:
+      - ftp
+      - cdn_stage
+      - cdn_docker_stage
+      - cdn_docker
+      - cdn
+    default_solution: enterprise
+    state_machine_rule_set: Default
+    move_bugs_on_qe: false  # When bugs are added to advisory
+    text_only_advisories_require_dists: true
+  register: product

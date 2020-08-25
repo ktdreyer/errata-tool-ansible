@@ -1,0 +1,46 @@
+# Configure a new RHEL 8 ET variant.
+
+# This assumes the "RHEL" product and "RHEL-8.0.0" Product Versions are
+# pre-configured. The errata-rails.git test/fixtures/*.yml files do this.
+---
+
+- name: Add new RHEL CoolStream variant
+  errata_tool_variant:
+    name: CoolStream-8.0.0
+    description: Red Hat Enterprise Linux CoolStream (v. 8)
+    product_version: RHEL-8.0.0
+    tps_stream: RHEL-8-Main-Base
+    cpe: cpe:/o:redhat:enterprise_linux:8
+    push_targets:
+      - cdn
+      - cdn_stage
+      - cdn_docker
+      - cdn_docker_stage
+
+# Assert that this variant looks correct.
+
+# We cannot get the name directly yet, CLOUDWF-4
+- name: query API for this variant
+  errata_tool_request:
+    path: api/v1/variants?filter[name]=CoolStream-8.0.0
+  register: response
+
+- name: parse variant JSON
+  set_fact:
+    attributes: "{{ response.json.data.0.attributes }}"
+    relationships: "{{ response.json.data.0.attributes.relationships }}"
+
+- assert:
+    that:
+      - attributes.name == 'CoolStream-8.0.0'
+      - attributes.description == "Red Hat Enterprise Linux CoolStream (v. 8)"
+      - attributes.cpe == "cpe:/o:redhat:enterprise_linux:8"
+      - attributes.enabled
+      - not attributes.buildroot
+      - attributes.tps_stream == "RHEL-8-Main-Base"
+      - relationships.product.short_name == "RHEL"
+      - relationships.product_version.name == "RHEL-8.0.0"
+      - relationships.rhel_release.name == "RHEL-8.0.0"
+      - relationships.rhel_variant.name == "CoolStream-8.0.0"
+
+# todo: parse relationships.push_targets list and assert
