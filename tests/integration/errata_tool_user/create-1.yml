@@ -1,0 +1,36 @@
+# Configure a new ET user account.
+---
+
+- name: Add developer Errata Tool account
+  errata_tool_user:
+    login_name: cooldeveloper@redhat.com
+    realname: Cool Developer
+
+- name: Configure developer with identical parameters
+  errata_tool_user:
+    login_name: cooldeveloper@redhat.com
+    realname: Cool Developer
+  register: second_user_task
+
+- name: Assert that the second user task causes no change
+  assert:
+    that:
+      - not second_user_task.changed
+
+# Assert that this user looks correct.
+
+- errata_tool_request:
+    path: /api/v1/user/cooldeveloper
+  register: response
+
+- assert:
+    that:
+      - response.json.login_name == 'cooldeveloper@redhat.com'
+      - response.json.realname == 'Cool Developer'
+      - response.json.organization == 'Engineering'
+      - response.json.enabled
+      - response.json.receives_mail
+      - response.json.email_address == 'cooldeveloper@redhat.com'
+      - response.json.roles == []
+      # See GH Issue 59 and RHELWF-1135 for why this is "MailingList":
+      - response.json.type == 'MailingList'

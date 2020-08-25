@@ -1,0 +1,29 @@
+# Configure an ET user account in a non-default organization.
+---
+
+- name: Add program manager Errata Tool account
+  errata_tool_user:
+    login_name: coolprogrammanager@redhat.com
+    realname: Cool ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+# Assert that this user looks correct.
+
+- errata_tool_request:
+    path: /api/v1/user/coolprogrammanager
+  register: response
+
+- assert:
+    that:
+      - response.json.login_name == 'coolprogrammanager@redhat.com'
+      - response.json.realname == 'Cool ProgramManager'
+      - response.json.organization == 'Program Management'
+      - response.json.enabled
+      - not response.json.receives_mail
+      - response.json.email_address == 'coolprogrammanager@redhat.com'
+      - response.json.roles == ['pm']
+      # See GH Issue 59 and RHELWF-1135 for why this is "MailingList":
+      - response.json.type == 'MailingList'
