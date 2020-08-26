@@ -197,3 +197,20 @@ class TestEnsureUser(object):
         check_mode = False
         result = ensure_user(client, params, check_mode)
         assert result == {'changed': False, 'stdout_lines': []}
+
+    def test_no_roles_change(self, client, params):
+        """
+        If a playbook author omits "roles", we should not change the existing
+        value on the server.
+        """
+        # Ansible will default "roles" to "None":
+        params['roles'] = None
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json=USER)
+        # On the server, "roles" is ['devel']:
+        assert USER['roles'] == ['devel']
+        check_mode = False
+        result = ensure_user(client, params, check_mode)
+        assert result == {'changed': False, 'stdout_lines': []}
