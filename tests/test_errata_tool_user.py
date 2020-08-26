@@ -1,5 +1,6 @@
 from errata_tool_user import get_user
 from errata_tool_user import create_user
+from errata_tool_user import edit_user
 
 
 USER = {
@@ -90,3 +91,17 @@ class TestCreateUser(object):
             'roles': ['devel']
         }
         assert history[0].json() == expected
+
+
+class TestEditUser(object):
+
+    def test_change_roles(self, client):
+        differences = [('roles', ['devel'], ['pm'])]
+        client.adapter.register_uri(
+            'PUT',
+            'https://errata.devel.redhat.com/api/v1/user/123456',
+            status_code=200)
+        edit_user(client, 123456, differences)
+        history = client.adapter.request_history
+        assert len(history) == 1
+        assert history[0].json() == {'roles': ['pm']}
