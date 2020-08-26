@@ -179,6 +179,51 @@ Tool.
           - pm
 
 
+errata_tool_request
+-------------------
+
+The ``errata_tool_request`` module can perform low-level HTTP requests to
+Errata Tool. This exposes the entire Errata Tool REST API to you directly.
+It is like Ansible's core `uri
+<https://docs.ansible.com/ansible/latest/modules/uri_module.html>`_
+module, except this respects the ``ERRATA_TOOL_URL`` and ``ERRATA_TOOL_AUTH``
+variables and can perform SPENEGO (GSSAPI) authentication.
+
+Why would you use this module instead of the higher level modules like
+``errata_tool_product``, ``errata_tool_user``, etc? This
+``errata_tool_request`` module has two main uses-cases.
+
+1. You may want to do something that the higher level modules do not yet
+   support. It can be easier to use this module to quickly prototype out
+   your ideas for what actions you need, and then write the Python code to
+   do it in a better way later. If you find that you need to use
+   errata_tool_request to achieve functionality that is not yet present in
+   the other errata-tool-ansible modules, please file a Feature Request
+   issue in GitHub with your use case.
+2. You want to write some tests that verify ET's data at a very low
+   level. For example, you may want to write an integration test to verify
+   that you've set up your ET configuration in the way you expect.
+
+Note that this module will always report "changed: true" every time, because
+it simply sends the request to the ET server on every ansible run. This
+module cannot understand if your chosen request actually "changes" anything.
+
+.. code-block:: yaml
+
+    - name: Make a raw HTTP API call
+      errata_tool_request:
+        path: /api/v1/user/cooldeveloper
+      register: response
+
+    - name: show the parsed JSON in the HTTP response
+      debug:
+        var: response.json
+
+    - name: check one of the values in the JSON response
+      assert:
+        that:
+          - response.json.login_name == 'cooldeveloper@redhat.com'
+
 Python dependencies
 -------------------
 
