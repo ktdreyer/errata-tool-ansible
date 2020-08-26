@@ -643,7 +643,7 @@ class TestEnsurePackageTagsCheckMode(EnsurePackageTagsBase):
 
 class TestEnsureCdnRepo(object):
     """
-    Assert ensure_package_tags() behavior with "check_mode=True".
+    Assert ensure_package_tags() behavior.
     """
 
     @pytest.fixture
