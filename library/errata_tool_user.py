@@ -48,6 +48,10 @@ options:
    roles:
      description:
        - A list of roles for this user, for example ["pm"]
+       - If you do not set this parameter and the user does not yet exist, the
+         ET will create the new user with no roles. If you do not set this
+         parameter and the user already exists on the server, Ansible will not
+         edit the existing roles for this user account.
      required: false
 requirements:
   - "python >= 2.7"
@@ -148,9 +152,11 @@ def ensure_user(client, params, check_mode):
             create_user(client, params)
         return result
     user_id = user.pop('id')
-    # Don't print a diff for organization if it was omitted
-    if params['organization'] is None:
-        params.pop('organization')
+
+    # Do not change these settings if the playbook author omits them ("None").
+    for param in ('organization', 'roles'):
+        if params[param] is None:
+            params.pop(param)
 
     differences = common_errata_tool.diff_settings(user, params)
     if differences:
