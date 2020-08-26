@@ -28,23 +28,23 @@ Errata Tool.
         description: Red Hat Ceph Storage
         bugzilla_product_name: ""
         valid_bug_states:
-        - ASSIGNED
-        - MODIFIED
-        - NEW
-        - ON_DEV
-        - ON_QA
-        - POST
-        - VERIFIED
+          - ASSIGNED
+          - MODIFIED
+          - NEW
+          - ON_DEV
+          - ON_QA
+          - POST
+          - VERIFIED
         active: true
         ftp_subdir: RHCEPH
         internal: false
         default_docs_reviewer: docs-errata-list@redhat.com
         push_targets:
-        - ftp
-        - cdn_stage
-        - cdn_docker_stage
-        - cdn_docker
-        - cdn
+          - ftp
+          - cdn_stage
+          - cdn_docker_stage
+          - cdn_docker
+          - cdn
         default_solution: enterprise
         state_machine_rule_set: Default
         move_bugs_on_qe: false
@@ -73,11 +73,11 @@ Versions within the Errata Tool.
         sig_key_name: redhatrelease2
         allow_buildroot_push: false
         push_targets:
-        - ftp
-        - cdn_stage
-        - cdn_docker_stage
-        - cdn_docker
-        - cdn
+          - ftp
+          - cdn_stage
+          - cdn_docker_stage
+          - cdn_docker
+          - cdn
 
 errata_tool_release
 -------------------
@@ -94,14 +94,14 @@ Errata Tool.
         type: QuarterlyUpdate
         description: Red Hat Ceph Storage 4.0
         product_versions:
-        - RHCEPH-4.0-RHEL-8
-        - RHEL-7-RHCEPH-4.0
+          - RHCEPH-4.0-RHEL-8
+          - RHEL-7-RHCEPH-4.0
         enabled: true
         active: true
         enable_batching: false
         program_manager: coolmanager@redhat.com
         blocker_flags:
-        - ceph-4
+          - ceph-4
         internal_target_release: ""
         zstream_target_release: null
         ship_date: '2020-01-31'
@@ -149,12 +149,12 @@ Errata Tool.
         release_type: Primary
         content_type: Docker
         variants:
-        - 8Base-RHCEPH-4.0-Tools
+          - 8Base-RHCEPH-4.0-Tools
         packages:
           rhceph-container:
-          - latest
-          - "{% raw %}{{version}}{% endraw %}"
-          - "{% raw %}{{version}}-{{release}}{% endraw %}"
+            - latest
+            - "{% raw %}{{version}}{% endraw %}"
+            - "{% raw %}{{version}}-{{release}}{% endraw %}"
 
 Note that if you want to use a tag string like ``{{version}}`` for your
 package, you must escape the double brackets for Ansible with the
@@ -176,7 +176,7 @@ Tool.
         organization: Program Management
         receives_mail: false
         roles:
-        - pm
+          - pm
 
 
 Python dependencies
