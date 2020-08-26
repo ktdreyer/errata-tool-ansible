@@ -1,6 +1,10 @@
+from copy import deepcopy
+import sys
+import pytest
 from errata_tool_user import get_user
 from errata_tool_user import create_user
 from errata_tool_user import edit_user
+from errata_tool_user import ensure_user
 
 
 USER = {
@@ -105,3 +109,91 @@ class TestEditUser(object):
         history = client.adapter.request_history
         assert len(history) == 1
         assert history[0].json() == {'roles': ['pm']}
+
+
+class TestEnsureUser(object):
+
+    @pytest.fixture
+    def params(self):
+        return {
+            'login_name': 'me@redhat.com',
+            'realname': 'Me Myself',
+            'organization': 'Engineering',
+            'enabled': True,
+            'receives_mail': False,
+            'email_address': 'me@redhat.com',
+            'roles': ['devel'],
+        }
+
+    @pytest.mark.parametrize('check_mode', (True, False))
+    def test_unchanged(self, client, params, check_mode):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json=USER)
+        result = ensure_user(client, params, check_mode)
+        assert result == {'changed': False, 'stdout_lines': []}
+
+    def test_create_check_mode(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            status_code=500)
+        check_mode = True
+        result = ensure_user(client, params, check_mode)
+        expected = {'changed': True,
+                    'stdout_lines': ['created me@redhat.com user']}
+        assert result == expected
+
+    def test_create(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            status_code=500)
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/api/v1/user',
+            status_code=201)
+        check_mode = False
+        result = ensure_user(client, params, check_mode)
+        expected = {'changed': True,
+                    'stdout_lines': ['created me@redhat.com user']}
+        assert result == expected
+
+    def test_edit(self, client, params):
+        user = deepcopy(USER)
+        user['roles'] = ['pm']
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json=user)
+        client.adapter.register_uri(
+            'PUT',
+            'https://errata.devel.redhat.com/api/v1/user/123456',
+            status_code=200)
+        check_mode = False
+        result = ensure_user(client, params, check_mode)
+        expected_stdout_lines = ["changing roles from ['pm'] to ['devel']"]
+        if sys.version_info.major == 2:
+            expected_stdout_lines = [
+                "changing roles from [u'pm'] to ['devel']"
+            ]
+        assert result['changed'] is True
+        assert set(result['stdout_lines']) == set(expected_stdout_lines)
+
+    def test_no_organization_change(self, client, params):
+        """
+        If a playbook author omits "organization", we should not change
+        the existing value on the server.
+        """
+        # Ansible will default "organization" to "None":
+        params['organization'] = None
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json=USER)
+        # On the server, "organization" is "Engineering":
+        assert USER['organization'] == 'Engineering'
+        check_mode = False
+        result = ensure_user(client, params, check_mode)
+        assert result == {'changed': False, 'stdout_lines': []}
