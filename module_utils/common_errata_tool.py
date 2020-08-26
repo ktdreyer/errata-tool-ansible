@@ -279,3 +279,7 @@ class Client(object):
     def put(self, endpoint, **kwargs):
         url = posixpath.join(self.baseurl, endpoint)
         return self.session.put(url, **kwargs)
+
+    def request(self, method, endpoint, **kwargs):
+        url = posixpath.join(self.baseurl, endpoint)
+        return self.session.request(method, url, **kwargs)
