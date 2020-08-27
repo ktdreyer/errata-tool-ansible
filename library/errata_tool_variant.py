@@ -68,7 +68,9 @@ options:
          for more explanation about these push targets.
        - This list must be a subset of the push targets that are set at the
          parent product version level.
-     choices: [rhn_live, rhn_stage, cdn, cdn_stage, altsrc, cdn_docker,
+       - The Push Target push type must start with "rhn" or "cdn". You cannot
+         set the "ftp" or "altsrc" push targets on any variant.
+     choices: [rhn_live, rhn_stage, cdn, cdn_stage, cdn_docker,
                cdn_docker_stage]
      required: true
 requirements:
