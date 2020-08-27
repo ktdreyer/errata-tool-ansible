@@ -163,7 +163,7 @@ def ensure_user(client, params, check_mode):
     user_id = user.pop('id')
 
     # Do not change these settings if the playbook author omits them ("None").
-    for param in ('organization', 'roles'):
+    for param in ('organization', 'roles', 'email_address'):
         if params[param] is None:
             params.pop(param)
 
