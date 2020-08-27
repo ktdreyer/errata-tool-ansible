@@ -43,8 +43,15 @@ options:
    email_address:
      description:
        - The email address for this user.
+       - If you do not set this parameter and the user does not yet exist,
+         Ansible will create the user by selecting the login_name string
+         before "@" and appending a redhat.com domain for an email address.
+         For example, if a new user's login_name is "kdreyer@redhat.com", the
+         default email_address will be "kdreyer@redhat.com".
+       - If you do not set this parameter and the user already exists on the
+         server, Ansible will not edit the existing email address for this
+         user account.
      required: false
-     default: The ET server chooses a default email address.
    roles:
      description:
        - A list of roles for this user, for example ["pm"]
