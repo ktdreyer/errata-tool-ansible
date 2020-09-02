@@ -58,7 +58,8 @@ options:
      default: true
    program_manager:
      description:
-       - The program manager for this release (Kerberos username)
+       - The program manager for this release (login_name, eg
+         "coolprogrammanager@redhat.com")
      required: true
    blocker_flags:
      description:
