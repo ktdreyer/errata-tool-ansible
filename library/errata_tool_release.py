@@ -133,6 +133,9 @@ options:
        - Workflow Rule Set
        - Set to "null" to simply inherit the main workflow_rule_set
          configuration from this release's product.
+       - If you omit this parameter, Ansible will default to "null" and re-set
+         the release's workflow ruleset back to null (so, inheriting the
+         product's ruleset).
      choices: [default, unrestricted, cdn_push_only, covscan, rhel_7_beta,
                abidiff_pilot_deprecated, non_blocking_tps, covscan_deprecated,
                optional_tps_distqa, optional_stage_push_for_rhel_6_8,
