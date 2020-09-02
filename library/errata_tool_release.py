@@ -255,6 +255,9 @@ def get_product_version_ids(client, names):
 
 def api_data(client, params):
     """ Transform our Ansible params into JSON data for POST'ing or PUT'ing.
+
+    :param client: Errata Client
+    :param dict params: ansible module params
     """
     # XXX The docs at /developer-guide/api-http-api.html#api-apis
     # mention a few settings I have not seen before:
