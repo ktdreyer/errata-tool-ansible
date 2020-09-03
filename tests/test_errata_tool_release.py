@@ -85,6 +85,7 @@ class TestGetRelease(object):
         assert result == expected
 
     @pytest.mark.parametrize('relationship', [
+        'product',
         'program_manager',
         'state_machine_rule_set'
     ])
