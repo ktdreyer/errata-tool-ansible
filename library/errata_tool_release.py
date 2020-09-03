@@ -195,7 +195,11 @@ def get_release(client, name):
     release.update(release_data['attributes'])
 
     # product
-    release['product'] = release_data['relationships']['product']['short_name']
+    product = release_data['relationships']['product']
+    if product:
+        release['product'] = product['short_name']
+    else:
+        release['product'] = None
 
     # program_manager
     program_manager = release_data['relationships']['program_manager']
@@ -272,7 +276,10 @@ def api_data(client, params):
     # Update the values for ones that the REST API will accept:
     if 'product' in release:
         product_name = release.pop('product')
-        release['product_id'] = get_product_id(client, product_name)
+        if product_name is None:
+            release['product_id'] = None
+        else:
+            release['product_id'] = get_product_id(client, product_name)
     if 'program_manager' in release:
         pm_login_name = release.pop('program_manager')
         release['program_manager_id'] = common_errata_tool.user_id(client, pm_login_name)
