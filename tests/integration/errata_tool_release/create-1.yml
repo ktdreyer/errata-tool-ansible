@@ -1,0 +1,106 @@
+# Configure three new minimal RHEL 8 releases.
+#
+# This test case exercises the ability to create QuarterlyUpdate, Zstream, and
+# Async releases.
+
+# This assumes the "RHEL" product is pre-configured.
+# The errata-rails.git test/fixtures/errata_products.yml file does this.
+---
+
+- name: Add program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+- name: Add new RHEL 8.0.0 QuarterlyUpdate
+  errata_tool_release:
+    product: RHEL
+    name: RHEL-8.0.0.GA
+    type: QuarterlyUpdate
+    description: RHEL-8.0.0 GA
+    ship_date: '2019-05-07'
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    blocker_flags: [rhel-8.0.0]
+  register: quarterlyupdate
+
+- name: Add new RHEL 8.0.0 Zstream
+  errata_tool_release:
+    name: RHEL-8.0.0.Z
+    type: Zstream
+    description: RHEL-8.0.0 Zstream
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    blocker_flags: [rhel-8.0.0]
+  register: zstream
+
+- name: Add new RHEL 8.0.0 Async
+  errata_tool_release:
+    name: RHEL-8.0.0.Async
+    type: Async
+    description: RHEL-8.0.0 Async
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: async
+
+- name: Assert that the module responses are correct
+  assert:
+    that:
+      - quarterlyupdate.changed
+      - quarterlyupdate.stdout_lines == ['created RHEL-8.0.0.GA']
+      - zstream.changed
+      - zstream.stdout_lines == ['created RHEL-8.0.0.Z']
+      - async.changed
+      - async.stdout_lines == ['created RHEL-8.0.0.Async']
+
+# Assert that these releases look correct.
+
+# We cannot get the names directly yet, CLOUDWF-1
+- name: query API for QuarterlyUpdate release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=RHEL-8.0.0.GA
+  register: quarterlyupdate
+
+- name: query API for Zstream release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=RHEL-8.0.0.Z
+  register: zstream
+
+- name: query API for Async release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=RHEL-8.0.0.Async
+  register: async
+
+- name: parse releases JSON
+  set_fact:
+    quarterlyupdate_attributes: "{{ quarterlyupdate.json.data.0.attributes }}"
+    quarterlyupdate_relationships: "{{ quarterlyupdate.json.data.0.relationships }}"
+    zstream_attributes: "{{ zstream.json.data.0.attributes }}"
+    zstream_relationships: "{{ zstream.json.data.0.relationships }}"
+    async_attributes: "{{ async.json.data.0.attributes }}"
+    async_relationships: "{{ async.json.data.0.relationships }}"
+
+- assert:
+    that:
+      - quarterlyupdate_attributes.name == 'RHEL-8.0.0.GA'
+      - quarterlyupdate_attributes.type == 'QuarterlyUpdate'
+      - quarterlyupdate_attributes.description == 'RHEL-8.0.0 GA'
+      - quarterlyupdate_attributes.ship_date == '2019-05-07T00:00:00Z'
+      - quarterlyupdate_relationships.product.short_name == 'RHEL'
+      - quarterlyupdate_relationships.program_manager.login_name == 'rhelpm@redhat.com'
+
+      - zstream_attributes.name == 'RHEL-8.0.0.Z'
+      - zstream_attributes.type == 'Zstream'
+      - zstream_attributes.description == 'RHEL-8.0.0 Zstream'
+      - zstream_attributes.ship_date is none
+      - zstream_relationships.program_manager.login_name == 'rhelpm@redhat.com'
+
+      - async_attributes.name == 'RHEL-8.0.0.Async'
+      - async_attributes.type == 'Async'
+      - async_attributes.description == 'RHEL-8.0.0 Async'
+      - async_attributes.ship_date is none
+      - async_relationships.program_manager.login_name == 'rhelpm@redhat.com'
