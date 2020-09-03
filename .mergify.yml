@@ -4,6 +4,7 @@ pull_request_rules:
       - author=ktdreyer
       - status-success=Travis CI - Pull Request
       - status-success=Travis CI - Branch
+      - status-success=integration
       - base=master
     actions:
       merge:
