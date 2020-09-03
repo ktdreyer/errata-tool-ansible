@@ -109,13 +109,6 @@ requirements:
 '''
 
 
-class InvalidInputError(Exception):
-    """ Invalid user input for a parameter """
-    def __init__(self, param, value):
-        self.param = param
-        self.value = value
-
-
 def get_product_version(client, product, name):
     # We cannot query directly by name yet if the name has a "." character.
     # See CLOUDWF-3.
