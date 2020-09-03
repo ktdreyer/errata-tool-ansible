@@ -59,10 +59,6 @@ class TestResponses(object):
 
     def test_edit_variant(self, client, params):
         client.adapter.register_uri(
-            'GET',
-            PROD + '/api/v1/variants?filter%5Bname%5D=8Base-RHCEPH-4.0-Tools',
-            json=ceph_tools_variant_json_response())
-        client.adapter.register_uri(
             'PUT',
             PROD + '/api/v1/variants/2341')
         # Very Cool Tools
