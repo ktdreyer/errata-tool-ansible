@@ -65,9 +65,11 @@ options:
      description:
        - Bugzilla blocker flags (specify a list).
        - "Example: [ceph-3.0, devel_ack, qa_ack, pm_ack]"
-       - Optional for Async errata (or all advisories at this point?)
+       - If the release is a Zstream (or QuarterlyUpdate with
+         supports_component_acl), you must specify at least one flag here. If
+         the release is an Async, blocker_flags is not required.
      required: false
-     default: []
+     default: null
    internal_target_release:
      description:
        - Internal release target Bugzilla field
@@ -390,7 +392,7 @@ def run_module():
         active=dict(type='bool', default=True),
         enable_batching=dict(type='bool', default=True),
         program_manager=dict(required=True),
-        blocker_flags=dict(type='list', default=[]),
+        blocker_flags=dict(type='list'),
         internal_target_release=dict(),
         zstream_target_release=dict(),
         ship_date=dict(),
