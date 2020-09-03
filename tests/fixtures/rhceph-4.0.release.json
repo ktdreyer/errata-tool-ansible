@@ -1,0 +1,53 @@
+{
+  "data": [
+    {
+      "id": 1017,
+      "type": "releases",
+      "attributes": {
+        "name": "rhceph-4.0",
+        "description": "Red Hat Ceph Storage 4.0",
+        "type": "QuarterlyUpdate",
+        "allow_pkg_dupes": true,
+        "ship_date": "2020-01-31T00:00:00Z",
+        "pelc_product_version_name": "",
+        "is_active": true,
+        "enabled": true,
+        "enable_batching": false,
+        "is_async": false,
+        "is_deferred": false,
+        "allow_shadow": false,
+        "allow_blocker": false,
+        "allow_exception": false,
+        "limit_bugs_by_product": false,
+        "supports_component_acl": true,
+        "blocker_flags": [
+          "ceph-4"
+        ],
+        "internal_target_release": "",
+        "zstream_target_release": null
+      },
+      "relationships": {
+        "brew_tags": [],
+        "product": {
+          "id": 104,
+          "short_name": "RHCEPH"
+        },
+        "product_versions": [
+          {
+            "id": 929,
+            "name": "RHCEPH-4.0-RHEL-8"
+          },
+          {
+            "id": 1108,
+            "name": "RHEL-7-RHCEPH-4.0"
+          }
+        ],
+        "state_machine_rule_set": null,
+        "program_manager": {
+          "id": 123456,
+          "login_name": "coolmanager@redhat.com"
+        }
+      }
+    }
+  ]
+}
