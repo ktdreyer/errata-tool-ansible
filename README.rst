@@ -224,6 +224,21 @@ module cannot understand if your chosen request actually "changes" anything.
         that:
           - response.json.login_name == 'cooldeveloper@redhat.com'
 
+Installing errata-tool-ansible from Ansible Galaxy
+--------------------------------------------------
+
+We distribute errata-tool-ansible through the `Ansible Galaxy
+<https://galaxy.ansible.com/ktdreyer/errata_tool_ansible>`_.
+
+If you are using Ansible 2.9 or greater, you can `install
+<https://docs.ansible.com/ansible/latest/user_guide/collections_using.html>`_
+errata-tool-ansible like so::
+
+  ansible-galaxy collection install ktdreyer.errata_tool_ansible
+
+This will install the latest Git snapshot automatically. Use ``--force``
+upgrade your installed version to the latest version.
+
 Python dependencies
 -------------------
 
