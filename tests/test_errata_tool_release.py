@@ -186,7 +186,6 @@ class TestCreateRelease(object):
                 'name': 'rhceph-4.0',
                 'description': 'Red Hat Ceph Storage 4.0',
                 'brew_tags': [],
-                'product_id': None,
                 'program_manager_id': 123456,
                 'product_version_ids': [929, 1108],
                 'state_machine_rule_set_id': None,

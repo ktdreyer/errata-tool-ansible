@@ -236,6 +236,7 @@ def edit_product_version(client, product_version, differences):
 
 def ensure_product_version(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
+    params = {param: val for param, val in params.items() if val is not None}
     product = params['product']
     name = params['name']
     product_version = get_product_version(client, product, name)

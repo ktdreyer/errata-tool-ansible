@@ -275,9 +275,7 @@ def api_data(client, params):
     # Update the values for ones that the REST API will accept:
     if 'product' in release:
         product_name = release.pop('product')
-        if product_name is None:
-            release['product_id'] = None
-        else:
+        if product_name is not None:
             release['product_id'] = get_product_id(client, product_name)
     if 'program_manager' in release:
         pm_login_name = release.pop('program_manager')
@@ -340,6 +338,8 @@ def ensure_release(client, params, check_mode):
     # Note: this looks identical to the diff_product() method.
     # Maybe we can generalize this.
     result = {'changed': False, 'stdout_lines': []}
+    params = {param: val for param, val in params.items() if val is not None}
+
     name = params['name']
     release = get_release(client, name)
     if not release:

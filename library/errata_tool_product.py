@@ -238,9 +238,9 @@ def html_form_data(client, params):
     data['product[valid_bug_states][]'] = params['valid_bug_states']
     data['product[isactive]'] = int(params['active'])
     data['product[ftp_path]'] = params['ftp_path']
-    data['product[ftp_subdir]'] = params['ftp_subdir']
+    data['product[ftp_subdir]'] = params.get('ftp_subdir', '')
     data['product[is_internal]'] = int(params['internal'])
-    if params['default_docs_reviewer'] is not None:
+    if params.get('default_docs_reviewer') is not None:
         default_docs_reviewer_id = common_errata_tool.user_id(client, params['default_docs_reviewer'])
         data['product[default_docs_reviewer_id]'] = default_docs_reviewer_id
     # push targets need scraper
@@ -313,6 +313,7 @@ def edit_product(client, product_id, params):
 
 def ensure_product(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
+    params = {param: val for param, val in params.items() if val is not None}
     short_name = params['short_name']
     product = get_product(client, short_name)
     if not product:
