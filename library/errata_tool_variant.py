@@ -154,6 +154,7 @@ def edit_variant(client, variant_id, differences):
 
 def ensure_variant(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
+    params = {param: val for param, val in params.items() if val is not None}
     name = params['name']
     variant = get_variant(client, name)
 
@@ -163,9 +164,6 @@ def ensure_variant(client, params, check_mode):
         if not check_mode:
             create_variant(client, params)
         return result
-    # Don't print a diff for CPE if it was omitted
-    if params['cpe'] is None:
-        params.pop('cpe')
     differences = common_errata_tool.diff_settings(variant, params)
     if differences:
         result['changed'] = True

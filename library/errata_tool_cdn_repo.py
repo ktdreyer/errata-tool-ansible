@@ -505,6 +505,7 @@ def ensure_cdn_repo(client, check_mode, params):
     :param dict params: Parameters from ansible
     """
     result = {'changed': False, 'stdout_lines': []}
+    params = {param: val for param, val in params.items() if val is not None}
     name = params['name']
 
     # Special handling for packages parameter:

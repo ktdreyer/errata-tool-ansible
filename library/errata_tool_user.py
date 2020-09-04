@@ -123,7 +123,7 @@ def create_user(client, params):
 
     # Hack for CLOUDWF-2817 - If the user's receives_mail attribute is true,
     # we must always send the intended email_address as well.
-    if params['receives_mail'] and params['email_address'] is None:
+    if params['receives_mail'] and params.get('email_address') is None:
         # The user wanted the ET to choose a default email address, so we
         # approximate that here:
         account_name, _ = params['login_name'].split('@', 1)
@@ -159,6 +159,7 @@ def edit_user(client, user_id, differences):
 
 def ensure_user(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
+    params = {param: val for param, val in params.items() if val is not None}
     login_name = params['login_name']
     user = get_user(client, login_name)
     if not user:
@@ -168,11 +169,6 @@ def ensure_user(client, params, check_mode):
             create_user(client, params)
         return result
     user_id = user.pop('id')
-
-    # Do not change these settings if the playbook author omits them ("None").
-    for param in ('organization', 'roles', 'email_address'):
-        if params[param] is None:
-            params.pop(param)
 
     differences = common_errata_tool.diff_settings(user, params)
     if differences:
