@@ -1,0 +1,202 @@
+# Test blocker_bug settings when creating releases.
+#
+# This test case exercises the ability to set (or not set) the blocker_bug
+# parameter when creating different releases.
+
+# This assumes the "RHEL" product is pre-configured.
+# The errata-rails.git test/fixtures/errata_products.yml file does this.
+---
+
+- name: Add prerequisite program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+###########
+
+- name: QuarterlyUpdate with supports_component_acl and no blocker flags
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-quarterly-acl-no-blocker
+    type: QuarterlyUpdate
+    description: should fail because ACLs require blocker flags
+    ship_date: '2019-05-07'
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    supports_component_acl: true
+  register: result
+  ignore_errors: yes
+
+- name: assert ET server-side failure for QU with ACL and no blocker flags
+  assert:
+    that:
+      - result.failed
+      # TODO: assert failure message here, once we have a friendly error
+      # message (instead of a stack trace).
+
+###########
+
+- name: QuarterlyUpdate with supports_component_acl and a blocker flag
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-quarterly-acl-with-blocker
+    type: QuarterlyUpdate
+    description: QuarterlyUpdate with ACL and a blocker flag
+    ship_date: '2019-05-07'
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    supports_component_acl: true
+    blocker_flags: [rhel-8.0.0]
+  register: result
+
+- name: query API for blocker-bug-1-quarterly-acl-with-blocker release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=blocker-bug-1-quarterly-acl-with-blocker
+  register: result
+
+- name: assert blocker-bug-1-quarterly-acl-with-blocker looks correct in ET
+  assert:
+    that:
+      - result.json.data.0.attributes.supports_component_acl
+      - result.json.data.0.attributes.blocker_flags == ["rhel-8.0.0"]
+
+###########
+
+- name: QuarterlyUpdate without supports_component_acl and no blocker flags
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-quarterly-no-acl-no-blocker
+    type: QuarterlyUpdate
+    description: QuarterlyUpdate with no ACL and no blocker flags
+    ship_date: '2019-05-07'
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: query API for blocker-bug-1-quarterly-no-acl-no-blocker release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=blocker-bug-1-quarterly-no-acl-no-blocker
+  register: result
+
+- name: assert blocker-bug-1-quarterly-no-acl-no-blocker looks correct in ET
+  assert:
+    that:
+      - not result.json.data.0.attributes.supports_component_acl
+      - result.json.data.0.attributes.blocker_flags == []
+
+###########
+
+- name: QuarterlyUpdate without supports_component_acl and with a blocker flag
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-quarterly-no-acl-with-blocker
+    type: QuarterlyUpdate
+    description: QuarterlyUpdate with no ACL and with a blocker flag
+    ship_date: '2019-05-07'
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    blocker_flags: [rhel-8.0.0]
+  register: result
+
+- name: query API for blocker-bug-1-quarterly-no-acl-with-blocker release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=blocker-bug-1-quarterly-no-acl-with-blocker
+  register: result
+
+- name: assert blocker-bug-1-quarterly-no-acl-with-blocker looks correct in ET
+  assert:
+    that:
+      - not result.json.data.0.attributes.supports_component_acl
+      - result.json.data.0.attributes.blocker_flags == ["rhel-8.0.0"]
+
+###########
+
+- name: Zstream with no blocker flags
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-zstream-no-blocker
+    type: Zstream
+    description: should fail because Zstreams always require blocker flags.
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+  ignore_errors: yes
+
+- name: assert ET server-side failure for Zstream with no blocker flags
+  assert:
+    that:
+      - result.failed
+      # TODO: assert failure message here, once we have a friendly error
+      # message (instead of a stack trace).
+
+###########
+
+- name: Zstream with a blocker flag
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-zstream-with-blocker
+    type: Zstream
+    description: Zstream with a blocker flag
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    blocker_flags: [rhel-8.0.0]
+  register: result
+
+- name: query API for blocker-bug-1-zstream-with-blocker release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=blocker-bug-1-zstream-with-blocker
+  register: result
+
+- name: assert blocker-bug-1-zstream-with-blocker looks correct in ET
+  assert:
+    that:
+      - result.json.data.0.attributes.blocker_flags == ["rhel-8.0.0"]
+
+###########
+
+- name: Async with no blocker flags
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-async-no-blocker
+    type: Async
+    description: Async with no blocker flags
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: query API for blocker-bug-1-async-no-blocker release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=blocker-bug-1-async-no-blocker
+  register: result
+
+- name: assert blocker-bug-1-async-no-blocker looks correct in ET
+  assert:
+    that:
+      - result.json.data.0.attributes.blocker_flags == []
+
+###########
+
+- name: Async with a blocker flag
+  errata_tool_release:
+    product: RHEL
+    name: blocker-bug-1-async-with-blocker
+    type: Async
+    description: Async with a blocker flag
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    blocker_flags: [rhel-8.0.0]
+  register: result
+
+- name: query API for blocker-bug-1-async-with-blocker release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=blocker-bug-1-async-with-blocker
+  register: result
+
+- name: assert blocker-bug-1-async-with-blocker looks correct in ET
+  assert:
+    that:
+      - result.json.data.0.attributes.blocker_flags == ["rhel-8.0.0"]
