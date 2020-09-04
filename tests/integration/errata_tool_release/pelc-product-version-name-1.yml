@@ -1,0 +1,158 @@
+# Test editing pelc_product_version_name settings.
+#
+# This test case exercises the ability to set (or not set) the
+# pelc_product_version_name parameter.
+
+# This assumes the "RHEL" product is pre-configured.
+# The errata-rails.git test/fixtures/errata_products.yml file does this.
+---
+
+- name: Add prerequisite program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+###########
+
+- name: Create a release with no pelc_product_version_name
+  errata_tool_release:
+    product: RHEL
+    name: pelc-product-version-name-1
+    type: Async
+    description: Testing PELC Product Version Name
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert pelc-product-version-name-1 is a new release
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created pelc-product-version-name-1"]
+
+- name: query API for pelc-product-version-name-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=pelc-product-version-name-1
+  register: result
+
+- name: assert new release has no pelc_product_version_name
+  assert:
+    that:
+      - result.json.data.0.attributes.pelc_product_version_name is none
+
+###########
+
+- name: Edit a release when existing pelc_pv_name is null and we do not specify pelc_product_version_name
+  # same parameters as above, to test "no changes":
+  errata_tool_release:
+    product: RHEL
+    name: pelc-product-version-name-1
+    type: Async
+    description: Testing PELC Product Version Name
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert errata_tool_release reports no changes
+  assert:
+    that:
+      - not result.changed
+
+- name: query API for pelc-product-version-name-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=pelc-product-version-name-1
+  register: result
+
+- name: assert release still has no pelc_product_version_name
+  assert:
+    that:
+      - result.json.data.0.attributes.pelc_product_version_name is none
+
+###########
+
+- name: Edit a release when existing pelc_pv_name is null and we set pelc_product_version_name to rhel-8
+  errata_tool_release:
+    product: RHEL
+    name: pelc-product-version-name-1
+    type: Async
+    description: Testing PELC Product Version Name
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    pelc_product_version_name: rhel-8
+  register: result
+
+- name: assert module reports pelc_product_version_name changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing pelc_product_version_name from None to rhel-8"]
+
+- name: query API for pelc-product-version-name-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=pelc-product-version-name-1
+  register: result
+
+- name: assert release has a new pelc_product_version_name "rhel-8" value
+  assert:
+    that:
+      - result.json.data.0.attributes.pelc_product_version_name == "rhel-8"
+
+###########
+
+- name: Edit a release when existing pelc_pv_name is "rhel-8" and we do not specify pelc_product_version_name
+  errata_tool_release:
+    product: RHEL
+    name: pelc-product-version-name-1
+    type: Async
+    description: Testing PELC Product Version Name
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert errata_tool_release reports no changes
+  assert:
+    that:
+      - not result.changed
+
+- name: query API for pelc-product-version-name-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=pelc-product-version-name-1
+  register: result
+
+- name: assert release's pelc_product_version_name value is still "rhel-8"
+  assert:
+    that:
+      - result.json.data.0.attributes.pelc_product_version_name == "rhel-8"
+
+###########
+
+- name: Edit a release when existing pelc_pv_name is rhel-8 and we specify pelc_product_version_name=""
+  errata_tool_release:
+    product: RHEL
+    name: pelc-product-version-name-1
+    type: Async
+    description: Testing PELC Product Version Name
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    pelc_product_version_name: ""
+  register: result
+
+- name: assert module reports pelc_product_version_name changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing pelc_product_version_name from rhel-8 to "]
+
+- name: query API for pelc-product-version-name-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=pelc-product-version-name-1
+  register: result
+
+- name: assert release has a new pelc_product_version_name empty string value
+  assert:
+    that:
+      - result.json.data.0.attributes.pelc_product_version_name == ""
