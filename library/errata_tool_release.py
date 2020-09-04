@@ -150,7 +150,11 @@ options:
      required: false
    pelc_product_version_name:
      description:
-       - Set to "null" if this release does not use PELC.
+       - If your release does not use PELC, you can omit this parameter and
+         the ET server will default this value to "null".
+       - If the ET server already has a PELC version defined for this release
+         and you wish to *unset* it, set this pelc_product_version_name
+         parameter to an empty string "".
      default: null
      required: false
    brew_tags:
@@ -309,9 +313,6 @@ def api_data(client, params):
             release['state_machine_rule_set_id'] = rule_set_id
         else:
             release['state_machine_rule_set_id'] = None
-    # "pelc_product_version_name" - not yet supported in the create/update
-    # API, so we silently skip this setting for now:
-    release.pop('pelc_product_version_name', None)
     # "blocker_flags" list -> str
     if 'blocker_flags' in release:
         release['blocker_flags'] = ",".join(release['blocker_flags'])

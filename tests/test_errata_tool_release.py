@@ -147,7 +147,7 @@ class TestCreateRelease(object):
                 'allow_shadow': False,
                 'allow_blocker': False,
                 'internal_target_release': '',
-                # 'pelc_product_version_name': None,  # see issue #94
+                'pelc_product_version_name': None,
                 'disable_acl': False,
                 'allow_pkg_dupes': True,
                 'limit_bugs_by_product': False,
@@ -197,7 +197,7 @@ class TestCreateRelease(object):
                 'allow_shadow': False,
                 'allow_blocker': False,
                 'internal_target_release': '',
-                # 'pelc_product_version_name': None,  # see issue #94
+                'pelc_product_version_name': None,
                 'disable_acl': False,
                 'allow_pkg_dupes': True,
                 'limit_bugs_by_product': False,
