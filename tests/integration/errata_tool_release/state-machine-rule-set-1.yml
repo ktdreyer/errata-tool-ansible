@@ -1,0 +1,158 @@
+# Test editing state_machine_rule_set settings.
+#
+# This test case exercises the ability to set (or not set) the
+# state_machine_rule_set parameter.
+
+# This assumes the "RHEL" product is pre-configured.
+# The errata-rails.git test/fixtures/errata_products.yml file does this.
+---
+
+- name: Add prerequisite program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+###########
+
+- name: Create a release with no state_machine_rule_set
+  errata_tool_release:
+    product: RHEL
+    name: state-machine-rule-set-1
+    type: Async
+    description: Testing Workflow Rule Set
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert state-machine-rule-set-1 is a new release
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created state-machine-rule-set-1"]
+
+- name: query API for state-machine-rule-set-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=state-machine-rule-set-1
+  register: result
+
+- name: assert new release has no state_machine_rule_set
+  assert:
+    that:
+      - result.json.data.0.relationships.state_machine_rule_set is none
+
+###########
+
+- name: Edit a release when existing rule_set is null and we do not specify state_machine_rule_set
+  # same parameters as above, to test "no changes":
+  errata_tool_release:
+    product: RHEL
+    name: state-machine-rule-set-1
+    type: Async
+    description: Testing Workflow Rule Set
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert errata_tool_release reports no changes
+  assert:
+    that:
+      - not result.changed
+
+- name: query API for state-machine-rule-set-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=state-machine-rule-set-1
+  register: result
+
+- name: assert release still has no state_machine_rule_set
+  assert:
+    that:
+      - result.json.data.0.relationships.state_machine_rule_set is none
+
+###########
+
+- name: Edit a release when existing rule_set is null and we set state_machine_rule_set to Unrestricted
+  errata_tool_release:
+    product: RHEL
+    name: state-machine-rule-set-1
+    type: Async
+    description: Testing Workflow Rule Set
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    state_machine_rule_set: Unrestricted
+  register: result
+
+- name: assert module reports state_machine_rule_set changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing state_machine_rule_set from None to Unrestricted"]
+
+- name: query API for state-machine-rule-set-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=state-machine-rule-set-1
+  register: result
+
+- name: assert release has a new state_machine_rule_set "Unrestricted" value
+  assert:
+    that:
+      - result.json.data.0.relationships.state_machine_rule_set.name == "Unrestricted"
+
+###########
+
+- name: Edit a release when existing rule_set is "Unrestricted" and we do not specify state_machine_rule_set
+  errata_tool_release:
+    product: RHEL
+    name: state-machine-rule-set-1
+    type: Async
+    description: Testing Workflow Rule Set
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert errata_tool_release reports no changes
+  assert:
+    that:
+      - not result.changed
+
+- name: query API for state-machine-rule-set-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=state-machine-rule-set-1
+  register: result
+
+- name: assert release's state_machine_rule_set value is still "Unrestricted"
+  assert:
+    that:
+      - result.json.data.0.relationships.state_machine_rule_set.name == "Unrestricted"
+
+###########
+
+- name: Edit a release when existing rule_set is Unrestricted and we specify state_machine_rule_set=""
+  errata_tool_release:
+    product: RHEL
+    name: state-machine-rule-set-1
+    type: Async
+    description: Testing Workflow Rule Set
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    state_machine_rule_set: ""
+  register: result
+
+- name: assert module reports state_machine_rule_set changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing state_machine_rule_set from Unrestricted to None"]
+
+- name: query API for state-machine-rule-set-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=state-machine-rule-set-1
+  register: result
+
+- name: assert release has a new state_machine_rule_set empty string value
+  assert:
+    that:
+      - result.json.data.0.relationships.state_machine_rule_set is none
