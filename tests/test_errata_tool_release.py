@@ -130,7 +130,6 @@ class TestCreateRelease(object):
             status_code=201)
         create_release(client, params)
         history = client.adapter.request_history
-        assert len(history) == 5
         expected = {
             'release': {
                 'name': 'rhceph-4.0',
@@ -158,9 +157,9 @@ class TestCreateRelease(object):
             },
             'type': 'QuarterlyUpdate',
         }
-        assert history[4].url == PROD + '/api/v1/releases'
-        assert history[4].method == 'POST'
-        assert history[4].json() == expected
+        assert history[-1].url == PROD + '/api/v1/releases'
+        assert history[-1].method == 'POST'
+        assert history[-1].json() == expected
 
     def test_error(self, client, params):
         """ Ensure that we raise any server message to the user. """
