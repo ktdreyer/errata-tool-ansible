@@ -175,7 +175,7 @@ class TestCreateRelease(object):
 
 class TestEditRelease(object):
 
-    def test_edit_variant(self, client, params):
+    def test_edit_release(self, client, params):
         client.adapter.register_uri(
             'PUT',
             PROD + '/api/v1/releases/1017')
