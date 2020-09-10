@@ -51,3 +51,15 @@ def load_json(filename):
     with open(path) as json_file:
         data = json.load(json_file)
     return data
+
+
+def load_html(filename):
+    """
+    Load a HTML fixture file from disk
+
+    :returns: string (file contents)
+    """
+    path = os.path.join(FIXTURES_DIR, filename)
+    with open(path) as html_file:
+        contents = html_file.read()
+    return contents
