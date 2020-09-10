@@ -4,6 +4,7 @@ from errata_tool_release import get_release
 from errata_tool_release import create_release
 from errata_tool_release import edit_release
 from utils import load_json
+from utils import load_html
 
 
 PROD = 'https://errata.devel.redhat.com'
@@ -205,3 +206,22 @@ class TestEditRelease(object):
         with pytest.raises(ValueError) as err:
             edit_release(client, 1017, differences)
         assert err.value.args == ({'error': 'Some Error Here'},)
+
+    def test_state_machine_rule_set(self, client):
+        """ Ensure that we send the ID number, not the name. CLOUDWF-298 """
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/workflow_rules',
+            text=load_html('workflow_rules.html'))
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/releases/1017')
+        differences = [('state_machine_rule_set', None, 'Unrestricted')]
+        edit_release(client, 1017, differences)
+        history = client.adapter.request_history
+        expected = {
+            'release': {
+                'state_machine_rule_set_id': 2,
+            }
+        }
+        assert history[-1].json() == expected
