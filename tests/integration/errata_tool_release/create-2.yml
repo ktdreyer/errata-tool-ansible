@@ -1,0 +1,42 @@
+# Configure an async release with no product.
+#
+---
+
+- name: Add program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+- name: Add new create-2 Async
+  errata_tool_release:
+    name: create-2
+    type: Async
+    description: create-2 async test
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+
+# Assert that this release looks correct.
+
+# We cannot get the names directly yet, CLOUDWF-1
+- name: query API for Async release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=create-2
+  register: async
+
+- name: parse release JSON
+  set_fact:
+    attributes: "{{ async.json.data.0.attributes }}"
+    relationships: "{{ async.json.data.0.relationships }}"
+
+- assert:
+    that:
+      - attributes.name == 'create-2'
+      - attributes.type == 'Async'
+      - attributes.description == 'create-2 async test'
+      - attributes.ship_date is none
+      - relationships.program_manager.login_name == 'rhelpm@redhat.com'
+      - relationships.product is none
