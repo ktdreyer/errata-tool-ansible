@@ -1,10 +1,12 @@
 import pytest
 from requests.exceptions import HTTPError
 from ansible.module_utils.common_errata_tool import RELEASE_TYPES
+from ansible.module_utils.common_errata_tool import WorkflowRulesScraper
 from ansible.module_utils.common_errata_tool import DefaultSolutions
 from ansible.module_utils.common_errata_tool import diff_settings
 from ansible.module_utils.common_errata_tool import describe_changes
 from ansible.module_utils.common_errata_tool import user_id
+from utils import load_html
 
 
 @pytest.mark.parametrize("name,expected", [
@@ -19,6 +21,26 @@ def test_default_solutions(name, expected):
 def test_release_types():
     expected = set(['QuarterlyUpdate', 'Zstream', 'Async'])
     assert RELEASE_TYPES == expected
+
+
+class TestWorkflowRulesScraper(object):
+    def test_simple(self, client):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/workflow_rules',
+            text=load_html('workflow_rules.html'))
+        scraper = WorkflowRulesScraper(client)
+        enum = scraper.enum
+        assert int(enum['Default']) == 1
+        assert int(enum['Unrestricted']) == 2
+        assert int(enum['CDN Push Only']) == 3
+        assert int(enum['Covscan']) == 4
+        assert int(enum['Non-blocking TPS']) == 7
+        assert int(enum['Optional TPS DistQA']) == 9
+        assert int(enum['Non-blocking rpmdiff for RHEL-8']) == 14
+        assert int(enum['Ansible']) == 15
+        assert int(enum['Non-blocking TPS & Covscan']) == 17
+        assert int(enum['Non-blocking Push target & Covscan']) == 18
 
 
 class TestDiffSettings(object):
