@@ -172,6 +172,46 @@ class TestCreateRelease(object):
             create_release(client, params)
         assert err.value.args == ({'error': 'Some Error Here'},)
 
+    def test_create_async_no_product(self, client, params):
+        params['product'] = None
+        params['type'] = 'Async'
+        client.adapter.register_uri(
+            'POST',
+            PROD + '/api/v1/releases',
+            status_code=201)
+        create_release(client, params)
+        history = client.adapter.request_history
+        expected = {
+            'release': {
+                'name': 'rhceph-4.0',
+                'description': 'Red Hat Ceph Storage 4.0',
+                'brew_tags': [],
+                'product_id': None,
+                'program_manager_id': 123456,
+                'product_version_ids': [929, 1108],
+                'state_machine_rule_set_id': None,
+                'isactive': True,
+                'enable_batching': False,
+                'ship_date': '2020-01-31',
+                'zstream_target_release': None,
+                'type': 'Async',  # Not needed, todo: remove
+                'allow_shadow': False,
+                'allow_blocker': False,
+                'internal_target_release': '',
+                # 'pelc_product_version_name': None,  # see issue #94
+                'disable_acl': False,
+                'allow_pkg_dupes': True,
+                'limit_bugs_by_product': False,
+                'blocker_flags': 'ceph-4',
+                'enabled': True,
+                'allow_exception': False,
+            },
+            'type': 'Async',
+        }
+        assert history[-1].url == PROD + '/api/v1/releases'
+        assert history[-1].method == 'POST'
+        assert history[-1].json() == expected
+
 
 class TestEditRelease(object):
 
