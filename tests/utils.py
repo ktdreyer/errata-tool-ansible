@@ -8,6 +8,9 @@ import json
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 
+TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
+FIXTURES_DIR = os.path.join(TESTS_DIR, 'fixtures')
+
 
 def set_module_args(args):
     if '_ansible_remote_tmp' not in args:
@@ -44,9 +47,7 @@ def load_json(filename):
 
     :returns: dict
     """
-    tests_dir = os.path.dirname(os.path.abspath(__file__))
-    fixtures_dir = os.path.join(tests_dir, 'fixtures')
-    path = os.path.join(fixtures_dir, filename)
+    path = os.path.join(FIXTURES_DIR, filename)
     with open(path) as json_file:
         data = json.load(json_file)
     return data
