@@ -136,11 +136,10 @@ options:
        - If you omit this parameter, Ansible will default to "null" and re-set
          the release's workflow ruleset back to null (so, inheriting the
          product's ruleset).
-     choices: [default, unrestricted, cdn_push_only, covscan, rhel_7_beta,
-               abidiff_pilot_deprecated, non_blocking_tps, covscan_deprecated,
-               optional_tps_distqa, optional_stage_push_for_rhel_6_8,
-               optional_stage_push_for_rhel_7_3,
-               non_blocking_rpmdiff_for_rhel_8, ansible, rhel_8_ga]
+     choices: [Default, Unrestricted, CDN Push Only, Covscan,
+               Non-blocking TPS, Optional TPS DistQA, Non-blocking rpmdiff for
+               RHEL-8, Ansible, RHEL-8 GA, Non-blocking TPS & Covscan,
+               Non-blocking Push target & Covscan]
      default: null
      required: false
    pelc_product_version_name:
@@ -300,9 +299,10 @@ def api_data(client, params):
     if 'state_machine_rule_set' in release:
         state_machine_rule_set = release.pop('state_machine_rule_set')
         if state_machine_rule_set:
-            state_machine_rule_set = state_machine_rule_set.upper()
-            state_machine_rule_set_id = int(common_errata_tool.WorkflowRules[state_machine_rule_set])
-            release['state_machine_rule_set_id'] = state_machine_rule_set_id
+            rules_scraper = common_errata_tool.WorkflowRulesScraper(client)
+            rule_set_id = int(rules_scraper.enum[state_machine_rule_set])
+
+            release['state_machine_rule_set_id'] = rule_set_id
         else:
             release['state_machine_rule_set_id'] = None
     # "pelc_product_version_name" - not yet supported in the create/update
