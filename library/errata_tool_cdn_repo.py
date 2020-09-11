@@ -294,7 +294,11 @@ def edit_cdn_repo(client, cdn_repo_id, differences):
     # Create a Ansible params-like dict for the api_data() method.
     params = {}
     for difference in differences:
-        key, _, new = difference
+        key, current, new = difference
+        if key == "variants":
+            for current_ele in current:
+                if new.count(current_ele) == 0:
+                    new.append(current_ele)
         params[key] = new
     data = cdn_repo_api_data(params)
     response = client.put('api/v1/cdn_repos/%d' % cdn_repo_id, json=data)
