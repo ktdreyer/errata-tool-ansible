@@ -101,6 +101,15 @@ options:
          so set this to false to allow pushes without channels or repos.
      choices: [true, false]
      default: true
+   exd_org_group:
+     description:
+       - The name of the "EXD org group" the product belongs to. The product's
+         EXD org group affects where release engineering tickets are filed in
+         Jira.
+       - See https://errata.devel.redhat.com/api/v1/exd_org_groups for a
+         list of EXD org groups.
+     choices: ['RHEL', 'Cloud', 'Middleware & Management', 'Pipeline Value']
+     default: 'RHEL'
 requirements:
   - "python >= 2.7"
   - "lxml"
@@ -119,6 +128,16 @@ BUGZILLA_STATES = set([
     'RELEASE_PENDING',
     'VERIFIED',
 ])
+
+
+# See https://errata.devel.redhat.com/api/v1/exd_org_groups
+# In theory these could change, but it seems unlikely.
+EXD_ORG_GROUPS = {
+    'RHEL': 1,
+    'Cloud': 2,
+    'Middleware & Management': 3,
+    'Pipeline Value': 4,
+}
 
 
 class InvalidInputError(Exception):
@@ -194,6 +213,9 @@ def get_product(client, short_name):
     else:
         product['state_machine_rule_set'] = None
 
+    # exd_org_group
+    product['exd_org_group'] = relationships['exd_org_group']['name']
+
     return product
 
 
@@ -264,6 +286,10 @@ def html_form_data(client, params):
     data['product[move_bugs_on_qe]'] = int(params['move_bugs_on_qe'])
     text_only_dists = int(params['text_only_advisories_require_dists'])
     data['product[text_only_advisories_require_dists]'] = text_only_dists
+    exd_org_group = params.get('exd_org_group')
+    if exd_org_group is not None:
+        exd_org_group_id = int(EXD_ORG_GROUPS[exd_org_group])
+        data['product[exd_org_group_id]'] = exd_org_group_id
     return data
 
 
@@ -356,6 +382,7 @@ def run_module():
         state_machine_rule_set=dict(required=True),
         move_bugs_on_qe=dict(type='bool', default=False),
         text_only_advisories_require_dists=dict(type='bool', default=True),
+        exd_org_group=dict(choices=EXD_ORG_GROUPS.keys()),
     )
     module = AnsibleModule(
         argument_spec=module_args,
