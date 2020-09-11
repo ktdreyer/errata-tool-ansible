@@ -59,6 +59,7 @@
     that:
       - attributes.name == '8Base-Test-Create-Variants-2.0-Tools'
       - attributes.description == "Test variant on a layered product 2.0"
+      - attributes.cpe is none
       - attributes.enabled
       - not attributes.buildroot
       - attributes.tps_stream == "RHEL-8-Main-Base"
