@@ -70,6 +70,16 @@ PRODUCT = {
         "state_machine_rule_set": {
             "id": 1,
             "name": "Default"
+        },
+        "exd_org_group": {
+            "id": 2,
+            "name": "Cloud",
+            "short_name": "Cloud",
+            "jira_key": "SPCLOUD",
+            "jira_ticket_project_keys": {
+                "push_request": "CLOUDDST",
+                "listings_change": "CLOUDWF"
+            }
         }
     }
 }
@@ -137,5 +147,6 @@ class TestGetProduct(object):
                 'cdn',
             ],
             'state_machine_rule_set': 'Default',
+            'exd_org_group': 'Cloud',
         }
         assert product == expected
