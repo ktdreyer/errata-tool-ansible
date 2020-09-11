@@ -48,12 +48,16 @@ options:
      default: true
    ftp_path:
      description:
-       - "example: null"
-     default: false
+       - This value is usually an empty string for most products. For RHEL, it
+         is "os".
+     required: false
+     default: ""
    ftp_subdir:
      description:
-       - "example: RHCEPH"
-     default: false
+       - For most products, this is usually the short name of the product,
+         for example "RHCEPH". For RHEL, this is "os".
+     required: false
+     default: null
    internal:
      description:
        - A Red Hat Internal Product
