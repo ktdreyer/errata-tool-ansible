@@ -1,6 +1,7 @@
 import pytest
 from requests.exceptions import HTTPError
 from ansible.module_utils.common_errata_tool import RELEASE_TYPES
+from ansible.module_utils.common_errata_tool import PushTargetScraper
 from ansible.module_utils.common_errata_tool import WorkflowRulesScraper
 from ansible.module_utils.common_errata_tool import DefaultSolutions
 from ansible.module_utils.common_errata_tool import diff_settings
@@ -21,6 +22,40 @@ def test_default_solutions(name, expected):
 def test_release_types():
     expected = set(['QuarterlyUpdate', 'Zstream', 'Async'])
     assert RELEASE_TYPES == expected
+
+
+class TestPushTargetScraper(object):
+    @pytest.fixture(autouse=True)
+    def fake_response(self, client):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/products/new',
+            text=load_html('products_new.html'))
+
+    @pytest.fixture
+    def scraper(self, client):
+        return PushTargetScraper(client)
+
+    @pytest.fixture
+    def enum(self, scraper):
+        return scraper.enum
+
+    @pytest.mark.parametrize('name,expected_id', [
+        ('rhn_live', 1),
+        ('rhn_stage', 2),
+        ('ftp', 3),
+        ('cdn', 4),
+        ('cdn_stage', 5),
+        ('altsrc', 6),
+        ('cdn_docker', 8),
+        ('cdn_docker_stage', 9),
+    ])
+    def test_name_to_id(self, enum, name, expected_id):
+        assert int(enum[name]) == expected_id
+
+    def test_convert_to_ints(self, scraper):
+        result = scraper.convert_to_ints(['cdn', 'cdn_stage'])
+        assert result == [4, 5]
 
 
 class TestWorkflowRulesScraper(object):
