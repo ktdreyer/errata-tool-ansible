@@ -24,23 +24,29 @@ def test_release_types():
 
 
 class TestWorkflowRulesScraper(object):
-    def test_simple(self, client):
+    @pytest.fixture
+    def enum(self, client):
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/workflow_rules',
             text=load_html('workflow_rules.html'))
         scraper = WorkflowRulesScraper(client)
-        enum = scraper.enum
-        assert int(enum['Default']) == 1
-        assert int(enum['Unrestricted']) == 2
-        assert int(enum['CDN Push Only']) == 3
-        assert int(enum['Covscan']) == 4
-        assert int(enum['Non-blocking TPS']) == 7
-        assert int(enum['Optional TPS DistQA']) == 9
-        assert int(enum['Non-blocking rpmdiff for RHEL-8']) == 14
-        assert int(enum['Ansible']) == 15
-        assert int(enum['Non-blocking TPS & Covscan']) == 17
-        assert int(enum['Non-blocking Push target & Covscan']) == 18
+        return scraper.enum
+
+    @pytest.mark.parametrize('name,expected_id', [
+        ('Default', 1),
+        ('Unrestricted', 2),
+        ('CDN Push Only', 3),
+        ('Covscan', 4),
+        ('Non-blocking TPS', 7),
+        ('Optional TPS DistQA', 9),
+        ('Non-blocking rpmdiff for RHEL-8', 14),
+        ('Ansible', 15),
+        ('Non-blocking TPS & Covscan', 17),
+        ('Non-blocking Push target & Covscan', 18),
+    ])
+    def test_name_to_id(self, enum, name, expected_id):
+        assert int(enum[name]) == expected_id
 
 
 class TestDiffSettings(object):
