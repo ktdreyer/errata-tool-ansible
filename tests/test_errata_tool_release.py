@@ -22,7 +22,6 @@ def params():
         'active': True,
         'enable_batching': False,
         'program_manager': 'coolmanager@redhat.com',
-        'state_machine_rule_set': None,
         'blocker_flags': ['ceph-4'],
         'internal_target_release': "",
         'zstream_target_release': None,
