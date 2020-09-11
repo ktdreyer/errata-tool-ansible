@@ -174,7 +174,7 @@ class TestCreateRelease(object):
 
 class TestEditRelease(object):
 
-    def test_edit_release(self, client, params):
+    def test_edit_release(self, client):
         client.adapter.register_uri(
             'PUT',
             PROD + '/api/v1/releases/1017')
@@ -192,7 +192,7 @@ class TestEditRelease(object):
         }
         assert history[0].json() == expected
 
-    def test_error(self, client, params):
+    def test_error(self, client):
         """ Ensure that we raise any server message to the user. """
         client.adapter.register_uri(
             'PUT',
