@@ -289,7 +289,8 @@ def api_data(client, params):
             release['product_id'] = get_product_id(client, product_name)
     if 'program_manager' in release:
         pm_login_name = release.pop('program_manager')
-        release['program_manager_id'] = common_errata_tool.user_id(client, pm_login_name)
+        program_manager_id = common_errata_tool.user_id(client, pm_login_name)
+        release['program_manager_id'] = program_manager_id
     # "active" -> "isactive"
     if 'active' in release:
         active = release.pop('active')
