@@ -188,8 +188,9 @@ def get_product(client, short_name):
                                relationships['push_targets']]
 
     # state_machine_rule_set
-    if relationships['state_machine_rule_set']:
-        product['state_machine_rule_set'] = relationships['state_machine_rule_set']['name']
+    state_machine_rule_set = relationships['state_machine_rule_set']
+    if state_machine_rule_set:
+        product['state_machine_rule_set'] = state_machine_rule_set['name']
     else:
         product['state_machine_rule_set'] = None
 
