@@ -197,7 +197,7 @@ Why would you use this module instead of the higher level modules like
    support. It can be easier to use this module to quickly prototype out
    your ideas for what actions you need, and then write the Python code to
    do it in a better way later. If you find that you need to use
-   errata_tool_request to achieve functionality that is not yet present in
+   ``errata_tool_request`` to achieve functionality that is not yet present in
    the other errata-tool-ansible modules, please file a Feature Request
    issue in GitHub with your use case.
 2. You want to write some tests that verify ET's data at a very low
