@@ -101,7 +101,7 @@ class PushTargetScraper(object):
             text = parent.text_content()
             m = re.search(r'(Push .+) \(Pub Target:', text)
             if not m:
-                raise ValueError('did not find target description in %s' % text)
+                raise ValueError('no target description in %s' % text)
             description = m.group(1)
             name = self.DESCRIPTIONS[description]
             results[name] = id_
