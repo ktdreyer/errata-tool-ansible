@@ -248,8 +248,9 @@ def html_form_data(client, params):
         docs_reviewer_id = common_errata_tool.user_id(client, docs_reviewer)
         data['product[default_docs_reviewer_id]'] = docs_reviewer_id
     # push targets need scraper
+    push_targets = params['push_targets']
     push_target_scraper = common_errata_tool.PushTargetScraper(client)
-    push_target_ints = push_target_scraper.convert_to_ints(params['push_targets'])
+    push_target_ints = push_target_scraper.convert_to_ints(push_targets)
     data['product[push_targets][]'] = push_target_ints
     # This is an internal-only product thing that we can probably skip:
     # data['product[cdw_flag_prefix]'] = params['cdw_flag_prefix']
