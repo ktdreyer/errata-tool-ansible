@@ -33,7 +33,7 @@ class PushTargetScraper(object):
     years.
 
     Once we have the ability to edit all Push Target settings by name instead
-    of ID, we can delete this method.
+    of ID, we can delete this class.
     """
     # Map PushTarget descriptions to names. This map comes from
     # /developer-guide/push-push-targets-options-and-tasks.html
