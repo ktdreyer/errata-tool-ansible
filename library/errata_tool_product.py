@@ -262,7 +262,8 @@ def html_form_data(client, params):
     state_machine_rule_set_id = int(rules_scraper.enum[state_machine_rule_set])
     data['product[state_machine_rule_set_id]'] = state_machine_rule_set_id
     data['product[move_bugs_on_qe]'] = int(params['move_bugs_on_qe'])
-    data['product[text_only_advisories_require_dists]'] = int(params['text_only_advisories_require_dists'])
+    text_only_dists = int(params['text_only_advisories_require_dists'])
+    data['product[text_only_advisories_require_dists]'] = text_only_dists
     return data
 
 
