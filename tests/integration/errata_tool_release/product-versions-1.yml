@@ -1,0 +1,104 @@
+# Test editing product_versions settings.
+#
+# This test case exercises the ability to set and unset the product_versions
+# values.
+
+# This assumes the "RHEL" product and "RHEL-8.0.0" product version is
+# pre-configured. The errata-rails.git test/fixtures/errata_products.yml and
+# test/fixtures/product_versions.yml files do this.
+---
+
+- name: Add prerequisite program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+###########
+
+- name: Create a release with no product_versions
+  errata_tool_release:
+    product: RHEL
+    name: product-versions-1
+    type: Async
+    description: Testing Product Versions
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert product-versions-1 is a new release
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created product-versions-1"]
+
+- name: query API for product-versions-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=product-versions-1
+  register: result
+
+- name: assert new release has no product_versions
+  assert:
+    that:
+      - result.json.data.0.relationships.product_versions == []
+
+###########
+
+- name: Add a PV to an existing release with no PVs
+  errata_tool_release:
+    product: RHEL
+    name: product-versions-1
+    type: Async
+    description: Testing Product Versions
+    program_manager: rhelpm@redhat.com
+    product_versions: [RHEL-8.0.0]
+  register: result
+
+- name: assert module reports product_versions changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing product_versions from [] to ['RHEL-8.0.0']"]
+
+- name: query API for product-versions-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=product-versions-1
+  register: result
+
+- name: assert release has a new RHEL-8.0.0 Product Version
+  assert:
+    that:
+      - result.json.data.0.relationships.product_versions.0.name == "RHEL-8.0.0"
+
+###########
+
+- name: Remove all PVs from a release
+  errata_tool_release:
+    product: RHEL
+    name: product-versions-1
+    type: Async
+    description: Testing Product Versions
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+  register: result
+
+- name: assert module reports product_versions changing
+  assert:
+    that:
+      - result.changed
+      # TODO: remove "u" when running on py3
+      # (or fix product_versions assignment to always use encoded str on py2):
+      - result.stdout_lines == ["changing product_versions from [u'RHEL-8.0.0'] to []"]
+
+- name: query API for product-versions-1 release
+  errata_tool_request:
+    path: api/v1/releases?filter[name]=product-versions-1
+  register: result
+
+- name: assert release has no product_versions
+  assert:
+    that:
+      - result.json.data.0.relationships.product_versions == []
