@@ -35,7 +35,10 @@ options:
      required: true
    variants:
      description:
-       - A list of Variants for this CDN repo.
+       - A list of Variants for this CDN repo, for example,
+         ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools']. Ansible will
+         associate all the variants that you list here, and it will remove any
+         variants that you do not list here.
      required: true
    arch:
      description:
