@@ -135,7 +135,8 @@ def get_product_version(client, product, name):
     data = product_versions[0]
     product_version = data['attributes']
     product_version['brew_tags'] = data['brew_tags']
-    product_version['rhel_release_name'] = data['relationships']['rhel_release']['name']
+    rhel_release = data['relationships']['rhel_release']['name']
+    product_version['rhel_release_name'] = rhel_release
     product_version['sig_key_name'] = data['relationships']['sig_key']['name']
     # push_targets
     push_targets = [t['name'] for t in data['relationships']['push_targets']]
