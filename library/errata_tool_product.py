@@ -257,8 +257,9 @@ def html_form_data(client, params):
     solution = params['default_solution'].upper()
     solution_id = int(common_errata_tool.DefaultSolutions[solution])
     data['product[default_solution_id]'] = solution_id
-    workflow_rules_scraper = common_errata_tool.WorkflowRulesScraper(client)
-    state_machine_rule_set_id = int(workflow_rules_scraper.enum[params['state_machine_rule_set']])
+    state_machine_rule_set = params['state_machine_rule_set']
+    rules_scraper = common_errata_tool.WorkflowRulesScraper(client)
+    state_machine_rule_set_id = int(rules_scraper.enum[state_machine_rule_set])
     data['product[state_machine_rule_set_id]'] = state_machine_rule_set_id
     data['product[move_bugs_on_qe]'] = int(params['move_bugs_on_qe'])
     data['product[text_only_advisories_require_dists]'] = int(params['text_only_advisories_require_dists'])
