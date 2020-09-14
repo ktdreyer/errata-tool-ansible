@@ -243,9 +243,10 @@ def html_form_data(client, params):
     data['product[ftp_path]'] = params['ftp_path']
     data['product[ftp_subdir]'] = params.get('ftp_subdir', '')
     data['product[is_internal]'] = int(params['internal'])
-    if params.get('default_docs_reviewer') is not None:
-        default_docs_reviewer_id = common_errata_tool.user_id(client, params['default_docs_reviewer'])
-        data['product[default_docs_reviewer_id]'] = default_docs_reviewer_id
+    docs_reviewer = params.get('default_docs_reviewer')
+    if docs_reviewer is not None:
+        docs_reviewer_id = common_errata_tool.user_id(client, docs_reviewer)
+        data['product[default_docs_reviewer_id]'] = docs_reviewer_id
     # push targets need scraper
     push_target_scraper = common_errata_tool.PushTargetScraper(client)
     push_target_ints = push_target_scraper.convert_to_ints(params['push_targets'])
