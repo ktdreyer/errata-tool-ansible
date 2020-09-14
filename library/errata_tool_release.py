@@ -218,9 +218,9 @@ def get_release(client, name):
         release['program_manager'] = None
 
     # state_machine_rule_set
-    state_machine_rule_set = release_data['relationships']['state_machine_rule_set']
-    if state_machine_rule_set:
-        release['state_machine_rule_set'] = state_machine_rule_set['name']
+    rule_set = release_data['relationships']['state_machine_rule_set']
+    if rule_set:
+        release['state_machine_rule_set'] = rule_set['name']
     else:
         release['state_machine_rule_set'] = None
 
