@@ -174,8 +174,9 @@ def get_product(client, short_name):
     relationships = result['data']['relationships']
 
     # default_docs_reviewer
-    if relationships['default_docs_reviewer']:
-        product['default_docs_reviewer'] = relationships['default_docs_reviewer']['login_name']
+    default_docs_reviewer = relationships['default_docs_reviewer']
+    if default_docs_reviewer:
+        product['default_docs_reviewer'] = default_docs_reviewer['login_name']
     else:
         product['default_docs_reviewer'] = None
 
