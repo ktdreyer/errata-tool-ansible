@@ -29,7 +29,7 @@
       - response.json.realname == 'Cool Developer'
       - response.json.organization == 'Engineering'
       - response.json.enabled
-      - response.json.receives_mail
+      - not response.json.receives_mail
       - response.json.email_address == 'cooldeveloper@redhat.com'
       - response.json.roles == []
       # See GH Issue 59 and RHELWF-1135 for why this is "MailingList":

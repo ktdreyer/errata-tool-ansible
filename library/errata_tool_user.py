@@ -39,7 +39,7 @@ options:
      description:
        - Whether the user will receive email or not.
      required: false
-     default: true
+     default: false
    enabled:
      description:
        - Whether the user is enabled or not.
@@ -77,7 +77,7 @@ def create_user(client, params):
 
     # Hack for CLOUDWF-2817 - If the user's receives_mail attribute is true,
     # we must always send the intended email_address as well.
-    if params['receives_mail'] and params.get('email_address') is None:
+    if params.get('receives_mail') and params.get('email_address') is None:
         # The user wanted the ET to choose a default email address, so we
         # approximate that here:
         account_name, _ = params['login_name'].split('@', 1)
@@ -132,7 +132,7 @@ def ensure_user(client, params, check_mode):
         if not check_mode:
             # Hack for CLOUDWF-2817 - If the user's receives_mail attribute is
             # true, we must always send the intended email_address as well.
-            if params['receives_mail']:
+            if params.get('receives_mail'):
                 keys = [difference[0] for difference in differences]
                 if 'email_address' not in keys:
                     differences.append(('email_address', '',
@@ -146,7 +146,7 @@ def run_module():
         login_name=dict(required=True),
         realname=dict(required=True),
         organization=dict(),
-        receives_mail=dict(type='bool', default=True),
+        receives_mail=dict(type='bool'),
         roles=dict(type='list'),
         enabled=dict(type='bool', default=True),
         email_address=dict(),

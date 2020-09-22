@@ -245,6 +245,6 @@ class TestMain(object):
             'login_name': 'cooldev@redhat.com',
             'organization': None,
             'realname': 'Dr. Cool Developer',
-            'receives_mail': True,
+            'receives_mail': None,
             'roles': None
         }

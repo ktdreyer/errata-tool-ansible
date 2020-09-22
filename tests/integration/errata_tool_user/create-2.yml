@@ -6,7 +6,7 @@
     login_name: coolprogrammanager@redhat.com
     realname: Cool ProgramManager
     organization: Program Management
-    receives_mail: false
+    receives_mail: true
     roles:
       - pm
 
@@ -22,7 +22,7 @@
       - response.json.realname == 'Cool ProgramManager'
       - response.json.organization == 'Program Management'
       - response.json.enabled
-      - not response.json.receives_mail
+      - response.json.receives_mail
       - response.json.email_address == 'coolprogrammanager@redhat.com'
       - response.json.roles == ['pm']
       # See GH Issue 59 and RHELWF-1135 for why this is "MailingList":
