@@ -350,13 +350,8 @@ def ensure_release(client, params, check_mode):
         if not check_mode:
             # CLOUDWF-6: we must send product_version_ids in every request,
             # or the server will reset the product versions to an empty list.
-            changing_product_versions = False
-            for difference in differences:
-                key, _, _ = difference
-                if key == 'product_versions':
-                    changing_product_versions = True
-                    break
-            if not changing_product_versions:
+            keys = [difference[0] for difference in differences]
+            if 'product_versions' not in keys:
                 differences.append(('product_versions',
                                     params['product_versions'],
                                     params['product_versions']))
