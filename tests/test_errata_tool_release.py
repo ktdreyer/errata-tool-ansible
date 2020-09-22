@@ -3,6 +3,7 @@ import pytest
 from errata_tool_release import get_release
 from errata_tool_release import create_release
 from errata_tool_release import edit_release
+from errata_tool_release import ensure_release
 from utils import load_json
 from utils import load_html
 
@@ -263,4 +264,131 @@ class TestEditRelease(object):
                 'state_machine_rule_set_id': 2,
             }
         }
+        assert history[-1].json() == expected
+
+
+class TestEnsureRelease(object):
+
+    @pytest.fixture
+    def client(self, client):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/releases?filter%5Bname%5D=rhceph-4.0',
+            json=RELEASE)
+        return client
+
+    @pytest.mark.parametrize('check_mode', (True, False))
+    def test_unchanged(self, client, params, check_mode):
+        result = ensure_release(client, params, check_mode)
+        assert result['changed'] is False
+
+    def test_create(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH',
+            json={'data': {'id': 104}})
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/user/coolmanager@redhat.com',
+            json={'id': 123456})
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/releases?filter%5Bname%5D=rhceph-4.0',
+            json={'data': []})
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/product_versions/RHCEPH-4.0-RHEL-8.json',
+            json={'id': 929})
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/product_versions/RHEL-7-RHCEPH-4.0.json',
+            json={'id': 1108})
+        client.adapter.register_uri(
+            'POST',
+            PROD + '/api/v1/releases',
+            status_code=201)
+        result = ensure_release(client, params, check_mode=False)
+        assert result['changed'] is True
+        assert result['stdout_lines'] == ['created rhceph-4.0']
+        history = client.adapter.request_history
+        expected = {
+            'release': {
+                'name': 'rhceph-4.0',
+                'description': 'Red Hat Ceph Storage 4.0',
+                'brew_tags': [],
+                'product_id': 104,
+                'program_manager_id': 123456,
+                'product_version_ids': [929, 1108],
+                'isactive': True,
+                'enable_batching': False,
+                'ship_date': '2020-01-31',
+                'type': 'QuarterlyUpdate',  # Not needed, todo: remove
+                'allow_shadow': False,
+                'allow_blocker': False,
+                'internal_target_release': '',
+                'disable_acl': False,
+                'allow_pkg_dupes': True,
+                'limit_bugs_by_product': False,
+                'blocker_flags': 'ceph-4',
+                'enabled': True,
+                'allow_exception': False,
+            },
+            'type': 'QuarterlyUpdate',
+        }
+        assert history[-1].url == PROD + '/api/v1/releases'
+        assert history[-1].method == 'POST'
+        assert history[-1].json() == expected
+
+    def test_edit_check_mode(self, client, params):
+        params['description'] = 'Red Hat Ceph Storage 4.0 Is Cool'
+        result = ensure_release(client, params, check_mode=True)
+        assert result['changed'] is True
+        expected = 'changing description from Red Hat Ceph Storage 4.0 ' \
+                   'to Red Hat Ceph Storage 4.0 Is Cool'
+        assert result['stdout_lines'] == [expected]
+
+    def test_edit_live(self, client, params):
+        params['description'] = 'Red Hat Ceph Storage 4.0 Is Cool'
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/product_versions/RHCEPH-4.0-RHEL-8.json',
+            json={'id': 929})
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/product_versions/RHEL-7-RHCEPH-4.0.json',
+            json={'id': 1108})
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/releases/1017')
+        result = ensure_release(client, params, check_mode=False)
+        assert result['changed'] is True
+        expected = 'changing description from Red Hat Ceph Storage 4.0 ' \
+                   'to Red Hat Ceph Storage 4.0 Is Cool'
+        assert result['stdout_lines'] == [expected]
+        history = client.adapter.request_history
+        expected = {'release': {
+            'description': 'Red Hat Ceph Storage 4.0 Is Cool',
+            # Note: we must always include product_version_ids (CLOUDWF-6)
+            'product_version_ids': [929, 1108],
+        }}
+        assert history[-1].url == PROD + '/api/v1/releases/1017'
+        assert history[-1].method == 'PUT'
+        assert history[-1].json() == expected
+
+    def test_edit_product_versions(self, client, params):
+        params['product_versions'] = ['RHCEPH-4.0-RHEL-8']
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/product_versions/RHCEPH-4.0-RHEL-8.json',
+            json={'id': 929})
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/releases/1017')
+        result = ensure_release(client, params, check_mode=False)
+        assert result['changed'] is True
+        assert 'changing product_versions' in result['stdout_lines'][0]
+        history = client.adapter.request_history
+        expected = {'release': {'product_version_ids': [929]}}
+        assert history[-1].url == PROD + '/api/v1/releases/1017'
+        assert history[-1].method == 'PUT'
         assert history[-1].json() == expected
