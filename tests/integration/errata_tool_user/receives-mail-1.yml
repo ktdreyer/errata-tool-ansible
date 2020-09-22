@@ -1,0 +1,127 @@
+# Test editing receives_mail settings.
+#
+# This test case exercises the ability to set (or not set) the receives_mail
+# parameter.
+---
+
+###########
+
+- name: Create a user with no receives_mail setting
+  errata_tool_user:
+    login_name: receives-mail-1@redhat.com
+    realname: Dr. Mail Receiver
+  register: result
+
+- name: assert receives-mail-1 is a new user
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created receives-mail-1@redhat.com user"]
+
+- name: query API for receives-mail-1 user
+  errata_tool_request:
+    path: api/v1/user/receives-mail-1
+  register: result
+
+- name: assert new user has receives_mail enabled
+  assert:
+    that:
+      - result.json.receives_mail
+
+###########
+
+- name: Edit a user with receives_mail and we do not specify receives_mail
+  # same parameters as above, to test "no changes":
+  errata_tool_user:
+    login_name: receives-mail-1@redhat.com
+    realname: Dr. Mail Receiver
+  register: result
+
+- name: assert errata_tool_user reports no changes
+  assert:
+    that:
+      - not result.changed
+
+- name: query API for receives-mail-1 user
+  errata_tool_request:
+    path: api/v1/user/receives-mail-1
+  register: result
+
+- name: assert user still has receives_mail enabled
+  assert:
+    that:
+      - result.json.receives_mail
+
+###########
+
+- name: Edit a user with receives_mail and we set receives_mail to false
+  errata_tool_user:
+    login_name: receives-mail-1@redhat.com
+    realname: Dr. Mail Receiver
+    receives_mail: false
+  register: result
+
+- name: assert module reports receives_mail changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing receives_mail from True to False"]
+
+- name: query API for receives-mail-1 user
+  errata_tool_request:
+    path: api/v1/user/receives-mail-1
+  register: result
+
+- name: assert user has receives_mail disabled
+  assert:
+    that:
+      - not result.json.receives_mail
+
+###########
+
+- name: Edit a user that does not receive mail and do not set receives_mail
+  # same parameters as above, to test "no changes":
+  errata_tool_user:
+    login_name: receives-mail-1@redhat.com
+    realname: Dr. Mail Receiver
+  register: result
+
+- name: assert module reports no changes
+  assert:
+    that:
+      - not result.changed
+
+- name: query API for receives-mail-1 user
+  errata_tool_request:
+    path: api/v1/user/receives-mail-1
+  register: result
+
+- name: assert user still has receives_mail disabled
+  assert:
+    that:
+      - not result.json.receives_mail
+
+###########
+
+- name: Edit a user that does not receive mail and we set receives_mail to true
+  errata_tool_user:
+    login_name: receives-mail-1@redhat.com
+    realname: Dr. Mail Receiver
+    receives_mail: true
+  register: result
+
+- name: assert module reports receives_mail changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing receives_mail from False to True"]
+
+- name: query API for receives-mail-1 user
+  errata_tool_request:
+    path: api/v1/user/receives-mail-1
+  register: result
+
+- name: assert user has receives_mail enabled
+  assert:
+    that:
+      - result.json.receives_mail
