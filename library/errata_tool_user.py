@@ -29,7 +29,13 @@ options:
    organization:
      description:
        - The user's organization, like "Engineering"
+       - If you specify no "organization" setting and the user does not
+         already exist, the Errata Tool will default the brand new user
+         account's organization to "Engineering".
+       - If you specify no "organization" setting and the user account already
+         exists, Ansible will not edit the existing organization value.
      required: false
+     default: The ET server defaults to "Engineering" for new users
    receives_mail:
      description:
        - Whether the user will receive email or not.
