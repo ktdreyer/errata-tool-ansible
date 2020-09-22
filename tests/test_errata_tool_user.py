@@ -1,10 +1,15 @@
 from copy import deepcopy
 import sys
 import pytest
+import errata_tool_user
 from errata_tool_user import get_user
 from errata_tool_user import create_user
 from errata_tool_user import edit_user
 from errata_tool_user import ensure_user
+from errata_tool_user import main
+from utils import exit_json
+from utils import set_module_args
+from utils import AnsibleExitJson
 
 
 USER = {
@@ -273,3 +278,46 @@ class TestEnsureUser(object):
             'realname': 'Mr. Name Changer',
         }
         assert history[1].json() == expected
+
+
+class TestMain(object):
+
+    @pytest.fixture(autouse=True)
+    def fake_exits(self, monkeypatch):
+        monkeypatch.setattr(errata_tool_user.AnsibleModule,
+                            'exit_json', exit_json)
+
+    @pytest.fixture
+    def fake_ensure_user(self, monkeypatch):
+        """
+        Fake this large method, since we unit-test it individually elsewhere.
+        """
+        class FakeMethod(object):
+            def __call__(self, *args, **kwargs):
+                self.args = args
+                return {'changed': True}
+
+        fake = FakeMethod()
+        monkeypatch.setattr(errata_tool_user, 'ensure_user', fake)
+        return fake
+
+    def test_simple(self, fake_ensure_user):
+        module_args = {
+            'login_name': 'cooldev@redhat.com',
+            'realname': 'Dr. Cool Developer',
+        }
+        set_module_args(module_args)
+        with pytest.raises(AnsibleExitJson) as exit:
+            main()
+        result = exit.value.args[0]
+        assert result['changed'] is True
+        ensure_user_args = fake_ensure_user.args[1]
+        assert ensure_user_args == {
+            'email_address': None,
+            'enabled': True,
+            'login_name': 'cooldev@redhat.com',
+            'organization': None,
+            'realname': 'Dr. Cool Developer',
+            'receives_mail': True,
+            'roles': None
+        }
