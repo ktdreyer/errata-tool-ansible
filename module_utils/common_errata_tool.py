@@ -183,7 +183,7 @@ class DefaultSolutions(IntEnum):
     RHN_TOOLS = 3
 
 
-RELEASE_TYPES = set([
+RELEASE_TYPES = frozenset([
     'QuarterlyUpdate',
     'Zstream',
     'Async',

@@ -20,7 +20,7 @@ def test_default_solutions(name, expected):
 
 
 def test_release_types():
-    expected = set(['QuarterlyUpdate', 'Zstream', 'Async'])
+    expected = frozenset(['QuarterlyUpdate', 'Zstream', 'Async'])
     assert RELEASE_TYPES == expected
 
 
