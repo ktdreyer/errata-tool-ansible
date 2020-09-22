@@ -169,25 +169,6 @@ requirements:
 '''
 
 
-class InvalidInputError(Exception):
-    """ Invalid user input for a parameter """
-    def __init__(self, param, value):
-        self.param = param
-        self.value = value
-
-
-def validate_params(module, params):
-    """
-    Sanity-check user input for some parameters.
-
-    Raises InvalidInputError if the user specified an invalid value for a
-    parameter.
-    """
-    release_type = params['type']
-    if release_type not in common_errata_tool.RELEASE_TYPES:
-        raise InvalidInputError('type', release_type)
-
-
 def get_release(client, name):
     # cannot get releases directly by name, CLOUDWF-1
     r = client.get('api/v1/releases?filter[name]=%s' % name)
@@ -388,7 +369,7 @@ def run_module():
         product=dict(),
         name=dict(required=True),
         description=dict(required=True),
-        type=dict(required=True),
+        type=dict(required=True, choices=common_errata_tool.RELEASE_TYPES),
         product_versions=dict(type='list', required=True),
         enabled=dict(type='bool', default=True),
         active=dict(type='bool', default=True),
@@ -415,12 +396,6 @@ def run_module():
 
     check_mode = module.check_mode
     params = module.params
-
-    try:
-        validate_params(module, params)
-    except InvalidInputError as e:
-        msg = 'invalid %s value "%s"' % (e.param, e.value)
-        module.fail_json(msg=msg, changed=False, rc=1)
 
     client = common_errata_tool.Client()
 
