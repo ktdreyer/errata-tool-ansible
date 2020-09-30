@@ -1,0 +1,36 @@
+# Configure a new RHEL 8 RPM CDN repo.
+
+# This assumes the "AppStream-8.0.0" variant is pre-configured. The
+# errata-rails.git test/fixtures/*.yml files do this.
+---
+
+- name: Add redhat-create-1-x86_64-rpms cdn repo
+  errata_tool_cdn_repo:
+    name: redhat-create-1-x86_64-rpms
+    arch: x86_64
+    release_type: Primary
+    content_type: Binary
+    use_for_tps: true
+    variants:
+      - AppStream-8.0.0
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-create-1-x86_64-rpms
+  register: response
+
+- name: parse variant JSON
+  set_fact:
+    attributes: "{{ response.json.data.attributes }}"
+    relationships: "{{ response.json.data.relationships }}"
+
+- assert:
+    that:
+      - attributes.name == "redhat-create-1-x86_64-rpms"
+      - attributes.release_type == "Primary"
+      - attributes.content_type == "Binary"
+      - attributes.use_for_tps
+      - relationships.arch.name == "x86_64"
+      - relationships.variants.0.name == "AppStream-8.0.0"
