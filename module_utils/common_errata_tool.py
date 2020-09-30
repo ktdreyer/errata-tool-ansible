@@ -44,8 +44,6 @@ class PushTargetScraper(object):
         'Push to CDN Stage': 'cdn_stage',
         'Push docker images to CDN': 'cdn_docker',
         'Push docker images to CDN docker stage': 'cdn_docker_stage',
-        # "docker stage" vs "Docker stage". Remove this after Gerrit 193086:
-        'Push docker images to CDN Docker stage': 'cdn_docker_stage',
         'Push to public FTP server': 'ftp',
         'Push sources to CentOS git': 'altsrc',
         # These two HSS entries are old and deprecated. We include them here
