@@ -1,0 +1,127 @@
+# Add and remove variants from an existing RHEL 8 Docker CDN repo.
+
+# This assumes the "AppStream-8.0.0" variant is pre-configured. The
+# errata-rails.git test/fixtures/*.yml files do this.
+#
+# This test asserts that module output has a some u'' strings. This is a
+# py2-specific thing. When we run on py3, the module output does not have u''.
+---
+
+- name: Add prerequisite 8.1.0 Product Version
+  errata_tool_product_version:
+    product: RHEL
+    name: RHEL-8.1.0
+    description: RHEL-8.1.0
+    default_brew_tag: rhel-8.1.0-candidate
+    rhel_release_name: RHEL-8.0.0  # XXX not "8.1.0" here, see GH issue #173
+    push_targets: []
+    is_rhel_addon: false
+    brew_tags: [rhel-8.1.0-candidate]
+    allow_rhn_debuginfo: true
+    is_oval_product: true
+    allow_buildroot_push: true
+    is_server_only: false
+
+- name: Add prerequisite 8.1.0 Variant
+  errata_tool_variant:
+    name: AppStream-8.1.0
+    description: Test AppStream 8.1.0
+    product_version: RHEL-8.1.0
+    tps_stream: RHEL-8-Main-Base
+    push_targets: []
+
+###########
+
+- name: Create cdn repo with one variant
+  errata_tool_cdn_repo:
+    name: redhat-container-variants-1
+    release_type: Primary
+    content_type: Docker
+    variants:
+      - AppStream-8.0.0
+  register: result
+
+- name: assert redhat-container-variants-1 is a new cdn repo
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created redhat-container-variants-1"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-variants-1
+  register: response
+
+- name: assert redhat-container-variants-1 has one variant
+  assert:
+    that:
+      - response.json.data.relationships.variants | length == 1
+      - response.json.data.relationships.variants.0.name == "AppStream-8.0.0"
+
+###########
+
+- name: Add a second variant to existing cdn repo
+  errata_tool_cdn_repo:
+    name: redhat-container-variants-1
+    release_type: Primary
+    content_type: Docker
+    variants:
+      - AppStream-8.0.0
+      - AppStream-8.1.0
+  register: result
+
+- name: assert module reports variants changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing variants from [u'AppStream-8.0.0'] to ['AppStream-8.0.0', 'AppStream-8.1.0']"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-variants-1
+  register: response
+
+- name: assert redhat-container-variants-1 now has two variants
+  assert:
+    that:
+      - response.json.data.relationships.variants | length == 2
+      # Note, this relies on the accidental ordering of this list of variants.
+      # There's no guarantee that the ET perserve this list ordering. It's good
+      # enough for now, but eventually we might want to use more complicated
+      # filters here to avoid specifying "0" or "1".
+      - response.json.data.relationships.variants.0.name == "AppStream-8.0.0"
+      - response.json.data.relationships.variants.1.name == "AppStream-8.1.0"
+
+###########
+
+- name: Remove the second variant from an existing cdn repo
+  errata_tool_cdn_repo:
+    name: redhat-container-variants-1
+    release_type: Primary
+    content_type: Docker
+    variants:
+      - AppStream-8.0.0
+  register: result
+
+- name: assert module reports variants changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["changing variants from [u'AppStream-8.0.0', u'AppStream-8.1.0'] to ['AppStream-8.0.0']"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-variants-1
+  register: response
+
+- name: assert redhat-container-variants-1 now has one variant
+  assert:
+    that:
+      - response.json.data.relationships.variants | length == 1
+      - response.json.data.relationships.variants.0.name == "AppStream-8.0.0"
