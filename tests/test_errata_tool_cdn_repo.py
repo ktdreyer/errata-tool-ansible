@@ -233,7 +233,7 @@ class TestCreateCdnRepo(object):
         )
         with pytest.raises(ValueError) as err:
             create_cdn_repo(client, {})
-        assert str(err.value) == 'Bad Request'
+        assert 'Bad Request' in str(err.value)
 
 
 class TestEditCdnRepo(object):
@@ -269,7 +269,24 @@ class TestEditCdnRepo(object):
         differences = [('my-bogus-setting', 'foo', 'bar')]
         with pytest.raises(ValueError) as err:
             edit_cdn_repo(client, 11010, differences)
-        assert str(err.value) == 'Bad Request'
+        assert 'Bad Request' in str(err.value)
+
+    def test_errors(self, client):
+        json = {'errors': {
+            'CDN repository': [
+                'has already been attached to this product version.'
+            ]
+        }}
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/cdn_repos/11010',
+            status_code=422,
+            json=json,
+        )
+        differences = [('variants', ['BaseOS'], ['BaseOS', 'AppStream'])]
+        with pytest.raises(ValueError) as err:
+            edit_cdn_repo(client, 11010, differences)
+        assert 'CDN repository' in str(err.value)
 
 
 class TestGetCdnRepo(object):

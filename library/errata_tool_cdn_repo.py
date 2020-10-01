@@ -302,8 +302,8 @@ def edit_cdn_repo(client, cdn_repo_id, differences):
     data = cdn_repo_api_data(params)
     response = client.put('api/v1/cdn_repos/%d' % cdn_repo_id, json=data)
     if response.status_code != 200:
-        data = response.json()
-        raise ValueError(data['error'])
+        errors = response.json()
+        raise ValueError(errors)
 
 
 def add_package_tag(client, repo_name, package_name, tag_template, variant):
