@@ -25,12 +25,18 @@ options:
      required: true
    release_type:
      description:
-       - "Example: Primary"
+       - You almost always want to set "Primary" here.
+       - You can set this field when creating a new CDN repository that does
+         not exist in the ET yet, but you cannot change it for a CDN
+         repository that already exists in the ET.
      choices: [Primary, EUS, LongLife]
      required: true
    content_type:
      description:
-       - '"Binary" for RPMs, "Docker" for containers.'
+       - '"Binary" for RPMs, "Docker" for containers. You can set this field
+         when creating a new CDN repository that does not exist in the ET yet,
+         but you cannot change it for a CDN repository that already exists in
+         the ET.'
      choices: [Binary, Debuginfo, Source, Docker]
      required: true
    variants:
@@ -48,7 +54,8 @@ options:
      default: '"x86_64" for RPMs, "multi" for Docker.'
    use_for_tps:
      description:
-       - Use TPS for Scheduling
+       - Use TPS for Scheduling.
+       - Omit this parameter for Docker CDN repositories.
      choices: [true, false]
      default: false
    packages:
