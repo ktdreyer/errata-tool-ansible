@@ -579,10 +579,14 @@ def run_module():
         else:
             params['arch'] = 'x86_64'
 
-    # The ET server does not stop users from setting Docker repos to other
-    # arches (CLOUDWF-271). We will guard that here for now.
-    if params['content_type'] == 'Docker' and params['arch'] != 'multi':
-        module.fail_json(msg='arch must be "multi" for Docker repos')
+    # The ET server does not stop users from modifying Docker repos in ways
+    # that are invalid and impossible to fix with the web UI (CLOUDWF-271).
+    # We will guard that here for now.
+    if params['content_type'] == 'Docker':
+        if params['arch'] != 'multi':
+            module.fail_json(msg='arch must be "multi" for Docker repos')
+        if params['use_for_tps']:
+            module.fail_json(msg='do not set "use_for_tps" for Docker repos')
 
     client = common_errata_tool.Client()
 
