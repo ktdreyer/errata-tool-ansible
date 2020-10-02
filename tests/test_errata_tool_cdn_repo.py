@@ -889,3 +889,12 @@ class TestMain(object):
             main()
         result = exit.value.args[0]
         assert result['msg'] == 'arch must be "multi" for Docker repos'
+
+    def test_docker_tps_fail(self, container_module_args):
+        container_module_args['content_type'] = 'Docker'
+        container_module_args['use_for_tps'] = True
+        set_module_args(container_module_args)
+        with pytest.raises(AnsibleFailJson) as exit:
+            main()
+        result = exit.value.args[0]
+        assert result['msg'] == 'do not set "use_for_tps" for Docker repos'
