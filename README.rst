@@ -1,11 +1,11 @@
 errata-tool-ansible
 ===================
 
-.. image:: https://travis-ci.org/ktdreyer/errata-tool-ansible.svg?branch=master
-             :target: https://travis-ci.org/ktdreyer/errata-tool-ansible
+.. image:: https://github.com/ktdreyer/errata-tool-ansible/workflows/tests/badge.svg
+             :target: https://github.com/ktdreyer/errata-tool-ansible/actions
 
-.. image:: https://coveralls.io/repos/github/ktdreyer/errata-tool-ansible/badge.svg
-             :target: https://coveralls.io/github/ktdreyer/errata-tool-ansible
+.. image:: https://codecov.io/gh/ktdreyer/errata-tool-ansible/branch/master/graph/badge.svg
+             :target: https://codecov.io/gh/ktdreyer/errata-tool-ansible
 
 Ansible modules to manage Errata Tool resources.
 
