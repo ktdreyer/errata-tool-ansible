@@ -93,6 +93,16 @@ EXAMPLES = '''
       - 8Base-RHCEPH-4.0-Tools
       - 8Base-RHCEPH-4.1-Tools
 
+  - name: Add rh-ocs-4-for-rhel-8-s390x-source-rpms cdn repo
+    errata_tool_cdn_repo:
+      name: rh-ocs-4-for-rhel-8-s390x-source-rpms
+      release_type: Primary
+      content_type: Source
+      arch: s390x
+      use_for_tps: false
+      variants:
+        - RHEL-8-RHOCS-4.6
+
   - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
     errata_tool_cdn_repo:
       name: redhat-rhceph-rhceph-4-rhel8
