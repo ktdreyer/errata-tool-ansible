@@ -7,6 +7,9 @@ errata-tool-ansible
 .. image:: https://codecov.io/gh/ktdreyer/errata-tool-ansible/branch/master/graph/badge.svg
              :target: https://codecov.io/gh/ktdreyer/errata-tool-ansible
 
+.. image:: https://img.shields.io/badge/dynamic/json?style=flat&label=galaxy&prefix=v&url=https://galaxy.ansible.com/api/v2/collections/ktdreyer/errata_tool_ansible/&query=latest_version.version
+             :target: https://galaxy.ansible.com/ktdreyer/errata_tool_ansible
+
 Ansible modules to manage Errata Tool resources.
 
 This is not about installing the Errata Tool. Instead, it is a way to
