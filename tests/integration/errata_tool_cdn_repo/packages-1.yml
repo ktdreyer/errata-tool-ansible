@@ -1,0 +1,192 @@
+# Add, edit, and remove packages from an existing RHEL 8 Docker CDN repo.
+
+# This assumes the "AppStream-8.0.0" variant is pre-configured. The
+# errata-rails.git test/fixtures/*.yml files do this.
+---
+
+- name: Create cdn repo with no packages
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-1
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+  register: result
+
+- name: assert redhat-container-packages-1 is a new cdn repo
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created redhat-container-packages-1"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-packages-1
+  register: response
+
+- name: assert new cdn repo has no packages
+  assert:
+    that:
+      - response.json.data.relationships.packages == []
+
+###########
+
+- name: Add a container package to an existing CDN repo with no packages
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-1
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest
+  register: result
+
+- name: set expected version_release removal
+  # Assign this variable here in order to use the !unsafe data type to handle
+  # "{{" and "}}" braces in the string.
+  set_fact:
+    removing_version_release: !unsafe 'removing "{{version}}-{{release}}" tag template from "test-container"'
+
+- name: assert module reports CDN repo changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines | length == 3
+      - result.stdout_lines.0 == "changing package_names from [] to ['test-container']"
+      - result.stdout_lines.1 == removing_version_release
+      - result.stdout_lines.2 == "adding \"latest\" tag template to \"test-container\""
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-packages-1
+  register: response
+
+- name: assert CDN repo has our new container package
+  assert:
+    that:
+      - response.json.data.relationships.packages | length == 1
+      - response.json.data.relationships.packages.0.name == "test-container"
+
+###########
+
+- name: Add a variant restriction to container tag
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-1
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest:
+            variant: AppStream-8.0.0
+  register: result
+
+- name: assert module reports adding the variant
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["adding \"AppStream-8.0.0\" variant to test-container \"latest\" tag template"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-packages-1
+  register: response
+
+- name: assert CDN repo still has our one container package
+  assert:
+    that:
+      - response.json.data.relationships.packages | length == 1
+      - response.json.data.relationships.packages.0.name == "test-container"
+
+- name: query API for this CDN repo's package tags
+  errata_tool_request:
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-1&filter[package_name]=test-container
+  register: response
+
+- name: assert latest tag has variant restriction
+  assert:
+    that:
+      - response.json.data | length == 1
+      - response.json.data.0.attributes.tag_template == "latest"
+      - response.json.data.0.relationships.variant.name == "AppStream-8.0.0"
+
+###########
+
+- name: Remove a variant restriction from container tag
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-1
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest
+  register: result
+
+- name: assert module reports removing the variant
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["removing \"AppStream-8.0.0\" variant from test-container \"latest\" tag template"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-packages-1
+  register: response
+
+- name: assert CDN repo still has our one container package
+  assert:
+    that:
+      - response.json.data.relationships.packages | length == 1
+      - response.json.data.relationships.packages.0.name == "test-container"
+
+- name: query API for this CDN repo's package tags
+  errata_tool_request:
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-1&filter[package_name]=test-container
+  register: response
+
+- name: assert latest tag exists and has no variant restriction
+  assert:
+    that:
+      - response.json.data | length == 1
+      - response.json.data.0.attributes.tag_template == "latest"
+      - response.json.data.0.relationships.variant is not defined
+
+###########
+
+- name: Remove all container packages from an existing CDN repo
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-1
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages: {}
+  register: result
+
+- name: assert module reports CDN repo changing
+  assert:
+    that:
+      - result.changed
+      # TODO: remove "u" when running on py3
+      # (or fix assignment to always use encoded str on py2):
+      - result.stdout_lines == ["changing package_names from [u'test-container'] to []"]
+
+# Assert that this CDN repo looks correct.
+
+- name: query API for this CDN repo
+  errata_tool_request:
+    path: api/v1/cdn_repos/redhat-container-packages-1
+  register: response
+
+- name: assert CDN repo has no container packages
+  assert:
+    that:
+      - response.json.data.relationships.packages == []
