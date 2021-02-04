@@ -152,7 +152,10 @@ def handle_form_errors(response):
     # If there are incorrect or missing fields, we will receive a HTTP 200
     # with a list of the wrong fields, or just an HTTP 500 error.
     if response.status_code == 500:
-        raise RuntimeError(response)
+        raise RuntimeError(
+            'The request to %s had a status code of %d and failed with: %s'
+            % (response.url, response.status_code, response.text)
+        )
     if 'errorExplanation' in response.text:
         raise RuntimeError(response.text)
     response.raise_for_status()

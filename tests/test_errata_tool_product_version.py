@@ -1,4 +1,7 @@
-from errata_tool_product_version import get_product_version
+from mock import Mock
+import pytest
+
+from errata_tool_product_version import get_product_version, handle_form_errors
 
 
 PROD = 'https://errata.devel.redhat.com'
@@ -71,3 +74,18 @@ class TestGetProductVersion(object):
             'sig_key_name': 'redhatrelease2'
         }
         assert product_version == expected
+
+
+class TestFormErrors(object):
+
+    def test_handle_form_error_500(self, client):
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.url = PROD
+        mock_response.text = 'Some error'
+        expected = (
+            'The request to https://errata.devel.redhat.com had a status code '
+            'of 500 and failed with: Some error'
+        )
+        with pytest.raises(RuntimeError, match=expected):
+            handle_form_errors(mock_response)
