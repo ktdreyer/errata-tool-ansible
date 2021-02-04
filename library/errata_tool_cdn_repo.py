@@ -304,7 +304,7 @@ def create_cdn_repo(client, params):
     response = client.post('api/v1/cdn_repos', json=data)
     data = response.json()
     if response.status_code != 201:
-        raise ValueError(data['error'])
+        raise ValueError(data.get('error') or response.text)
     name = params['name']
     cdn_repo_data = data['data']
     return get_cdn_repo(client, name, cdn_repo_data=cdn_repo_data)

@@ -235,6 +235,17 @@ class TestCreateCdnRepo(object):
             create_cdn_repo(client, {})
         assert 'Bad Request' in str(err.value)
 
+    def test_failure_error_not_set(self, client):
+        client.adapter.register_uri(
+            'POST',
+            PROD + '/api/v1/cdn_repos',
+            status_code=400,
+            json={'status': 400, 'best_actor': 'Tom Hanks'}
+        )
+        with pytest.raises(ValueError) as err:
+            create_cdn_repo(client, {})
+        assert 'Tom Hanks' in str(err.value)
+
 
 class TestEditCdnRepo(object):
 
