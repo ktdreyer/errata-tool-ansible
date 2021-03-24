@@ -48,7 +48,9 @@ options:
      default: true
    active:
      description:
-       - Is the release active for Errata filing?
+       - Is the release active for Errata filing? This field is a legacy field
+         and it should always be "true". See CLOUDWF-4516 for more explanation
+         about this field.
      choices: [true, false]
      default: true
    enable_batching:
