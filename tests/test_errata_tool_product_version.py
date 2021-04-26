@@ -1,4 +1,5 @@
 from mock import Mock
+from requests.exceptions import HTTPError
 import pytest
 
 from errata_tool_product_version import get_product_version, handle_form_errors
@@ -42,19 +43,43 @@ PRODUCT_VERSION = {
 class TestGetProductVersion(object):
 
     def test_not_found(self, client):
+        check_mode = False
         client.adapter.register_uri(
             'GET',
             PROD + '/api/v1/products/RHCEPH/product_versions/',
             json={'data': []})
-        product_version = get_product_version(client, PRODUCT, NAME)
+        product_version = get_product_version(client, PRODUCT, NAME, check_mode)
+        assert product_version is None
+
+    def test_not_found_404(self, client):
+        """Test when query returns 404"""
+        check_mode = False
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/',
+            json={'data': []},
+            status_code=404)
+        with pytest.raises(HTTPError):
+            get_product_version(client, PRODUCT, NAME, check_mode)
+
+    def test_not_found_404_check_mode(self, client):
+        """Test when query returns 404 but check_mode is true"""
+        check_mode = True
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/',
+            json={'data': []},
+            status_code=404)
+        product_version = get_product_version(client, PRODUCT, NAME, check_mode)
         assert product_version is None
 
     def test_basic(self, client):
+        check_mode = False
         client.adapter.register_uri(
             'GET',
             PROD + '/api/v1/products/RHCEPH/product_versions/',
             json={'data': [PRODUCT_VERSION]})
-        product_version = get_product_version(client, PRODUCT, NAME)
+        product_version = get_product_version(client, PRODUCT, NAME, check_mode)
         expected = {
             'allow_buildroot_push': False,
             'allow_rhn_debuginfo': False,
