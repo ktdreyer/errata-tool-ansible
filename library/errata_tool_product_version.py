@@ -109,7 +109,7 @@ requirements:
 '''
 
 
-def get_product_version(client, product, name):
+def get_product_version(client, product, name, check_mode):
     # We cannot query directly by name yet if the name has a "." character.
     # See CLOUDWF-3.
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
@@ -118,6 +118,12 @@ def get_product_version(client, product, name):
     url = 'api/v1/products/%s/product_versions/?filter[name]=%s' % (
         product, name)
     r = client.get(url)
+    # If the product does not exist but we're running in check mode it could
+    # be that the product is going to be setup in the subsequent run mode
+    # run. In this case the query will return 404 but that would be expected
+    # and this task should not fail as a result.
+    if r.status_code == 404 and check_mode:
+        return None
     # If the product does not exist yet, we'll get a 404 error for this GET
     # request. It's nice that raise_for_status() gives us the full URL that we
     # tried because then users can verify they are using the proper ET
@@ -243,7 +249,7 @@ def ensure_product_version(client, params, check_mode):
     params = {param: val for param, val in params.items() if val is not None}
     product = params['product']
     name = params['name']
-    product_version = get_product_version(client, product, name)
+    product_version = get_product_version(client, product, name, check_mode)
     if not product_version:
         result['changed'] = True
         result['stdout_lines'] = ['created %s product version' % name]
