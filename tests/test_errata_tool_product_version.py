@@ -48,7 +48,8 @@ class TestGetProductVersion(object):
             'GET',
             PROD + '/api/v1/products/RHCEPH/product_versions/',
             json={'data': []})
-        product_version = get_product_version(client, PRODUCT, NAME, check_mode)
+        product_version = get_product_version(
+            client, PRODUCT, NAME, check_mode)
         assert product_version is None
 
     def test_not_found_404(self, client):
@@ -70,7 +71,8 @@ class TestGetProductVersion(object):
             PROD + '/api/v1/products/RHCEPH/product_versions/',
             json={'data': []},
             status_code=404)
-        product_version = get_product_version(client, PRODUCT, NAME, check_mode)
+        product_version = get_product_version(
+            client, PRODUCT, NAME, check_mode)
         assert product_version is None
 
     def test_basic(self, client):
@@ -79,7 +81,8 @@ class TestGetProductVersion(object):
             'GET',
             PROD + '/api/v1/products/RHCEPH/product_versions/',
             json={'data': [PRODUCT_VERSION]})
-        product_version = get_product_version(client, PRODUCT, NAME, check_mode)
+        product_version = get_product_version(
+            client, PRODUCT, NAME, check_mode)
         expected = {
             'allow_buildroot_push': False,
             'allow_rhn_debuginfo': False,
