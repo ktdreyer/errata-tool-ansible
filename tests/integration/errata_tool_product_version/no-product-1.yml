@@ -1,0 +1,50 @@
+# Test creating a PV for a product that does not exist.
+#
+# In check mode: we should simply report that we created the new PV instead of
+# raising a 404 error.
+#
+# In non-check mode: we should raise a 404 error.
+#
+# Future behavior improvements:
+# - Update the check mode message to warn that the product does not exist.
+# - Update the non-check mode error message to explain the product does not
+#   exist (instead of a raise_for_status() backtrace).
+---
+
+- set_fact:
+    pv_settings: &pv_settings
+      product: DOESNOTEXIST
+      name: FAILURE-1
+      description: Failure Product Version 1
+      default_brew_tag: failure-1-candidate
+      rhel_release_name: RHEL-8
+      push_targets: []
+      is_rhel_addon: false
+      brew_tags: [failure-1-candidate]
+      allow_rhn_debuginfo: true
+      is_oval_product: true
+      allow_buildroot_push: true
+      is_server_only: false
+
+- name: Add Product Version with a non-existent Product in check mode
+  errata_tool_product_version:
+    <<: *pv_settings
+  register: result
+  check_mode: yes
+
+- assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created FAILURE-1 product version"]
+
+- name: Add Product Version with a non-existent Product
+  errata_tool_product_version:
+    <<: *pv_settings
+  register: result
+  # Handle the requests.exceptions.HTTPError: 404 Client Error: Not Found
+  ignore_errors: true
+
+- assert:
+    that:
+      - not result.changed
+      - result.rc == 1
