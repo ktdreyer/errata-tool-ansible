@@ -1,0 +1,43 @@
+- name: Add Create1 Product Version
+  errata_tool_product_version:
+    product: RHEL
+    name: RHEL-CREATE-1
+    description: Red Hat Create1 Product Version
+    default_brew_tag: rhel-8.0.0-candidate
+    rhel_release_name: RHEL-8.0.0
+    push_targets: []
+    is_rhel_addon: false
+    brew_tags: [rhel-8.0.0-candidate]
+    allow_rhn_debuginfo: true
+    is_oval_product: true
+    allow_buildroot_push: true
+    is_server_only: false
+
+# We cannot get the name directly yet, CLOUDWF-3
+- name: query API for this product version
+  errata_tool_request:
+    path: api/v1/products/RHEL/product_versions/?filter[name]=RHEL-CREATE-1
+  register: response
+
+- name: parse product version JSON
+  set_fact:
+    attributes: "{{ response.json.data.0.attributes }}"
+    relationships: "{{ response.json.data.0.relationships }}"
+
+- assert:
+    that:
+      - attributes.name == 'RHEL-CREATE-1'
+      - attributes.description == "Red Hat Create1 Product Version"
+      - attributes.default_brew_tag == "rhel-8.0.0-candidate"
+      - attributes.allow_rhn_debuginfo
+      - attributes.allow_buildroot_push
+      - attributes.is_oval_product
+      - not attributes.is_rhel_addon
+      - not attributes.use_quay_for_containers
+      - not attributes.is_server_only
+      - attributes.enabled
+
+      - relationships.push_targets == []
+      - relationships.rhel_release.name == "RHEL-8.0.0"
+      - relationships.sig_key.name == "redhatrelease2"
+      - relationships.container_sig_key.name == "redhatrelease2"
