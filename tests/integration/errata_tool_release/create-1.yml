@@ -30,6 +30,7 @@
 
 - name: Add new RHEL 8.0.0 Zstream
   errata_tool_release:
+    product: RHEL
     name: RHEL-8.0.0.Z
     type: Zstream
     description: RHEL-8.0.0 Zstream
@@ -97,6 +98,7 @@
       - zstream_attributes.type == 'Zstream'
       - zstream_attributes.description == 'RHEL-8.0.0 Zstream'
       - zstream_attributes.ship_date is none
+      - zstream_relationships.product.short_name == 'RHEL'
       - zstream_relationships.program_manager.login_name == 'rhelpm@redhat.com'
 
       - async_attributes.name == 'RHEL-8.0.0.Async'
