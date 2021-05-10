@@ -37,7 +37,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Fetch base branches for PR testing
+    - name: Fetch base branches for version calculation
       run: |
         git fetch origin master:master || :
         [ -z $GITHUB_BASE_REF ] || git fetch origin $GITHUB_BASE_REF:$GITHUB_BASE_REF
