@@ -91,7 +91,7 @@ def get_variant(client, name):
     """
     # We cannot get the name directly yet, CLOUDWF-4
     # r = client.get('api/v1/variants/%s' % name)
-    r = client.get('api/v1/variants?filter[name]=%s' % name)
+    r = client.get('api/v1/variants', params={'filter[name]': name})
     r.raise_for_status()
     data = r.json()
     results = data['data']

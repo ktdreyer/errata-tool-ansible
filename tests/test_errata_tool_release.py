@@ -101,6 +101,16 @@ class TestGetRelease(object):
         result = get_release(client, 'rhceph-4.0')
         assert result[relationship] is None
 
+    def test_plus_character_in_name(self, client):
+        """ Quote "+" characters in release name HTTP request """
+        json = load_json('rhel-8.4.0.z+eus.release.json')
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/releases?filter%5Bname%5D=RHEL-8.4.0.Z.MAIN%2BEUS',
+            json=json)
+        result = get_release(client, 'RHEL-8.4.0.Z.MAIN+EUS')
+        assert result['name'] == 'RHEL-8.4.0.Z.MAIN+EUS'
+
 
 class TestCreateRelease(object):
 

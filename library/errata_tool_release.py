@@ -173,7 +173,7 @@ requirements:
 
 def get_release(client, name):
     # cannot get releases directly by name, CLOUDWF-1
-    r = client.get('api/v1/releases?filter[name]=%s' % name)
+    r = client.get('api/v1/releases', params={'filter[name]': name})
     r.raise_for_status()
     data = r.json()
     results = data['data']
