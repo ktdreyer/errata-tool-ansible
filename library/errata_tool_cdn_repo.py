@@ -258,7 +258,8 @@ def get_cdn_repo(client, name, cdn_repo_data=None):
     """
     if cdn_repo_data is None:
         # CLOUDWF-316 to get cdn_repos directly by name.
-        response = client.get('api/v1/cdn_repos?filter[name]=%s' % name)
+        response = client.get('api/v1/cdn_repos',
+                              params={'filter[name]': name})
         response.raise_for_status()
         json = response.json()
         results = json['data']
