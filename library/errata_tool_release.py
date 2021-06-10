@@ -62,7 +62,7 @@ options:
      description:
        - The program manager for this release (login_name, eg
          "coolprogrammanager@redhat.com")
-     required: true
+     required: false
    blocker_flags:
      description:
        - Bugzilla blocker flags (specify a list).
@@ -371,7 +371,7 @@ def run_module():
         enabled=dict(type='bool', default=True),
         active=dict(type='bool', default=True),
         enable_batching=dict(type='bool', default=True),
-        program_manager=dict(required=True),
+        program_manager=dict(),
         blocker_flags=dict(type='list'),
         internal_target_release=dict(),
         zstream_target_release=dict(),
