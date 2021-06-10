@@ -85,13 +85,21 @@
     product_versions: []
   register: result
 
+- name: set expected changed_message on py2
+  set_fact:
+    changed_message: "changing product_versions from [u'RHEL-8.0.0'] to []"
+  when: ansible_python_version is version("3", "<")
+
+- name: set expected changed_message on py3
+  set_fact:
+    changed_message: "changing product_versions from ['RHEL-8.0.0'] to []"
+  when: ansible_python_version is version("3", ">=")
+
 - name: assert module reports product_versions changing
   assert:
     that:
       - result.changed
-      # TODO: remove "u" when running on py3
-      # (or fix product_versions assignment to always use encoded str on py2):
-      - result.stdout_lines == ["changing product_versions from [u'RHEL-8.0.0'] to []"]
+      - result.stdout_lines == [changed_message]
 
 - name: query API for product-versions-1 release
   errata_tool_request:

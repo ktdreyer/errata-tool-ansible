@@ -171,13 +171,21 @@
     packages: {}
   register: result
 
+- name: set expected changed_message on py2
+  set_fact:
+    changed_message: "changing package_names from [u'test-container'] to []"
+  when: ansible_python_version is version("3", "<")
+
+- name: set expected changed_message on py3
+  set_fact:
+    changed_message: "changing package_names from ['test-container'] to []"
+  when: ansible_python_version is version("3", ">=")
+
 - name: assert module reports CDN repo changing
   assert:
     that:
       - result.changed
-      # TODO: remove "u" when running on py3
-      # (or fix assignment to always use encoded str on py2):
-      - result.stdout_lines == ["changing package_names from [u'test-container'] to []"]
+      - result.stdout_lines == [changed_message]
 
 # Assert that this CDN repo looks correct.
 
