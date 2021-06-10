@@ -25,12 +25,12 @@
 - name: query API for Async release
   errata_tool_request:
     path: api/v1/releases?filter[name]=create-2
-  register: async
+  register: async_data
 
 - name: parse release JSON
   set_fact:
-    attributes: "{{ async.json.data.0.attributes }}"
-    relationships: "{{ async.json.data.0.relationships }}"
+    attributes: "{{ async_data.json.data.0.attributes }}"
+    relationships: "{{ async_data.json.data.0.relationships }}"
 
 - assert:
     that:

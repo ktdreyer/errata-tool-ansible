@@ -46,7 +46,7 @@
     description: RHEL-8.0.0 Async
     program_manager: rhelpm@redhat.com
     product_versions: []
-  register: async
+  register: async_release
 
 - name: Assert that the module responses are correct
   assert:
@@ -55,8 +55,8 @@
       - quarterlyupdate.stdout_lines == ['created RHEL-8.0.0.GA']
       - zstream.changed
       - zstream.stdout_lines == ['created RHEL-8.0.0.Z']
-      - async.changed
-      - async.stdout_lines == ['created RHEL-8.0.0.Async']
+      - async_release.changed
+      - async_release.stdout_lines == ['created RHEL-8.0.0.Async']
 
 # Assert that these releases look correct.
 
@@ -74,7 +74,7 @@
 - name: query API for Async release
   errata_tool_request:
     path: api/v1/releases?filter[name]=RHEL-8.0.0.Async
-  register: async
+  register: async_data
 
 - name: parse releases JSON
   set_fact:
@@ -82,8 +82,8 @@
     quarterlyupdate_relationships: "{{ quarterlyupdate.json.data.0.relationships }}"
     zstream_attributes: "{{ zstream.json.data.0.attributes }}"
     zstream_relationships: "{{ zstream.json.data.0.relationships }}"
-    async_attributes: "{{ async.json.data.0.attributes }}"
-    async_relationships: "{{ async.json.data.0.relationships }}"
+    async_attributes: "{{ async_data.json.data.0.attributes }}"
+    async_relationships: "{{ async_data.json.data.0.relationships }}"
 
 - assert:
     that:
