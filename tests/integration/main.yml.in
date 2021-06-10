@@ -9,5 +9,12 @@
                  | difference([playbook_dir + '/main.yml'])
               }}"
 
+  - name: Get ansible_python_version
+    register: facts
+    setup:
+      filter: ansible_python_version
+    delegate_to: localhost
+    run_once: true
+
   - include: "{{ item }}"
     with_items: "{{ tests }}"

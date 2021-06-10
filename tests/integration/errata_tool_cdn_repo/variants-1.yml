@@ -2,9 +2,6 @@
 
 # This assumes the "AppStream-8.0.0" variant is pre-configured. The
 # errata-rails.git test/fixtures/*.yml files do this.
-#
-# This test asserts that module output has a some u'' strings. This is a
-# py2-specific thing. When we run on py3, the module output does not have u''.
 ---
 
 - name: Add prerequisite 8.1.0 Product Version
@@ -72,11 +69,21 @@
       - AppStream-8.1.0
   register: result
 
+- name: set expected changed_message on py2
+  set_fact:
+    changed_message: "changing variants from [u'AppStream-8.0.0'] to ['AppStream-8.0.0', 'AppStream-8.1.0']"
+  when: ansible_python_version is version("3", "<")
+
+- name: set expected changed_message on py3
+  set_fact:
+    changed_message: "changing variants from ['AppStream-8.0.0'] to ['AppStream-8.0.0', 'AppStream-8.1.0']"
+  when: ansible_python_version is version("3", ">=")
+
 - name: assert module reports variants changing
   assert:
     that:
       - result.changed
-      - result.stdout_lines == ["changing variants from [u'AppStream-8.0.0'] to ['AppStream-8.0.0', 'AppStream-8.1.0']"]
+      - result.stdout_lines == [changed_message]
 
 # Assert that this CDN repo looks correct.
 
@@ -107,11 +114,21 @@
       - AppStream-8.0.0
   register: result
 
+- name: set expected changed_message on py2
+  set_fact:
+    changed_message: "changing variants from [u'AppStream-8.0.0', u'AppStream-8.1.0'] to ['AppStream-8.0.0']"
+  when: ansible_python_version is version("3", "<")
+
+- name: set expected changed_message on py3
+  set_fact:
+    changed_message: "changing variants from ['AppStream-8.0.0', 'AppStream-8.1.0'] to ['AppStream-8.0.0']"
+  when: ansible_python_version is version("3", ">=")
+
 - name: assert module reports variants changing
   assert:
     that:
       - result.changed
-      - result.stdout_lines == ["changing variants from [u'AppStream-8.0.0', u'AppStream-8.1.0'] to ['AppStream-8.0.0']"]
+      - result.stdout_lines == [changed_message]
 
 # Assert that this CDN repo looks correct.
 
