@@ -244,6 +244,20 @@ def edit_product_version(client, product_version, differences):
         set_push_targets(client, product, pv_id, pv['push_targets'])
 
 
+def prepare_diff_data(before, after):
+    return common_errata_tool.task_diff_data(
+        before=before,
+        after=after,
+        item_name=after['name'],
+        item_type='product version',
+        keys_to_copy=[
+            # This field exists in ET but is not yet supported by
+            # this ansible module
+            'use_quay_for_containers',
+        ],
+    )
+
+
 def ensure_product_version(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
     params = {param: val for param, val in params.items() if val is not None}
@@ -253,6 +267,7 @@ def ensure_product_version(client, params, check_mode):
     if not product_version:
         result['changed'] = True
         result['stdout_lines'] = ['created %s product version' % name]
+        result['diff'] = prepare_diff_data(product_version, params)
         if not check_mode:
             create_product_version(client, product, params)
         return result
@@ -261,6 +276,7 @@ def ensure_product_version(client, params, check_mode):
         result['changed'] = True
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
+        result['diff'] = prepare_diff_data(product_version, params)
         if not check_mode:
             edit_product_version(client, product_version, differences)
     return result

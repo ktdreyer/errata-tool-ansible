@@ -344,6 +344,20 @@ def edit_product(client, product_id, params):
     handle_form_errors(response)
 
 
+def prepare_diff_data(before, after):
+    return common_errata_tool.task_diff_data(
+        before=before,
+        after=after,
+        item_name=after['short_name'],
+        item_type='product',
+        keys_to_copy=[
+            # This field exists in ET but is not yet supported by
+            # this ansible module
+            'show_bug_package_mismatch_warning',
+        ],
+    )
+
+
 def ensure_product(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
     params = {param: val for param, val in params.items() if val is not None}
@@ -352,6 +366,7 @@ def ensure_product(client, params, check_mode):
     if not product:
         result['changed'] = True
         result['stdout_lines'] = ['created %s product' % short_name]
+        result['diff'] = prepare_diff_data(product, params)
         if not check_mode:
             create_product(client, params)
         return result
@@ -360,6 +375,7 @@ def ensure_product(client, params, check_mode):
         result['changed'] = True
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
+        result['diff'] = prepare_diff_data(product, params)
         if not check_mode:
             edit_product(client, product['id'], params)
     return result
