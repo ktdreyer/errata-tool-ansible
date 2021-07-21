@@ -152,6 +152,30 @@ def edit_variant(client, variant_id, differences):
         raise ValueError(data['error'])
 
 
+def prepare_diff_data(before, after):
+    return common_errata_tool.task_diff_data(
+        before=before,
+        after=after,
+        item_name=after['name'],
+        item_type='variant',
+        keys_to_copy=[
+            # This field exists in ET but is not yet supported by
+            # this ansible module
+            'override_ftp_base_folder',
+
+            # The params may contain one or other of these
+            # but both are present in the before data
+            'tps_stream',
+            'rhel_variant',
+        ],
+        keys_to_omit=[
+            # The before data will include product even though it's
+            # redundant and readonly. Let's leave it out of the diff.
+            'product',
+        ],
+    )
+
+
 def ensure_variant(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
     params = {param: val for param, val in params.items() if val is not None}
@@ -161,6 +185,7 @@ def ensure_variant(client, params, check_mode):
     if not variant:
         result['changed'] = True
         result['stdout_lines'] = ['created %s variant' % name]
+        result['diff'] = prepare_diff_data(variant, params)
         if not check_mode:
             create_variant(client, params)
         return result
@@ -169,6 +194,7 @@ def ensure_variant(client, params, check_mode):
         result['changed'] = True
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
+        result['diff'] = prepare_diff_data(variant, params)
         if not check_mode:
             edit_variant(client, variant['id'], differences)
     return result

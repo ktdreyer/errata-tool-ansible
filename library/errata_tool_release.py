@@ -325,6 +325,28 @@ def edit_release(client, release_id, differences):
         raise ValueError(response.json())
 
 
+def prepare_diff_data(before, after):
+    return common_errata_tool.task_diff_data(
+        before=before,
+        after=after,
+        item_name=after['name'],
+        item_type='release',
+        keys_to_copy=[
+            # Avoid a diff if these are null to begin with
+            'pelc_product_version_name',
+            'state_machine_rule_set',
+            'zstream_target_release',
+        ],
+        keys_to_omit=[
+            # I think these two are old dead schema that
+            # should be removed. Let's hide them from the
+            # diff output.
+            'is_async',
+            'is_deferred',
+        ],
+    )
+
+
 def ensure_release(client, params, check_mode):
     # Note: this looks identical to the diff_product() method.
     # Maybe we can generalize this.
@@ -341,6 +363,7 @@ def ensure_release(client, params, check_mode):
     if not release:
         result['changed'] = True
         result['stdout_lines'] = ['created %s' % name]
+        result['diff'] = prepare_diff_data(release, params)
         if not check_mode:
             create_release(client, params)
         return result
@@ -349,6 +372,7 @@ def ensure_release(client, params, check_mode):
         result['changed'] = True
         changes = common_errata_tool.describe_changes(differences)
         result['stdout_lines'].extend(changes)
+        result['diff'] = prepare_diff_data(release, params)
         if not check_mode:
             # CLOUDWF-6: we must send product_version_ids in every request,
             # or the server will reset the product versions to an empty list.

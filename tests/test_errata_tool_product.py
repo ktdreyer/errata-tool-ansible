@@ -1,5 +1,6 @@
 from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import get_product
+from errata_tool_product import prepare_diff_data
 
 
 PRODUCT = {
@@ -150,3 +151,51 @@ class TestGetProduct(object):
             'exd_org_group': 'Cloud',
         }
         assert product == expected
+
+
+class TestPrepareDiffData(object):
+
+    def test_diff_from_none(self):
+        after_data = {
+            'short_name': 'RHNEW',
+            'description': 'new thing',
+        }
+
+        expected_output = {
+            'before': {},
+            'after': after_data,
+            'before_header': "Not present",
+            'after_header': "New product 'RHNEW'",
+        }
+
+        assert prepare_diff_data(None, after_data) == expected_output
+
+    def test_diff_data(self):
+        before_data = {
+            'id': 123,
+            'short_name': 'RHDIFF',
+            'description': 'foo',
+            'show_bug_package_mismatch_warning': True,
+        }
+
+        after_data = {
+            'short_name': 'RHDIFF',
+            'description': 'bar',
+        }
+
+        expected_output = {
+            'before': {
+                'short_name': 'RHDIFF',
+                'description': 'foo',
+                'show_bug_package_mismatch_warning': True,
+            },
+            'after': {
+                'short_name': 'RHDIFF',
+                'description': 'bar',
+                'show_bug_package_mismatch_warning': True,
+            },
+            'before_header': "Original product 'RHDIFF'",
+            'after_header': "Modified product 'RHDIFF'",
+        }
+
+        assert prepare_diff_data(before_data, after_data) == expected_output
