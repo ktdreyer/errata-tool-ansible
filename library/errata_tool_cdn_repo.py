@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 from ansible.module_utils.six import string_types
@@ -514,7 +516,76 @@ def ensure_packages_tags(client, name, check_mode, packages):
                                               desired_tags)
 
         changes.extend(package_changes)
-    return changes
+
+    # The caller needs to know the list of changes and the
+    # current state in order to support diff mode
+    return (changes, current)
+
+
+# If the variant key is present in tag_info then the tag is
+# variant-specific, and the list item is a dict with a single
+# key, otherwise it's just a string with the tag name.
+# The end result should match the format of the module
+# params, so refer to the examples in the module docs above.
+def tag_name_or_variant_dict(tag_name, tag_info):
+    if 'variant' in tag_info:
+        return {
+            tag_name: {
+                'variant': tag_info['variant'],
+            }
+        }
+    else:
+        return tag_name
+
+
+# The normalized desired packages dict and the current packages
+# dict are not quite the same format, but this works for both of them
+def package_list_for_diff(all_packages):
+    return {
+        package_name: [
+            tag_name_or_variant_dict(tag_name, tag_info)
+            for (tag_name, tag_info)
+            # Without sorting the order is different in py2 vs py3 causing
+            # a test failure in py27. So sort here to make sure the tests
+            # pass. There's probably no need to sort it otherwise.
+            in sorted(package_tags.items(), key=lambda kv: kv[0])
+        ]
+        for (package_name, package_tags)
+        in all_packages.items()
+    }
+
+
+# Some extra work is needed here to handle the packages and tags
+def prepare_diff_data(before, after, before_packages, after_packages):
+    # Make sure we don't modify the param
+    after = deepcopy(after)
+    # Add a packages key with the massaged packages info
+    after['packages'] = package_list_for_diff(after_packages)
+    # Remove the package_names key since it's redundant
+    del after['package_names']
+
+    # Same thing for before if it's present
+    if before is not None:
+        before = deepcopy(before)
+        before['packages'] = package_list_for_diff(before_packages)
+        del before['package_names']
+
+    # Now create the diff as per usual
+    return common_errata_tool.task_diff_data(
+        before=before,
+        after=after,
+        item_name=after['name'],
+        item_type='cdn repo',
+        keys_to_copy=[
+            # This is derived from the product version, and hence
+            # readonly, but let's show it anyway
+            'quay_enabled',
+
+            # This is readonly now but probably won't be in future
+            # when docker-pulp no longer exists
+            'external_name',
+        ],
+    )
 
 
 def ensure_cdn_repo(client, check_mode, params):
@@ -541,6 +612,7 @@ def ensure_cdn_repo(client, check_mode, params):
     if not cdn_repo:
         result['changed'] = True
         result['stdout_lines'] = ['created %s' % name]
+        result['diff'] = prepare_diff_data(cdn_repo, params, {}, packages)
         if check_mode:
             return result
         cdn_repo = create_cdn_repo(client, params)
@@ -555,11 +627,18 @@ def ensure_cdn_repo(client, check_mode, params):
             edit_cdn_repo(client, cdn_repo['id'], differences)
 
     # packages (from /api/v1/cdn_repo_package_tags):
-    package_tag_changes = ensure_packages_tags(client, name, check_mode,
-                                               packages)
+    package_tag_changes, current_packages = \
+        ensure_packages_tags(client, name, check_mode, packages)
+
     if package_tag_changes:
         result['changed'] = True
         result['stdout_lines'].extend(package_tag_changes)
+
+    # (Don't redo the diff if the repo was just created)
+    if result['changed'] and 'diff' not in result:
+        result['diff'] = prepare_diff_data(cdn_repo, params,
+                                           current_packages, packages)
+
     return result
 
 

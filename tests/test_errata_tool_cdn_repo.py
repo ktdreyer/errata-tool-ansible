@@ -543,14 +543,14 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
 
     def test_unchanged(self, client, name, check_mode):
         packages = {'rhceph-container': {'latest': {}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         assert result == []
         assert len(client.adapter.request_history) == 1
         assert client.adapter.request_history[0].method == 'GET'
 
     def test_add_one(self, client, name, check_mode):
         packages = {'rhceph-container': {'latest': {}, 'new-tag': {}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['adding "new-tag" tag template to "rhceph-container"']
         assert result == expected
         assert len(client.adapter.request_history) == 2
@@ -558,7 +558,7 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
 
     def test_remove_one(self, client, name, check_mode):
         packages = {'rhceph-container': {}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['removing "latest" tag template from "rhceph-container"']
         assert result == expected
         assert len(client.adapter.request_history) == 2
@@ -566,7 +566,7 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
 
     def test_remove_and_add(self, client, name, check_mode):
         packages = {'rhceph-container': {'new-tag': {}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['removing "latest" tag template from "rhceph-container"',
                     'adding "new-tag" tag template to "rhceph-container"']
         assert result == expected
@@ -577,7 +577,7 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
     def test_add_variant(self, client, name, check_mode):
         packages = {'rhceph-container':
                     {'latest': {'variant': '8Base-RHCEPH-4.0-Tools'}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['adding "8Base-RHCEPH-4.0-Tools" variant to'
                     ' rhceph-container "latest" tag template']
         assert result == expected
@@ -590,7 +590,7 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
             PROD + '/api/v1/cdn_repo_package_tags',
             json={'data': [self.repo_with_variant]})
         packages = {'rhceph-container': {'latest': {}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['removing "8Base-RHCEPH-4.0-Tools" variant from'
                     ' rhceph-container "latest" tag template']
         assert result == expected
@@ -604,7 +604,7 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
             json={'data': [self.repo_with_variant]})
         packages = {'rhceph-container':
                     {'latest': {'variant': '8Base-RHCEPH-4.1-Tools'}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['changing rhceph-container "latest" variant from'
                     ' "8Base-RHCEPH-4.0-Tools" to "8Base-RHCEPH-4.1-Tools"']
         assert result == expected
@@ -617,7 +617,7 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
             PROD + '/api/v1/cdn_repo_package_tags',
             json={'data': []})
         packages = {'rhceph-container': {'latest': {}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['adding "latest" tag template to "rhceph-container"']
         assert result == expected
         assert len(client.adapter.request_history) == 2
@@ -647,14 +647,14 @@ class TestEnsurePackageTagsCheckMode(EnsurePackageTagsBase):
 
     def test_add(self, client, name, check_mode):
         packages = {'rhceph-container': {'latest': {}, 'new-tag': {}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['adding "new-tag" tag template to "rhceph-container"']
         assert result == expected
         self.assert_readonly_history(client)
 
     def test_remove(self, client, name, check_mode):
         packages = {'rhceph-container': {}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['removing "latest" tag template from "rhceph-container"']
         assert result == expected
         self.assert_readonly_history(client)
@@ -662,7 +662,7 @@ class TestEnsurePackageTagsCheckMode(EnsurePackageTagsBase):
     def test_edit(self, client, name, check_mode):
         packages = {'rhceph-container':
                     {'latest': {'variant': '8Base-RHCEPH-4.0-Tools'}}}
-        result = ensure_packages_tags(client, name, check_mode, packages)
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
         expected = ['adding "8Base-RHCEPH-4.0-Tools" variant to'
                     ' rhceph-container "latest" tag template']
         assert result == expected
@@ -685,10 +685,10 @@ class TestEnsureCdnRepo(object):
             'variants': ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools'],
             'packages': {'rhceph-container': [
                 'latest',
+                {'my-variant-restricted-tag':
+                 {'variant': '8Base-RHCEPH-4.0-Tools'}},
                 '{{version}}',
                 '{{version}}-{{release}}',
-                {'my-variant-restricted-tag':
-                    {'variant': '8Base-RHCEPH-4.0-Tools'}}
             ]},
         }
 
@@ -712,8 +712,27 @@ class TestEnsureCdnRepo(object):
             json={'data': []})
         check_mode = True
         result = ensure_cdn_repo(client, check_mode, params)
-        expected = {'changed': True,
-                    'stdout_lines': ['created redhat-rhceph-rhceph-4-rhel8']}
+        expected = {
+            'changed': True,
+            'stdout_lines': ['created redhat-rhceph-rhceph-4-rhel8'],
+            'diff': {
+                'after': {'arch': 'multi',
+                          'content_type': 'Docker',
+                          'name': 'redhat-rhceph-rhceph-4-rhel8',
+                          'packages': {'rhceph-container': [
+                              'latest',
+                              {'my-variant-restricted-tag':
+                               {'variant': '8Base-RHCEPH-4.0-Tools'}},
+                              '{{version}}',
+                              '{{version}}-{{release}}']},
+                          'release_type': 'Primary',
+                          'use_for_tps': False,
+                          'variants': ['8Base-RHCEPH-4.0-Tools',
+                                       '8Base-RHCEPH-4.1-Tools']},
+                'after_header': "New cdn repo 'redhat-rhceph-rhceph-4-rhel8'",
+                'before': {},
+                'before_header': 'Not present'}}
+
         assert result == expected
 
     def test_create(self, client, params):
@@ -809,7 +828,19 @@ class TestEnsureCdnRepo(object):
         expected = {
             'changed': True,
             'stdout_lines': ['created rhceph-4-tools-for-rhel-8-x86_64-rpms'],
-        }
+            'diff': {'after': {'arch': 'x86_64',
+                               'content_type': 'Binary',
+                               'name': 'rhceph-4-tools-for-rhel-8-x86_64-rpms',
+                               'packages': {},
+                               'release_type': 'Primary',
+                               'use_for_tps': True,
+                               'variants': ['8Base-RHCEPH-4.0-Tools',
+                                            '8Base-RHCEPH-4.1-Tools']},
+                     'after_header': "New cdn repo "
+                                     "'rhceph-4-tools-for-rhel-8-x86_64-rpms'",
+                     'before': {},
+                     'before_header': 'Not present'}}
+
         assert result == expected
 
 
