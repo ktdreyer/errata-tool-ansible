@@ -50,16 +50,18 @@ options:
      required: true
    rhel_variant:
      description:
+       - The RHEL variant upon which this layered product variant is based.
+         All layered products must set a rhel_variant value.
        - "example: 8Base"
-       - When rhel_variant is missing then current variant is marked as
-         rhel_variant.
-         Layered Products ruquire this.
-       - When rhel_variant is not defined then tps_stream has to be defined.
+       - If you omit a rhel_variant setting, the Errata Tool will assume you
+         are configuring RHEL itself, and it will mark this variant as a RHEL
+         variant.
+       - When you omit rhel_variant, you must define tps_stream.
      required: false
    tps_stream:
      description:
+       - Required for base (RHEL) variants which do not have a rhel_variant.
        - "example: RHEL-7"
-       - Required for base variants which has rhel_variant empty.
      required: false
    push_targets:
      description:
