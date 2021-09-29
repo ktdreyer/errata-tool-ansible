@@ -96,9 +96,10 @@ options:
      default: false
    text_only_advisories_require_dists:
      description:
-       - Does the product require channels or repos for text-only advisories?
-         For instance many Middleware products have no presence on RHN or RHSM,
-         so set this to false to allow pushes without channels or repos.
+       - DEPRECATED. This field was removed from Errata Tool in ET 4.14.
+         Text only advisories now always require that CDN repos are specified.
+       - For backwards compatibility the field is accepted but its value is
+         ignored. It will be removed entirely in future release of this module.
      choices: [true, false]
      default: true
    exd_org_group:
@@ -284,8 +285,6 @@ def html_form_data(client, params):
     state_machine_rule_set_id = int(rules_scraper.enum[state_machine_rule_set])
     data['product[state_machine_rule_set_id]'] = state_machine_rule_set_id
     data['product[move_bugs_on_qe]'] = int(params['move_bugs_on_qe'])
-    text_only_dists = int(params['text_only_advisories_require_dists'])
-    data['product[text_only_advisories_require_dists]'] = text_only_dists
     exd_org_group = params.get('exd_org_group')
     if exd_org_group is not None:
         exd_org_group_id = int(EXD_ORG_GROUPS[exd_org_group])
@@ -404,6 +403,8 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=True
     )
+    # Ignore this attribute since it doesn't exist any more in ET
+    del module.params['text_only_advisories_require_dists']
 
     check_mode = module.check_mode
     params = module.params

@@ -24,8 +24,7 @@ PRODUCT = {
         "ftp_subdir": "RHCEPH",
         "is_internal": False,
         "isactive": True,
-        "move_bugs_on_qe": False,
-        "text_only_advisories_require_dists": True
+        "move_bugs_on_qe": False
     },
     "relationships": {
         "default_docs_reviewer": {
@@ -137,7 +136,6 @@ class TestGetProduct(object):
             'internal': False,
             'active': True,
             'move_bugs_on_qe': False,
-            'text_only_advisories_require_dists': True,
             'default_docs_reviewer': 'docs-errata-list@redhat.com',
             'default_solution': 'enterprise',
             'push_targets': [
