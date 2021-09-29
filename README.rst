@@ -51,7 +51,6 @@ Errata Tool.
         default_solution: enterprise
         state_machine_rule_set: Default
         move_bugs_on_qe: false
-        text_only_advisories_require_dists: true
 
 
 errata_tool_product_version
