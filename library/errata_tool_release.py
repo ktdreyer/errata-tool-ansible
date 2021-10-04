@@ -62,6 +62,8 @@ options:
      description:
        - The program manager for this release (login_name, eg
          "coolprogrammanager@redhat.com")
+       - The Errata Tool does not require a specific role for this user
+         account.
      required: false
    blocker_flags:
      description:
