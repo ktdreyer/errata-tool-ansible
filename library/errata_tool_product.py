@@ -67,6 +67,7 @@ options:
        - The default docs reviewer for advisories. "null" means "Unassigned".
          (Note that once you have changed this value from something other than
          "null", there is no way to change it back to "null".)
+       - This user account must have the "docs" role.
      default: null
    push_targets:
      description:
