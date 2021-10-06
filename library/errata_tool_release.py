@@ -1,5 +1,7 @@
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
+from ansible.module_utils.common_errata_tool import UserNotFoundError
+from ansible.module_utils.six import raise_from
 
 
 ANSIBLE_METADATA = {
@@ -176,6 +178,10 @@ requirements:
 '''
 
 
+class ProgramManagerNotFoundError(UserNotFoundError):
+    pass
+
+
 def get_release(client, name):
     # cannot get releases directly by name, CLOUDWF-1
     r = client.get('api/v1/releases', params={'filter[name]': name})
@@ -277,8 +283,11 @@ def api_data(client, params):
             release['product_id'] = get_product_id(client, product_name)
     if 'program_manager' in release:
         pm_login_name = release.pop('program_manager')
-        program_manager_id = common_errata_tool.user_id(client, pm_login_name)
-        release['program_manager_id'] = program_manager_id
+        try:
+            pm_id = common_errata_tool.user_id(client, pm_login_name)
+        except UserNotFoundError as e:
+            raise_from(ProgramManagerNotFoundError(str(e)), e)
+        release['program_manager_id'] = pm_id
     # "active" -> "isactive"
     if 'active' in release:
         active = release.pop('active')
@@ -425,7 +434,11 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    result = ensure_release(client, params, check_mode)
+    try:
+        result = ensure_release(client, params, check_mode)
+    except ProgramManagerNotFoundError as e:
+        msg = 'program_manager %s account not found' % e
+        module.fail_json(msg=msg, changed=False, rc=1)
 
     module.exit_json(**result)
 

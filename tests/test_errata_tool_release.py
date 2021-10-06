@@ -7,12 +7,14 @@ from errata_tool_release import create_release
 from errata_tool_release import edit_release
 from errata_tool_release import ensure_release
 from errata_tool_release import main
+from errata_tool_release import ProgramManagerNotFoundError
 from utils import load_json
 from utils import load_html
 from utils import exit_json
 from utils import fail_json
 from utils import set_module_args
 from utils import AnsibleExitJson
+from utils import AnsibleFailJson
 from utils import Mock
 
 
@@ -133,6 +135,18 @@ class TestReleaseApiData(object):
         params = {'program_manager': 'coolmanager@redhat.com'}
         result = api_data(client, params)
         assert result == {'release': {'program_manager_id': 123456}}
+
+    def test_no_program_manager(self, client):
+        json = {'errors': {'login_name': ['noexist@redhat.com not found.']}}
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/user/noexist@redhat.com',
+            status_code=400,
+            json=json)
+        params = {'program_manager': 'noexist@redhat.com'}
+        with pytest.raises(ProgramManagerNotFoundError) as e:
+            api_data(client, params)
+        assert str(e.value) == 'noexist@redhat.com'
 
 
 class TestCreateRelease(object):
@@ -452,3 +466,23 @@ class TestMain(object):
             main()
         result = exit.value.args[0]
         assert result['changed'] is True
+
+    def test_missing_program_manager(self, monkeypatch):
+        mock_ensure = Mock()
+        mock_ensure.side_effect = \
+            ProgramManagerNotFoundError('noexist@redhat.com')
+        monkeypatch.setattr(errata_tool_release, 'ensure_release', mock_ensure)
+        module_args = {
+            'name': 'rhceph-5.0',
+            'type': 'Async',
+            'description': 'Red Hat Ceph Storage 5.0',
+            'program_manager': 'noexist@redhat.com',
+            'product_versions': [],
+        }
+        set_module_args(module_args)
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+        result = ex.value.args[0]
+        assert result['changed'] is False
+        expected = 'program_manager noexist@redhat.com account not found'
+        assert result['msg'] == expected
