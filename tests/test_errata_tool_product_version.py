@@ -1,4 +1,7 @@
-from mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:  # PY2
+    from mock import Mock
 from requests.exceptions import HTTPError
 import pytest
 
