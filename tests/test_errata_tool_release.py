@@ -1,11 +1,18 @@
 from copy import deepcopy
 import pytest
+import errata_tool_release
 from errata_tool_release import get_release
 from errata_tool_release import create_release
 from errata_tool_release import edit_release
 from errata_tool_release import ensure_release
+from errata_tool_release import main
 from utils import load_json
 from utils import load_html
+from utils import exit_json
+from utils import fail_json
+from utils import set_module_args
+from utils import AnsibleExitJson
+from utils import Mock
 
 
 PROD = 'https://errata.devel.redhat.com'
@@ -402,3 +409,30 @@ class TestEnsureRelease(object):
         assert history[-1].url == PROD + '/api/v1/releases/1017'
         assert history[-1].method == 'PUT'
         assert history[-1].json() == expected
+
+
+class TestMain(object):
+
+    @pytest.fixture(autouse=True)
+    def fake_exits(self, monkeypatch):
+        monkeypatch.setattr(errata_tool_release.AnsibleModule,
+                            'exit_json', exit_json)
+        monkeypatch.setattr(errata_tool_release.AnsibleModule,
+                            'fail_json', fail_json)
+
+    def test_simple_async(self, monkeypatch):
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_release, 'ensure_release', mock_ensure)
+        module_args = {
+            'name': 'rhceph-5.0',
+            'type': 'Async',
+            'description': 'Red Hat Ceph Storage 5.0',
+            'program_manager': 'coolmanager@redhat.com',
+            'product_versions': [],
+        }
+        set_module_args(module_args)
+        with pytest.raises(AnsibleExitJson) as exit:
+            main()
+        result = exit.value.args[0]
+        assert result['changed'] is True
