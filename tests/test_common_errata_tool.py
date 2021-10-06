@@ -1,5 +1,4 @@
 import pytest
-from requests.exceptions import HTTPError
 from ansible.module_utils.common_errata_tool import RELEASE_TYPES
 from ansible.module_utils.common_errata_tool import PushTargetScraper
 from ansible.module_utils.common_errata_tool import WorkflowRulesScraper
@@ -122,20 +121,7 @@ class TestUserID(object):
         result = user_id(client, 'cooluser@redhat.com')
         assert result == 123456
 
-    def test_errors_pre_cloudwf_8(self, client):
-        # This test simulates the HTTP 500 error described in CLOUDWF-8.
-        # Delete this test after CLOUDWF-8 is resolved.
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
-            status_code=500,
-            text='')
-        with pytest.raises(HTTPError):
-            user_id(client, 'noexist@redhat.com')
-
     def test_errors(self, client):
-        # This test simulates the expected HTTP 400 error after CLOUDWF-8 is
-        # resolved.
         json = {'errors': {'login_name': ['noexist@redhat.com not found.']}}
         client.adapter.register_uri(
             'GET',
