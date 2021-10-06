@@ -1,6 +1,7 @@
 import pytest
 import sys
 from os.path import abspath, dirname, join
+from ansible.module_utils.six import PY2, PY3
 
 
 def pytest_sessionstart(session):
@@ -25,13 +26,13 @@ def pytest_sessionstart(session):
 
     location = join(module_utils_path, 'common_errata_tool.py')
     module_name = "ansible.module_utils.common_errata_tool"
-    if sys.version_info[0] == 3:
+    if PY3:
         # Python 3.5+
         import importlib.util
         spec = importlib.util.spec_from_file_location(module_name, location)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-    if sys.version_info[0] == 2:
+    if PY2:
         import imp
         module = imp.load_source(module_name, location)
     sys.modules[module_name] = module
