@@ -20,6 +20,7 @@ from utils import fail_json
 from utils import set_module_args
 from utils import AnsibleExitJson
 from utils import AnsibleFailJson
+from utils import Mock
 
 
 PROD = 'https://errata.devel.redhat.com'
@@ -854,18 +855,15 @@ class TestMain(object):
                             'fail_json', fail_json)
 
     @pytest.fixture(autouse=True)
-    def fake_ensure_cdn_repo(self, monkeypatch):
+    def mock_ensure_cdn_repo(self, monkeypatch):
         """
         Fake this large method, since we unit-test it individually elsewhere.
         """
-        class FakeMethod(object):
-            def __call__(self, *args, **kwargs):
-                self.args = args
-                return {'changed': True}
-
-        fake = FakeMethod()
-        monkeypatch.setattr(errata_tool_cdn_repo, 'ensure_cdn_repo', fake)
-        return fake
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_cdn_repo, 'ensure_cdn_repo',
+                            mock_ensure)
+        return mock_ensure
 
     @pytest.fixture
     def container_module_args(self):
@@ -913,14 +911,14 @@ class TestMain(object):
         ('Debuginfo', 'x86_64'),
         ('Source',    'x86_64'),
     ])
-    def test_default_arch(self, container_module_args, fake_ensure_cdn_repo,
+    def test_default_arch(self, container_module_args, mock_ensure_cdn_repo,
                           content_type, expected):
         container_module_args['arch'] = None
         container_module_args['content_type'] = content_type
         set_module_args(container_module_args)
         with pytest.raises(AnsibleExitJson):
             main()
-        _, _, params = fake_ensure_cdn_repo.args
+        _, _, params = mock_ensure_cdn_repo.call_args[0]
         assert params['arch'] == expected
 
     def test_docker_arch_fail(self, container_module_args):
