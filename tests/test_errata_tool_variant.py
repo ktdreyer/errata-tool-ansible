@@ -9,6 +9,8 @@ from utils import fail_json
 from utils import load_json
 from utils import set_module_args
 from utils import AnsibleExitJson
+from utils import Mock
+
 
 PROD = 'https://errata.devel.redhat.com'
 
@@ -155,18 +157,14 @@ class TestMain(object):
                             'fail_json', fail_json)
 
     @pytest.fixture(autouse=True)
-    def fake_ensure_variant(self, monkeypatch):
+    def mock_ensure_variant(self, monkeypatch):
         """
         Fake this large method, since we unit-test it individually elsewhere.
         """
-        class FakeMethod(object):
-            def __call__(self, *args, **kwargs):
-                self.args = args
-                return {'changed': True}
-
-        fake = FakeMethod()
-        monkeypatch.setattr(errata_tool_variant, 'ensure_variant', fake)
-        return fake
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_variant, 'ensure_variant', mock_ensure)
+        return mock_ensure
 
     def test_simple_layered(self):
         module_args = {
