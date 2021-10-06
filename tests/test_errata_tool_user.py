@@ -9,6 +9,7 @@ from errata_tool_user import main
 from utils import exit_json
 from utils import set_module_args
 from utils import AnsibleExitJson
+from utils import Mock
 from ansible.module_utils.six import PY2
 
 
@@ -288,20 +289,16 @@ class TestMain(object):
                             'exit_json', exit_json)
 
     @pytest.fixture
-    def fake_ensure_user(self, monkeypatch):
+    def mock_ensure_user(self, monkeypatch):
         """
         Fake this large method, since we unit-test it individually elsewhere.
         """
-        class FakeMethod(object):
-            def __call__(self, *args, **kwargs):
-                self.args = args
-                return {'changed': True}
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_user, 'ensure_user', mock_ensure)
+        return mock_ensure
 
-        fake = FakeMethod()
-        monkeypatch.setattr(errata_tool_user, 'ensure_user', fake)
-        return fake
-
-    def test_simple(self, fake_ensure_user):
+    def test_simple(self, mock_ensure_user):
         module_args = {
             'login_name': 'cooldev@redhat.com',
             'realname': 'Dr. Cool Developer',
@@ -311,7 +308,7 @@ class TestMain(object):
             main()
         result = exit.value.args[0]
         assert result['changed'] is True
-        ensure_user_args = fake_ensure_user.args[1]
+        ensure_user_args = mock_ensure_user.call_args[0][1]
         assert ensure_user_args == {
             'email_address': None,
             'enabled': True,
