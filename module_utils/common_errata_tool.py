@@ -268,6 +268,11 @@ def task_diff_data(before, after, item_name, item_type,
     }
 
 
+class UserNotFoundError(Exception):
+    """ This user does not exist """
+    pass
+
+
 def user_id(client, login_name):
     """
     Convert a user login_name to an id
@@ -276,15 +281,16 @@ def user_id(client, login_name):
 
     :param str login_name: for example kdreyer@redhat.com
     :returns: a user ID (int)
-    :raises: RuntimeError if the ET responds with HTTP 400 and a JSON body
-             with "errors".
+    :raises: UserNotFoundError if the user does not exist in the ET database.
     :raises: requests.exceptions.HTTPError if the ET replies with an
              unexpected HTTP response.
     """
     response = client.get('api/v1/user/%s' % login_name)
     data = response.json()
     if response.status_code == 400 and 'errors' in data:
-        raise RuntimeError(data['errors'])
+        login_name_errors = data['errors'].get('login_name', [])
+        if '%s not found.' % login_name in login_name_errors:
+            raise UserNotFoundError(login_name)
     response.raise_for_status()
     return data['id']
 
