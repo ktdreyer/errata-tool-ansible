@@ -62,6 +62,9 @@ options:
      description:
        - The program manager for this release (login_name, eg
          "coolprogrammanager@redhat.com")
+       - This account must already exist in the Errata Tool. You may create it
+         with the web UI, or the errata_tool_user Ansible module, or some
+         other method.
        - The Errata Tool does not require a specific role for this user
          account.
      required: false
