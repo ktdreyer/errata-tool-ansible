@@ -1,5 +1,4 @@
 from copy import deepcopy
-import sys
 import pytest
 import errata_tool_user
 from errata_tool_user import get_user
@@ -10,6 +9,7 @@ from errata_tool_user import main
 from utils import exit_json
 from utils import set_module_args
 from utils import AnsibleExitJson
+from ansible.module_utils.six import PY2
 
 
 USER = {
@@ -207,7 +207,7 @@ class TestEnsureUser(object):
         check_mode = False
         result = ensure_user(client, params, check_mode)
         expected_stdout_lines = ["changing roles from ['pm'] to ['devel']"]
-        if sys.version_info.major == 2:
+        if PY2:
             expected_stdout_lines = [
                 "changing roles from [u'pm'] to ['devel']"
             ]

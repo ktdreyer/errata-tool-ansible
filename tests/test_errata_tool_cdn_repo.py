@@ -1,6 +1,5 @@
 from copy import deepcopy
 import re
-import sys
 import pytest
 import errata_tool_cdn_repo
 from errata_tool_cdn_repo import CDN_RELEASE_TYPES
@@ -15,6 +14,7 @@ from errata_tool_cdn_repo import get_cdn_repo
 from errata_tool_cdn_repo import get_package_tags
 from errata_tool_cdn_repo import normalize_packages
 from errata_tool_cdn_repo import main
+from ansible.module_utils.six import PY2
 from utils import exit_json
 from utils import fail_json
 from utils import set_module_args
@@ -801,7 +801,7 @@ class TestEnsureCdnRepo(object):
             "changing variants from ['8Base-RHCEPH-4.0-Tools'] to"
             " ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools']"
         ]
-        if sys.version_info.major == 2:
+        if PY2:
             expected_stdout_lines = [
                 "changing variants from [u'8Base-RHCEPH-4.0-Tools'] to"
                 " ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools']"
