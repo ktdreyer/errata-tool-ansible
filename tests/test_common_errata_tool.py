@@ -7,6 +7,7 @@ from ansible.module_utils.common_errata_tool import DefaultSolutions
 from ansible.module_utils.common_errata_tool import diff_settings
 from ansible.module_utils.common_errata_tool import describe_changes
 from ansible.module_utils.common_errata_tool import user_id
+from ansible.module_utils.six import PY2
 from utils import load_html
 
 
@@ -141,8 +142,12 @@ class TestUserID(object):
             'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
             status_code=400,
             json=json)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError) as e:
             user_id(client, 'noexist@redhat.com')
+        expected = "{'login_name': ['noexist@redhat.com not found.']}"
+        if PY2:
+            expected = "{u'login_name': [u'noexist@redhat.com not found.']}"
+        assert str(e.value) == expected
 
 
 class TestClient(object):
