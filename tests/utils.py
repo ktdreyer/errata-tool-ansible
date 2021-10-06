@@ -8,6 +8,13 @@ import json
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 
+# Make the py2/py3 "Mock" class available to other tests:
+try:
+    from unittest.mock import Mock  # noqa F401
+except ImportError:  # PY2
+    from mock import Mock  # noqa F401
+
+
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 FIXTURES_DIR = os.path.join(TESTS_DIR, 'fixtures')
 
