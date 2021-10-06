@@ -121,7 +121,7 @@ class TestUserID(object):
         result = user_id(client, 'cooluser@redhat.com')
         assert result == 123456
 
-    def test_errors(self, client):
+    def test_user_not_found(self, client):
         json = {'errors': {'login_name': ['noexist@redhat.com not found.']}}
         client.adapter.register_uri(
             'GET',
