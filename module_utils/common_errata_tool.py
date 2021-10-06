@@ -282,13 +282,10 @@ def user_id(client, login_name):
              unexpected HTTP response.
     """
     response = client.get('api/v1/user/%s' % login_name)
-    if response.status_code == 400:
-        data = response.json()
-        if 'errors' in data:
-            errors = data['errors']
-            raise RuntimeError(errors)
-    response.raise_for_status()
     data = response.json()
+    if response.status_code == 400 and 'errors' in data:
+        raise RuntimeError(data['errors'])
+    response.raise_for_status()
     return data['id']
 
 
