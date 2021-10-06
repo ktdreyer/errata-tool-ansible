@@ -273,6 +273,13 @@ def user_id(client, login_name):
     Convert a user login_name to an id
 
     Needed for products (CLOUDWF-7) and releases (CLOUDWF-298)
+
+    :param str login_name: for example kdreyer@redhat.com
+    :returns: a user ID (int)
+    :raises: RuntimeError if the ET responds with HTTP 400 and a JSON body
+             with "errors".
+    :raises: requests.exceptions.HTTPError if the ET replies with an
+             unexpected HTTP response.
     """
     response = client.get('api/v1/user/%s' % login_name)
     if response.status_code == 400:
