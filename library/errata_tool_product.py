@@ -67,6 +67,9 @@ options:
        - The default docs reviewer for advisories. "null" means "Unassigned".
          (Note that once you have changed this value from something other than
          "null", there is no way to change it back to "null".)
+       - This account must already exist in the Errata Tool. You may create it
+         with the web UI, or the errata_tool_user Ansible module, or some
+         other method.
        - This user account must have the "docs" role.
      default: null
    push_targets:
