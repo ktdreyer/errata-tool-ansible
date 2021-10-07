@@ -73,8 +73,7 @@ requirements:
 
 
 def get_user(client, login_name):
-    url = 'api/v1/user/%s' % login_name
-    r = client.get(url)
+    r = client.get('api/v1/user/%s' % login_name)
     if r.status_code == 400:
         data = r.json()
         errors = data.get('errors', {})
