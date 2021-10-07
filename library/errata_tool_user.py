@@ -1,4 +1,3 @@
-import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 
@@ -73,42 +72,9 @@ requirements:
 '''
 
 
-def scrape_user_id(client, login_name):
-    """
-    Screen-scrape the user ID number for this account.
-
-    Sometimes we cannot load the user account by name, but it exists.
-    Delete this method when CLOUDWF-8 is resolved in prod.
-    """
-    data = {'user[login_name]': login_name}
-    response = client.post('user/find_user', data=data, allow_redirects=False)
-    if response.status_code != 302:
-        return None
-    location = response.headers['Location']
-    # location is a URL like https://errata...com/user/3002859
-    m = re.search(r'\d+$', location)
-    if not m:
-        return None
-    user_id = m.group()
-    return int(user_id)
-
-
 def get_user(client, login_name):
     url = 'api/v1/user/%s' % login_name
     r = client.get(url)
-    if r.status_code == 500:
-        # We will get an HTTP 500 error if the user does not exist yet.
-        # Delete this condition once CLOUDWF-8 is resolved.
-        return None
-    if r.status_code == 404:
-        # It's possible this user has already been created, but they have a
-        # newer Kerberos account, and the ET API endpoint does not process
-        # those (see CLOUDWF-8). Hack: screen-scrape the UID and try again
-        # with the number instead.
-        user_id = scrape_user_id(client, login_name)
-        if not user_id:
-            return None
-        return get_user(client, user_id)
     if r.status_code == 400:
         data = r.json()
         errors = data.get('errors', {})
