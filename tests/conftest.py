@@ -54,3 +54,19 @@ def client(monkeypatch, requests_mock):
     # Save our adapter so we can call register_uri() later:
     c.adapter = requests_mock._adapter
     return c
+
+
+@pytest.fixture()
+def user():
+    return {
+        "login_name": "me@redhat.com",
+        "realname": "Me Myself",
+        "organization": "Engineering",
+        "enabled": True,
+        "receives_mail": False,
+        "email_address": "me@redhat.com",
+        "roles": [
+            "devel"
+        ],
+        "id": 123456,
+    }

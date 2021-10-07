@@ -1,4 +1,3 @@
-from copy import deepcopy
 import pytest
 import errata_tool_user
 from errata_tool_user import get_user
@@ -13,20 +12,6 @@ from utils import Mock
 from ansible.module_utils.six import PY2
 
 
-USER = {
-    "login_name": "me@redhat.com",
-    "realname": "Me Myself",
-    "organization": "Engineering",
-    "enabled": True,
-    "receives_mail": False,
-    "email_address": "me@redhat.com",
-    "roles": [
-        "devel"
-    ],
-    "id": 123456,
-}
-
-
 class TestGetUser(object):
 
     def test_not_found(self, client):
@@ -38,23 +23,23 @@ class TestGetUser(object):
         user = get_user(client, 'me@redhat.com')
         assert user is None
 
-    def test_basic(self, client):
+    def test_basic(self, client, user):
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json=USER)
-        user = get_user(client, 'me@redhat.com')
-        assert user == USER
+            json=user)
+        result = get_user(client, 'me@redhat.com')
+        assert result == user
 
 
 class TestCreateUser(object):
 
-    def test_basic(self, client):
+    def test_basic(self, client, user):
         client.adapter.register_uri(
             'POST',
             'https://errata.devel.redhat.com/api/v1/user',
             status_code=201)
-        create_user(client, USER)
+        create_user(client, user)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {
@@ -69,20 +54,19 @@ class TestCreateUser(object):
         }
         assert history[0].json() == expected
 
-    def test_receives_mail_includes_email_address(self, client):
+    def test_receives_mail_includes_email_address(self, client, user):
         """
         When the user wants to set "receives_mail: true", we must always send
         the email_address attribute in the POST call. CLOUDWF-2817
         """
-        params = deepcopy(USER)
-        params['receives_mail'] = True
+        user['receives_mail'] = True
         # Ansible will default "email_address" to "None":
-        params['email_address'] = None
+        user['email_address'] = None
         client.adapter.register_uri(
             'POST',
             'https://errata.devel.redhat.com/api/v1/user',
             status_code=201)
-        create_user(client, params)
+        create_user(client, user)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {
@@ -127,11 +111,11 @@ class TestEnsureUser(object):
         }
 
     @pytest.mark.parametrize('check_mode', (True, False))
-    def test_unchanged(self, client, params, check_mode):
+    def test_unchanged(self, client, params, check_mode, user):
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json=USER)
+            json=user)
         result = ensure_user(client, params, check_mode)
         assert result == {'changed': False, 'stdout_lines': []}
 
@@ -163,8 +147,7 @@ class TestEnsureUser(object):
                     'stdout_lines': ['created me@redhat.com user']}
         assert result == expected
 
-    def test_edit(self, client, params):
-        user = deepcopy(USER)
+    def test_edit(self, client, params, user):
         user['roles'] = ['pm']
         client.adapter.register_uri(
             'GET',
@@ -184,7 +167,7 @@ class TestEnsureUser(object):
         assert result['changed'] is True
         assert set(result['stdout_lines']) == set(expected_stdout_lines)
 
-    def test_no_organization_change(self, client, params):
+    def test_no_organization_change(self, client, params, user):
         """
         If a playbook author omits "organization", we should not change
         the existing value on the server.
@@ -194,14 +177,14 @@ class TestEnsureUser(object):
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json=USER)
+            json=user)
         # On the server, "organization" is "Engineering":
-        assert USER['organization'] == 'Engineering'
+        assert user['organization'] == 'Engineering'
         check_mode = False
         result = ensure_user(client, params, check_mode)
         assert result == {'changed': False, 'stdout_lines': []}
 
-    def test_no_roles_change(self, client, params):
+    def test_no_roles_change(self, client, params, user):
         """
         If a playbook author omits "roles", we should not change the existing
         value on the server.
@@ -211,19 +194,18 @@ class TestEnsureUser(object):
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json=USER)
+            json=user)
         # On the server, "roles" is ['devel']:
-        assert USER['roles'] == ['devel']
+        assert user['roles'] == ['devel']
         check_mode = False
         result = ensure_user(client, params, check_mode)
         assert result == {'changed': False, 'stdout_lines': []}
 
-    def test_receives_mail_includes_email_address(self, client, params):
+    def test_receives_mail_includes_email_address(self, client, params, user):
         """
         When the user wants to keep "receives_mail: true", we must always send
         the email_address attribute in every PUT call. CLOUDWF-2817
         """
-        user = deepcopy(USER)
         user['receives_mail'] = True
         params['receives_mail'] = True
         # Test changing an unrelated attribute (realname) here:
