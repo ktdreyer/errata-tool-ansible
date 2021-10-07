@@ -77,8 +77,7 @@ def get_user(client, login_name):
     data = response.json()
     if response.status_code == 400 and 'errors' in data:
         login_name_errors = data['errors'].get('login_name', [])
-        expected = '%s not found.' % login_name
-        if expected in login_name_errors:
+        if '%s not found.' % login_name in login_name_errors:
             return None
         # Unknown error(s). Raise what we have:
         raise ValueError(data['errors'])
