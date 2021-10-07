@@ -113,10 +113,10 @@ class TestGetUser(object):
     def test_not_found(self, client):
         client.adapter.register_uri(
             'GET',
-            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json={'errors': {'login_name': 'me@redhat.com not found.'}},
+            'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
+            json={'errors': {'login_name': 'noexist@redhat.com not found.'}},
             status_code=400)
-        user = get_user(client, 'me@redhat.com')
+        user = get_user(client, 'noexist@redhat.com')
         assert user is None
 
     def test_basic(self, client, user):
