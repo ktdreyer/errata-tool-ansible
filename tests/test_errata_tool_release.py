@@ -2,6 +2,7 @@ from copy import deepcopy
 import pytest
 import errata_tool_release
 from errata_tool_release import get_release
+from errata_tool_release import api_data
 from errata_tool_release import create_release
 from errata_tool_release import edit_release
 from errata_tool_release import ensure_release
@@ -117,6 +118,21 @@ class TestGetRelease(object):
             json=json)
         result = get_release(client, 'RHEL-8.4.0.Z.MAIN+EUS')
         assert result['name'] == 'RHEL-8.4.0.Z.MAIN+EUS'
+
+
+class TestReleaseApiData(object):
+    def test_simple(self, client):
+        result = api_data(client, {'name': 'my-cool-release'})
+        assert result == {'release': {'name': 'my-cool-release'}}
+
+    def test_program_manager(self, client):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/user/coolmanager@redhat.com',
+            json={'id': 123456})
+        params = {'program_manager': 'coolmanager@redhat.com'}
+        result = api_data(client, params)
+        assert result == {'release': {'program_manager_id': 123456}}
 
 
 class TestCreateRelease(object):
