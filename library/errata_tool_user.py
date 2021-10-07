@@ -72,17 +72,6 @@ requirements:
 '''
 
 
-def get_user(client, login_name):
-    response = client.get('api/v1/user/%s' % login_name)
-    data = response.json()
-    if response.status_code == 400 and 'errors' in data:
-        login_name_errors = data['errors'].get('login_name', [])
-        if '%s not found.' % login_name in login_name_errors:
-            return None
-    response.raise_for_status()
-    return data
-
-
 def create_user(client, params):
     endpoint = 'api/v1/user'
 
@@ -126,7 +115,7 @@ def ensure_user(client, params, check_mode):
     result = {'changed': False, 'stdout_lines': []}
     params = {param: val for param, val in params.items() if val is not None}
     login_name = params['login_name']
-    user = get_user(client, login_name)
+    user = common_errata_tool.get_user(client, login_name)
     if not user:
         result['changed'] = True
         result['stdout_lines'] = ['created %s user' % login_name]
