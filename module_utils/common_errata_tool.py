@@ -274,6 +274,17 @@ class UserNotFoundError(Exception):
 
 
 def get_user(client, login_name):
+    """
+    Look up data for a user by login_name
+
+    Needed for users, products (for role assertions) and releases (CLOUDWF-298)
+
+    :param str login_name: for example kdreyer@redhat.com
+    :returns: a dict of information about this user, or None if the user does
+              not exist in the ET database.
+    :raises: requests.exceptions.HTTPError if the ET replies with an
+             unexpected HTTP response.
+    """
     response = client.get('api/v1/user/%s' % login_name)
     data = response.json()
     if response.status_code == 400 and 'errors' in data:
