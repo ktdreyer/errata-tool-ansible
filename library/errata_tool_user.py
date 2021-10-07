@@ -73,9 +73,9 @@ requirements:
 
 
 def get_user(client, login_name):
-    r = client.get('api/v1/user/%s' % login_name)
-    if r.status_code == 400:
-        data = r.json()
+    response = client.get('api/v1/user/%s' % login_name)
+    if response.status_code == 400:
+        data = response.json()
         errors = data.get('errors', {})
         if errors:
             login_name_errors = errors.get('login_name', [])
@@ -84,8 +84,8 @@ def get_user(client, login_name):
                 return None
             # Unknown error(s). Raise what we have:
             raise ValueError(errors)
-    r.raise_for_status()
-    user = r.json()
+    response.raise_for_status()
+    user = response.json()
     return user
 
 
