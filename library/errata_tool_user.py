@@ -79,8 +79,6 @@ def get_user(client, login_name):
         login_name_errors = data['errors'].get('login_name', [])
         if '%s not found.' % login_name in login_name_errors:
             return None
-        # Unknown error(s). Raise what we have:
-        raise ValueError(data['errors'])
     response.raise_for_status()
     return data
 
