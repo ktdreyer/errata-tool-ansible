@@ -893,16 +893,16 @@ class TestMain(object):
             'variants': ['8Base-RHCEPH-4.0-Tools', '8Base-RHCEPH-4.1-Tools'],
         }
         set_module_args(module_args)
-        with pytest.raises(AnsibleExitJson) as exit:
+        with pytest.raises(AnsibleExitJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['changed'] is True
 
     def test_simple_container(self, container_module_args):
         set_module_args(container_module_args)
-        with pytest.raises(AnsibleExitJson) as exit:
+        with pytest.raises(AnsibleExitJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['changed'] is True
 
     @pytest.mark.parametrize('content_type,expected', [
@@ -925,16 +925,16 @@ class TestMain(object):
         container_module_args['content_type'] = 'Docker'
         container_module_args['arch'] = 'x86_64'
         set_module_args(container_module_args)
-        with pytest.raises(AnsibleFailJson) as exit:
+        with pytest.raises(AnsibleFailJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['msg'] == 'arch must be "multi" for Docker repos'
 
     def test_docker_tps_fail(self, container_module_args):
         container_module_args['content_type'] = 'Docker'
         container_module_args['use_for_tps'] = True
         set_module_args(container_module_args)
-        with pytest.raises(AnsibleFailJson) as exit:
+        with pytest.raises(AnsibleFailJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['msg'] == 'do not set "use_for_tps" for Docker repos'

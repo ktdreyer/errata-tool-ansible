@@ -462,9 +462,9 @@ class TestMain(object):
             'product_versions': [],
         }
         set_module_args(module_args)
-        with pytest.raises(AnsibleExitJson) as exit:
+        with pytest.raises(AnsibleExitJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['changed'] is True
 
     def test_missing_program_manager(self, monkeypatch):
