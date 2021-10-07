@@ -74,8 +74,8 @@ requirements:
 
 def get_user(client, login_name):
     response = client.get('api/v1/user/%s' % login_name)
+    data = response.json()
     if response.status_code == 400:
-        data = response.json()
         errors = data.get('errors', {})
         if errors:
             login_name_errors = errors.get('login_name', [])
@@ -85,8 +85,7 @@ def get_user(client, login_name):
             # Unknown error(s). Raise what we have:
             raise ValueError(errors)
     response.raise_for_status()
-    user = response.json()
-    return user
+    return data
 
 
 def create_user(client, params):
