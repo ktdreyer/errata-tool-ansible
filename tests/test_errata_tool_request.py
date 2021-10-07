@@ -32,9 +32,9 @@ class TestMain(object):
             url,
             json={'login_name': 'cooldeveloper@redhat.com'})
         set_module_args({'path': '/api/v1/user/cooldeveloper'})
-        with pytest.raises(AnsibleExitJson) as exit:
+        with pytest.raises(AnsibleExitJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['changed'] is True
         assert result['status'] == 200
         assert result['url'] == url
@@ -47,9 +47,9 @@ class TestMain(object):
             url,
             text='<html>new products form</html>')
         set_module_args({'path': '/products/new'})
-        with pytest.raises(AnsibleExitJson) as exit:
+        with pytest.raises(AnsibleExitJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['changed'] is True
         assert result['status'] == 200
         assert result['url'] == url
@@ -65,7 +65,7 @@ class TestMain(object):
             'path': '/products/new',
             'return_content': True,
         })
-        with pytest.raises(AnsibleExitJson) as exit:
+        with pytest.raises(AnsibleExitJson) as ex:
             main()
-        result = exit.value.args[0]
+        result = ex.value.args[0]
         assert result['content'] == '<html>new products form</html>'
