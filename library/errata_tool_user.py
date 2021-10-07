@@ -75,15 +75,13 @@ requirements:
 def get_user(client, login_name):
     response = client.get('api/v1/user/%s' % login_name)
     data = response.json()
-    if response.status_code == 400:
-        errors = data.get('errors', {})
-        if errors:
-            login_name_errors = errors.get('login_name', [])
-            expected = '%s not found.' % login_name
-            if expected in login_name_errors:
-                return None
-            # Unknown error(s). Raise what we have:
-            raise ValueError(errors)
+    if response.status_code == 400 and 'errors' in data:
+        login_name_errors = data['errors'].get('login_name', [])
+        expected = '%s not found.' % login_name
+        if expected in login_name_errors:
+            return None
+        # Unknown error(s). Raise what we have:
+        raise ValueError(data['errors'])
     response.raise_for_status()
     return data
 
