@@ -273,6 +273,17 @@ class UserNotFoundError(Exception):
     pass
 
 
+def get_user(client, login_name):
+    response = client.get('api/v1/user/%s' % login_name)
+    data = response.json()
+    if response.status_code == 400 and 'errors' in data:
+        login_name_errors = data['errors'].get('login_name', [])
+        if '%s not found.' % login_name in login_name_errors:
+            return None
+    response.raise_for_status()
+    return data
+
+
 def user_id(client, login_name):
     """
     Convert a user login_name to an id

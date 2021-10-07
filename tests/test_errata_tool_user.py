@@ -1,6 +1,5 @@
 import pytest
 import errata_tool_user
-from errata_tool_user import get_user
 from errata_tool_user import create_user
 from errata_tool_user import edit_user
 from errata_tool_user import ensure_user
@@ -10,26 +9,6 @@ from utils import set_module_args
 from utils import AnsibleExitJson
 from utils import Mock
 from ansible.module_utils.six import PY2
-
-
-class TestGetUser(object):
-
-    def test_not_found(self, client):
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json={'errors': {'login_name': 'me@redhat.com not found.'}},
-            status_code=400)
-        user = get_user(client, 'me@redhat.com')
-        assert user is None
-
-    def test_basic(self, client, user):
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
-            json=user)
-        result = get_user(client, 'me@redhat.com')
-        assert result == user
 
 
 class TestCreateUser(object):

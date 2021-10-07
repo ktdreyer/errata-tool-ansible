@@ -5,6 +5,7 @@ from ansible.module_utils.common_errata_tool import WorkflowRulesScraper
 from ansible.module_utils.common_errata_tool import DefaultSolutions
 from ansible.module_utils.common_errata_tool import diff_settings
 from ansible.module_utils.common_errata_tool import describe_changes
+from ansible.module_utils.common_errata_tool import get_user
 from ansible.module_utils.common_errata_tool import user_id
 from ansible.module_utils.common_errata_tool import UserNotFoundError
 from utils import load_html
@@ -105,6 +106,26 @@ class TestDescribeChanges(object):
         differences = [('active', False, True)]
         result = describe_changes(differences)
         assert result == ['changing active from False to True']
+
+
+class TestGetUser(object):
+
+    def test_not_found(self, client):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json={'errors': {'login_name': 'me@redhat.com not found.'}},
+            status_code=400)
+        user = get_user(client, 'me@redhat.com')
+        assert user is None
+
+    def test_basic(self, client, user):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/me@redhat.com',
+            json=user)
+        result = get_user(client, 'me@redhat.com')
+        assert result == user
 
 
 class TestUserID(object):
