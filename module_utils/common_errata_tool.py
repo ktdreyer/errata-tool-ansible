@@ -316,14 +316,7 @@ def user_id(client, login_name):
     :raises: requests.exceptions.HTTPError if the ET replies with an
              unexpected HTTP response.
     """
-    response = client.get('api/v1/user/%s' % login_name)
-    data = response.json()
-    if response.status_code == 400 and 'errors' in data:
-        login_name_errors = data['errors'].get('login_name', [])
-        if '%s not found.' % login_name in login_name_errors:
-            raise UserNotFoundError(login_name)
-    response.raise_for_status()
-    return data['id']
+    return get_user(client, login_name, fatal=True)['id']
 
 
 class Client(object):
