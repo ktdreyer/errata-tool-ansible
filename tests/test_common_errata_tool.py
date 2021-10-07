@@ -119,6 +119,16 @@ class TestGetUser(object):
         user = get_user(client, 'noexist@redhat.com')
         assert user is None
 
+    def test_not_found_fatal(self, client):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
+            json={'errors': {'login_name': 'noexist@redhat.com not found.'}},
+            status_code=400)
+        with pytest.raises(UserNotFoundError) as e:
+            get_user(client, 'noexist@redhat.com', fatal=True)
+        assert str(e.value) == 'noexist@redhat.com'
+
     def test_basic(self, client, user):
         client.adapter.register_uri(
             'GET',

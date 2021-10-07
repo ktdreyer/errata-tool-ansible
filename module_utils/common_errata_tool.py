@@ -273,15 +273,22 @@ class UserNotFoundError(Exception):
     pass
 
 
-def get_user(client, login_name):
+def get_user(client, login_name, fatal=False):
     """
     Look up data for a user by login_name
 
     Needed for users, products (for role assertions) and releases (CLOUDWF-298)
 
     :param str login_name: for example kdreyer@redhat.com
+    :param bool fatal: if True, raise UserNotFoundError instead of returning
+                        None. Defaults to False.
+                        Exceptions are exceptional. If you regularly expect
+                        users to be missing, then set this to False. If it's
+                        surprising and fatal for users to be missing, then set
+                        this to True.
     :returns: a dict of information about this user, or None if the user does
               not exist in the ET database.
+    :raises: UserNotFoundError if the user does not exist and "fatal" is True.
     :raises: requests.exceptions.HTTPError if the ET replies with an
              unexpected HTTP response.
     """
@@ -290,6 +297,8 @@ def get_user(client, login_name):
     if response.status_code == 400 and 'errors' in data:
         login_name_errors = data['errors'].get('login_name', [])
         if '%s not found.' % login_name in login_name_errors:
+            if fatal:
+                raise UserNotFoundError(login_name)
             return None
     response.raise_for_status()
     return data
