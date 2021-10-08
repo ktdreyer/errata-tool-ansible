@@ -265,8 +265,8 @@ class TestHandleFormErrors(object):
         response = client.post('products')
         with pytest.raises(RuntimeError) as e:
             handle_form_errors(response)
-        assert e.value.args[0] == ["Name can't be blank",
-                                   "Short name can't be blank"]
+        assert e.value.args == ("Name can't be blank",
+                                "Short name can't be blank")
 
 
 class TestPrepareDiffData(object):
