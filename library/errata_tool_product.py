@@ -110,9 +110,9 @@ options:
      default: true
    exd_org_group:
      description:
-       - The name of the "EXD org group" the product belongs to. The product's
-         EXD org group affects where release engineering tickets are filed in
-         Jira.
+       - The name of the "EXD org group" that is responsible for this product.
+         The Errata Tool uses this field to file Jira tickets for release
+         engineering (eg. for missing RPM product listings).
        - See https://errata.devel.redhat.com/api/v1/exd_org_groups for a
          list of EXD org groups.
      choices: ['RHEL', 'Cloud', 'Middleware & Management', 'Pipeline Value']
