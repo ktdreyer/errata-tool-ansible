@@ -1,5 +1,7 @@
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
+from ansible.module_utils.common_errata_tool import UserNotFoundError
+from ansible.module_utils.six import raise_from
 import re
 from lxml import html
 
@@ -152,6 +154,10 @@ class InvalidInputError(Exception):
         self.value = value
 
 
+class DocsReviewerNotFoundError(UserNotFoundError):
+    pass
+
+
 def validate_params(module, params):
     """
     Sanity-check user input for some parameters.
@@ -272,8 +278,11 @@ def html_form_data(client, params):
     data['product[is_internal]'] = int(params['internal'])
     docs_reviewer = params.get('default_docs_reviewer')
     if docs_reviewer is not None:
-        docs_reviewer_id = common_errata_tool.user_id(client, docs_reviewer)
-        data['product[default_docs_reviewer_id]'] = docs_reviewer_id
+        try:
+            docs_user_id = common_errata_tool.user_id(client, docs_reviewer)
+        except UserNotFoundError as e:
+            raise_from(DocsReviewerNotFoundError(str(e)), e)
+        data['product[default_docs_reviewer_id]'] = docs_user_id
     # push targets need scraper
     push_targets = params['push_targets']
     push_target_scraper = common_errata_tool.PushTargetScraper(client)
@@ -421,7 +430,11 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    result = ensure_product(client, params, check_mode)
+    try:
+        result = ensure_product(client, params, check_mode)
+    except DocsReviewerNotFoundError as e:
+        msg = 'default_docs_reviewer %s account not found' % e
+        module.fail_json(msg=msg, changed=False, rc=1)
 
     module.exit_json(**result)
 
