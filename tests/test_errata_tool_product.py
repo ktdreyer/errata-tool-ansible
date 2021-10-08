@@ -4,6 +4,7 @@ from errata_tool_product import InvalidInputError
 from errata_tool_product import validate_params
 from errata_tool_product import get_product
 from errata_tool_product import scrape_error_message
+from errata_tool_product import scrape_error_explanation
 from errata_tool_product import prepare_diff_data
 from utils import Mock
 from utils import load_html
@@ -224,6 +225,19 @@ class TestScrapeErrorMessage(object):
         with pytest.raises(ValueError) as e:
             scrape_error_message(response)
         assert str(e.value) == 'Something went wrong!'
+
+
+class TestScrapeErrorExplanation(object):
+
+    def test_found_explanation(self, client):
+        """ Verify that we can scrape an error explanation. """
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            text=load_html('products_create_form_errors.html'))
+        response = client.post('products')
+        result = scrape_error_explanation(response)
+        assert result == ["Name can't be blank", "Short name can't be blank"]
 
 
 class TestPrepareDiffData(object):
