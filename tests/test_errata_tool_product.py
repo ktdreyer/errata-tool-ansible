@@ -5,6 +5,7 @@ from errata_tool_product import validate_params
 from errata_tool_product import get_product
 from errata_tool_product import scrape_error_message
 from errata_tool_product import scrape_error_explanation
+from errata_tool_product import handle_form_errors
 from errata_tool_product import prepare_diff_data
 from utils import Mock
 from utils import load_html
@@ -238,6 +239,34 @@ class TestScrapeErrorExplanation(object):
         response = client.post('products')
         result = scrape_error_explanation(response)
         assert result == ["Name can't be blank", "Short name can't be blank"]
+
+
+class TestHandleFormErrors(object):
+
+    def test_500_response(self, client):
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=500,
+            text=load_html('products_create_500_error.html'))
+        response = client.post('products')
+        with pytest.raises(RuntimeError) as e:
+            handle_form_errors(response)
+        result = str(e.value)
+        assert result == ('ERROR: Mysql2::Error: Cannot add or update a child '
+                          'row: a foreign key constraint fails (... longer '
+                          'error message here ...)')
+
+    def test_200_response(self, client):
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            text=load_html('products_create_form_errors.html'))
+        response = client.post('products')
+        with pytest.raises(RuntimeError) as e:
+            handle_form_errors(response)
+        assert e.value.args[0] == ["Name can't be blank",
+                                   "Short name can't be blank"]
 
 
 class TestPrepareDiffData(object):
