@@ -257,6 +257,17 @@ On RHEL 8+ and Fedora::
 
     yum -y install python3-requests-gssapi python3-lxml
 
+Python versions
+---------------
+
+The errata-tool-ansible modules support RHEL 7 (Python 2.7), RHEL 8 (Python
+3.6), and Fedora (latest Python 3). If you are writing a patch, you can test
+these Python versions by running ``tox`` locally.
+
+If you're using RHEL 7, please upgrade to RHEL 8, because it provides a much
+better user experience. For example, ``python-requests-2.6.0-10.el7`` does not
+`show URLs <https://github.com/psf/requests/pull/2648>`_ on failures, so it's
+harder to debug when things break.
 
 Errata Tool environment
 -----------------------
