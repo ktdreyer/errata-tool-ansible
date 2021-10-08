@@ -108,6 +108,11 @@ requirements:
   - "requests-gssapi"
 '''
 
+# The REST API requires that clients know the product name before querying the
+# product version, so we have pass the "product" variable through to the
+# get/create/edit methods. SPMM-6319 tracks improving that so that we could
+# get/create/edit without the product name.
+
 
 def get_product_version(client, product, name, check_mode):
     # We cannot query directly by name yet if the name has a "." character.
