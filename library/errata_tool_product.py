@@ -249,13 +249,13 @@ def scrape_error_message(response):
     return message
 
 
-def scrape_error_explanation(response):
+def scrape_error_explanations(response):
     """
     Return the text inside "<div class="errorExplanation"> ... </div>" in this
     HTML response.
 
     :param response: Requests.response object
-    :returns: message text (str)
+    :returns: list of messages (str)
     """
     content = response.text
     doc = html.document_fromstring(content)
@@ -315,7 +315,7 @@ def handle_form_errors(response):
         message = scrape_error_message(response)
         raise RuntimeError(message)
     if 'errorExplanation' in response.text:
-        errors = scrape_error_explanation(response)
+        errors = scrape_error_explanations(response)
         raise RuntimeError(errors)
     response.raise_for_status()
 
