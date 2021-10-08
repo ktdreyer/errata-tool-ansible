@@ -230,21 +230,22 @@ def get_product(client, short_name):
     return product
 
 
-def scrape_pre(response):
+def scrape_error_message(response):
     """
-    Return the text inside "<pre> ... </pre>" in this HTML response.
+    Return the text inside "<div id="error-message">...</div>" in this HTML
+    response.
 
     :param response: Requests.response object
     :returns: message text (str)
     """
     content = response.text
     doc = html.document_fromstring(content)
-    pres = doc.xpath('//pre')
-    if len(pres) != 1:
-        print('expected 1 <pre>, found %s' % len(pres))
+    messages = doc.xpath('//div[@id="error-message"]')
+    if len(messages) != 1:
+        print('expected 1 <div id="error-message">, found %d' % len(messages))
         raise ValueError(response.text)
-    pre = pres[0]
-    message = pre.text_content().strip()
+    message = messages[0]
+    message = message.text_content().strip()
     return message
 
 
@@ -309,7 +310,9 @@ def handle_form_errors(response):
     # If there are incorrect or missing fields, we will receive a HTTP 200
     # with a list of the wrong fields, or just an HTTP 500 error.
     if response.status_code == 500:
-        message = scrape_pre(response)
+        # One way to trigger this HTTP 500 error is to send a bogus
+        # default_docs_reviewer_id that does not exist (eg. 1000000000)
+        message = scrape_error_message(response)
         raise RuntimeError(message)
     if 'errorExplanation' in response.text:
         errors = scrape_error_explanation(response)

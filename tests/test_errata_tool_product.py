@@ -3,8 +3,10 @@ from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import InvalidInputError
 from errata_tool_product import validate_params
 from errata_tool_product import get_product
+from errata_tool_product import scrape_error_message
 from errata_tool_product import prepare_diff_data
 from utils import Mock
+from utils import load_html
 
 
 PRODUCT = {
@@ -187,6 +189,41 @@ class TestGetProduct(object):
             'exd_org_group': 'Cloud',
         }
         assert product == expected
+
+
+class TestScrapeErrorMessage(object):
+
+    def test_found_message(self, client):
+        """ Verify that we can scrape an error message. """
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=500,
+            text=load_html('products_create_500_error.html'))
+        response = client.post('products')
+        result = scrape_error_message(response)
+        assert result == ('ERROR: Mysql2::Error: Cannot add or update a child '
+                          'row: a foreign key constraint fails (... longer '
+                          'error message here ...)')
+
+    def test_message_not_found(self, client):
+        """
+        If we do not find the expected <div>, raise ValueError with the
+        entire HTTP response body text.
+
+        Note: I have not been able to hit this condition on a live server,
+        because it always prints the <div> for HTTP 500 errors, but this unit
+        test covers it anyway.
+        """
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=500,
+            text='Something went wrong!')
+        response = client.post('products')
+        with pytest.raises(ValueError) as e:
+            scrape_error_message(response)
+        assert str(e.value) == 'Something went wrong!'
 
 
 class TestPrepareDiffData(object):
