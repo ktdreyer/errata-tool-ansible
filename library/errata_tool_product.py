@@ -316,7 +316,7 @@ def handle_form_errors(response):
         raise RuntimeError(message)
     if 'errorExplanation' in response.text:
         errors = scrape_error_explanations(response)
-        raise RuntimeError(errors)
+        raise RuntimeError(*errors)
     response.raise_for_status()
 
 
