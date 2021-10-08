@@ -253,7 +253,7 @@ On RHEL 7::
 
     yum -y install python-requests-gssapi python-lxml
 
-On RHEL 8 and Fedora::
+On RHEL 8+ and Fedora::
 
     yum -y install python3-requests-gssapi python3-lxml
 
