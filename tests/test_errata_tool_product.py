@@ -149,32 +149,29 @@ class TestValidateParams(object):
 
     @pytest.mark.parametrize('bugzilla_state', BUGZILLA_STATES)
     def test_valid_params(self, bugzilla_state):
-        module = Mock()
         params = {
             'valid_bug_states': [bugzilla_state],
             'default_solution': 'enterprise',
         }
-        validate_params(module, params)
+        validate_params(params)
 
     def test_invalid_bugzilla_states(self):
-        module = Mock()
         params = {
             'valid_bug_states': ['NEW', 'BOGUS_STATE_LOL'],
             'default_solution': 'enterprise',
         }
         with pytest.raises(InvalidInputError) as e:
-            validate_params(module, params)
+            validate_params(params)
         assert e.value.param == 'valid_bug_states'
         assert e.value.value == 'BOGUS_STATE_LOL'
 
     def test_invalid_solution(self):
-        module = Mock()
         params = {
             'valid_bug_states': ['NEW'],
             'default_solution': 'enterprize lol',
         }
         with pytest.raises(InvalidInputError) as e:
-            validate_params(module, params)
+            validate_params(params)
         assert e.value.param == 'default_solution'
         assert e.value.value == 'ENTERPRIZE LOL'
 

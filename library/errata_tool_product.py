@@ -160,7 +160,7 @@ class DocsReviewerNotFoundError(UserNotFoundError):
     pass
 
 
-def validate_params(module, params):
+def validate_params(params):
     """
     Sanity-check user input for some parameters.
 
@@ -429,7 +429,7 @@ def run_module():
     params = module.params
 
     try:
-        validate_params(module, params)
+        validate_params(params)
     except InvalidInputError as e:
         msg = 'invalid %s value "%s"' % (e.param, e.value)
         module.fail_json(msg=msg, changed=False, rc=1)
