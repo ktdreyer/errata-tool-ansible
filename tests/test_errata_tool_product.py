@@ -1,12 +1,15 @@
 import pytest
 from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import InvalidInputError
+from errata_tool_product import DocsReviewerNotFoundError
 from errata_tool_product import validate_params
 from errata_tool_product import get_product
 from errata_tool_product import scrape_error_message
 from errata_tool_product import scrape_error_explanations
 from errata_tool_product import handle_form_errors
+from errata_tool_product import create_product
 from errata_tool_product import prepare_diff_data
+from ansible.module_utils.six.moves.urllib.parse import parse_qs
 from utils import Mock
 from utils import load_html
 
@@ -267,6 +270,151 @@ class TestHandleFormErrors(object):
             handle_form_errors(response)
         assert e.value.args == ("Name can't be blank",
                                 "Short name can't be blank")
+
+
+class TestCreateProduct(object):
+
+    @pytest.fixture
+    def params(self):
+        return {
+            'short_name': 'RHCEPH',
+            'name': 'Red Hat Ceph Storage',
+            'description': 'Red Hat Ceph Storage',
+            'bugzilla_product_name': '',
+            'valid_bug_states': ['MODIFIED', 'VERIFIED'],
+            'active': True,
+            'ftp_path': '',
+            'ftp_subdir': None,
+            'internal': False,
+            'default_docs_reviewer': None,
+            'push_targets': ['cdn_docker', 'cdn'],
+            'default_solution': 'enterprise',
+            'state_machine_rule_set': 'Default',
+            'move_bugs_on_qe': False,
+            'exd_org_group': None,
+        }
+
+    @pytest.fixture(autouse=True)
+    def fake_responses(self, client):
+        """ Register all the endpoints that we will load """
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/products/new',
+            text=load_html('products_new.html'))
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/workflow_rules',
+            text=load_html('workflow_rules.html'))
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com'
+            '/api/v1/user/superwriter@redhat.com',
+            json={'id': 1001})
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
+            json={'errors': {'login_name': 'noexist@redhat.com not found.'}},
+            status_code=400)
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/products/123'})
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/products/123')
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products/123',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/products/123'})
+
+    def test_create(self, client, params):
+        create_product(client, params)
+        history = client.adapter.request_history
+        # Requests 0 and 1 are GET requests for the scrapers:
+        assert history[0].method == 'GET'
+        assert history[1].method == 'GET'
+        # This request creates the product:
+        assert history[2].method == 'POST'
+        assert history[2].url == 'https://errata.devel.redhat.com/products'
+        body = parse_qs(history[2].text)
+        expected = {
+            'product[default_solution_id]': ['2'],
+            'product[description]': ['Red Hat Ceph Storage'],
+            'product[is_internal]': ['0'],
+            'product[isactive]': ['1'],
+            'product[move_bugs_on_qe]': ['0'],
+            'product[name]': ['Red Hat Ceph Storage'],
+            'product[short_name]': ['RHCEPH'],
+            'product[state_machine_rule_set_id]': ['1'],
+            'product[valid_bug_states][]': ['MODIFIED', 'VERIFIED'],
+        }
+        assert body == expected
+        # GET requests for the scrapers again:
+        assert history[4].method == 'GET'
+        assert history[5].method == 'GET'
+        # This request edits push_targets on the new product:
+        assert history[6].method == 'POST'
+        assert history[6].url == 'https://errata.devel.redhat.com/products/123'
+        body = parse_qs(history[6].text)
+        expected['_method'] = ['patch']
+        expected['product[push_targets][]'] = ['8', '4']
+        assert body == expected
+
+    def test_with_docs_reviewer(self, client, params):
+        params['default_docs_reviewer'] = 'superwriter@redhat.com'
+        create_product(client, params)
+        history = client.adapter.request_history
+        # Requests 0 and 1 are GET requests for the scrapers,
+        # request 2 is for the docs_reviewer user ID.
+        # This request creates the product:
+        assert history[3].method == 'POST'
+        assert history[3].url == 'https://errata.devel.redhat.com/products'
+        body = parse_qs(history[3].text)
+        assert body['product[default_docs_reviewer_id]'] == ['1001']
+
+    def test_docs_reviewer_missing(self, client, params):
+        params['default_docs_reviewer'] = 'noexist@redhat.com'
+        with pytest.raises(DocsReviewerNotFoundError) as e:
+            create_product(client, params)
+        assert str(e.value) == 'noexist@redhat.com'
+
+    def test_with_exd_org_group(self, client, params):
+        params['exd_org_group'] = 'Cloud'
+        create_product(client, params)
+        history = client.adapter.request_history
+        # Requests 0 and 1 are GET requests for the scrapers.
+        # This request creates the product:
+        assert history[2].method == 'POST'
+        assert history[2].url == 'https://errata.devel.redhat.com/products'
+        body = parse_qs(history[2].text)
+        assert body['product[exd_org_group_id]'] == ['2']
+
+    def test_broken_redirect(self, client, params):
+        """
+        Test the purely hypothetical case of the Errata Tool developers
+        inadvertently alterting the web form so that it redirects in a
+        different way than we expected with create_product().
+        """
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/some/other/redirect'})
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/some/other/redirect')
+        with pytest.raises(RuntimeError) as e:
+            create_product(client, params)
+        # Assert that we have a sane error message so we will know how to
+        # update the "find new product ID" regex code going forward:
+        expected = ('could not find new product ID from '
+                    'https://errata.devel.redhat.com/some/other/redirect')
+        assert str(e.value) == expected
 
 
 class TestPrepareDiffData(object):
