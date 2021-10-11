@@ -96,6 +96,19 @@ PRODUCT = {
 }
 
 
+@pytest.fixture(autouse=True)
+def fake_scraper_pages(client):
+    """ Several tests use these fake responses """
+    client.adapter.register_uri(
+        'GET',
+        'https://errata.devel.redhat.com/products/new',
+        text=load_html('products_new.html'))
+    client.adapter.register_uri(
+        'GET',
+        'https://errata.devel.redhat.com/workflow_rules',
+        text=load_html('workflow_rules.html'))
+
+
 def test_bugzilla_states():
     expected = set([
         'ASSIGNED',
@@ -297,14 +310,6 @@ class TestCreateProduct(object):
     @pytest.fixture(autouse=True)
     def fake_responses(self, client):
         """ Register all the endpoints that we will load """
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/products/new',
-            text=load_html('products_new.html'))
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/workflow_rules',
-            text=load_html('workflow_rules.html'))
         client.adapter.register_uri(
             'GET',
             'https://errata.devel.redhat.com'
