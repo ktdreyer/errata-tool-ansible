@@ -301,6 +301,42 @@ Here's an example playbook that calls a custom role with those variables set:
 
 There is no support for HTTP Basic auth at this time.
 
+Strict user checking
+--------------------
+
+For modules operating with Errata user accounts, you can optionally
+use ``ANSIBLE_STRICT_USER_CHECK_MODE`` environment variable to control
+whether the module should check that the user account exists or not
+during a check mode.
+
+If ``ANSIBLE_STRICT_USER_CHECK_MODE`` is ``False`` or unset (default),
+modules will not validate user accounts during check mode.
+
+If ``ANSIBLE_STRICT_USER_CHECK_MODE`` is ``True`` and check mode is on,
+the modules will check the user account and fail if they don't exist
+or don't have required roles.
+
+Example of using strict user checking::
+
+  ANSIBLE_STRICT_USER_CHECK_MODE=1 ansible-playbook my-et-playbook.yml -v --check
+
+It's also possible to set the environment variable in the playbook itself::
+
+.. code-block:: yaml
+
+    - name: test strict user checking
+      environment:
+        ANSIBLE_STRICT_USER_CHECK_MODE: true
+
+Trying to set ``default_docs_reviewer`` in errata_tool_product, for example,
+for a non-existing account would produce the following error::
+
+  default_docs_reviewer noexist account not found
+
+And trying to set ``default_docs_reviewer`` without the ``docs`` role::
+
+  User nodocsrole does not have 'docs' role in ET
+
 File paths
 ----------
 
