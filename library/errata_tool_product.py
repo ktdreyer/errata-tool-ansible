@@ -338,7 +338,8 @@ def create_product(client, params):
         # Get the new product ID for the product we just created.
         m = re.search(r'\d+$', response.url)
         if not m:
-            raise RuntimeError('could not determine new product ID')
+            err = 'could not find new product ID from %s' % response.url
+            raise RuntimeError(err)
         product_id = int(m.group(0))
         edit_product(client, product_id, params)
 
