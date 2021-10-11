@@ -8,7 +8,9 @@ from errata_tool_product import scrape_error_message
 from errata_tool_product import scrape_error_explanations
 from errata_tool_product import handle_form_errors
 from errata_tool_product import create_product
+from errata_tool_product import ensure_product
 from errata_tool_product import prepare_diff_data
+from ansible.module_utils.six import PY2
 from ansible.module_utils.six.moves.urllib.parse import parse_qs
 from utils import Mock
 from utils import load_html
@@ -107,6 +109,16 @@ def fake_scraper_pages(client):
         'GET',
         'https://errata.devel.redhat.com/workflow_rules',
         text=load_html('workflow_rules.html'))
+
+
+def bugzilla_product_name_hack():
+    # XXX BUG: 'bugzilla_product_name' default value is an empty string,
+    # rather than "None". We need to alter the default bugzilla_product_name
+    # value to None, but to do that, more analysis is required. See
+    # https://github.com/ktdreyer/errata-tool-ansible/issues/129
+    # The unit tests that call this method work around this behavior by
+    # setting bugzilla_product_name directly to "None".
+    return None
 
 
 def test_bugzilla_states():
@@ -468,3 +480,128 @@ class TestPrepareDiffData(object):
         }
 
         assert prepare_diff_data(before_data, after_data) == expected_output
+
+
+class TestEnsureProduct(object):
+
+    @pytest.fixture
+    def client(self, client):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/products/RHCEPH',
+            json={'data': PRODUCT})
+        return client
+
+    @pytest.fixture
+    def params(self):
+        return {
+            'short_name': 'RHCEPH',
+            'name': 'Red Hat Ceph Storage',
+            'description': 'Red Hat Ceph Storage',
+            'bugzilla_product_name': '',
+            'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED',
+                                 'NEW', 'ON_DEV', 'POST'],
+            'active': True,
+            'ftp_path': '',
+            'ftp_subdir': None,
+            'internal': False,
+            'default_docs_reviewer': None,
+            'push_targets': ['ftp', 'cdn_stage', 'cdn_docker_stage',
+                             'cdn_docker', 'cdn'],
+            'default_solution': 'enterprise',
+            'state_machine_rule_set': 'Default',
+            'move_bugs_on_qe': False,
+            'exd_org_group': None,
+        }
+
+    @pytest.mark.parametrize('check_mode', (True, False))
+    def test_unchanged(self, client, params, check_mode):
+        params['bugzilla_product_name'] = bugzilla_product_name_hack()
+        result = ensure_product(client, params, check_mode)
+        assert result['changed'] is False
+
+    def test_create(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/api/v1/products/RHCEPH',
+            status_code=404)
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/products/104'})
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/products/104')
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products/104',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/products/104'})
+        result = ensure_product(client, params, check_mode=False)
+        assert result['changed'] is True
+        assert result['stdout_lines'] == ['created RHCEPH product']
+
+    def test_edit_check_mode(self, client, params):
+        params['bugzilla_product_name'] = bugzilla_product_name_hack()
+        params['description'] = 'Red Hat Ceph Storage Is Cool'
+        result = ensure_product(client, params, check_mode=True)
+        assert result['changed'] is True
+        expected = 'changing description from Red Hat Ceph Storage ' \
+                   'to Red Hat Ceph Storage Is Cool'
+        assert result['stdout_lines'] == [expected]
+
+    def test_edit_live(self, client, params):
+        params['description'] = 'Red Hat Ceph Storage Is Cool'
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/products/104'})
+        client.adapter.register_uri(
+            'POST',
+            'https://errata.devel.redhat.com/products/104',
+            status_code=302,
+            headers={'Location':
+                     'https://errata.devel.redhat.com/products/104'})
+        client.adapter.register_uri(
+            'GET',
+            'https://errata.devel.redhat.com/products/104')
+        result = ensure_product(client, params, check_mode=False)
+        assert result['changed'] is True
+        expected = 'changing description from Red Hat Ceph Storage ' \
+                   'to Red Hat Ceph Storage Is Cool'
+        if PY2:
+            expected = u'changing description from Red Hat Ceph Storage ' \
+                      'to Red Hat Ceph Storage Is Cool'
+        # XXX BUG, issue 129
+        bz_name_hack = 'changing bugzilla_product_name from None to '
+        assert result['stdout_lines'] == [expected, bz_name_hack]
+        history = client.adapter.request_history
+        assert history[-2].method == 'POST'
+        assert history[-2].url == \
+            'https://errata.devel.redhat.com/products/104'
+        body = parse_qs(history[-2].text)
+        expected = {
+            '_method': ['patch'],
+            'product[default_solution_id]': ['2'],
+            'product[description]': ['Red Hat Ceph Storage Is Cool'],
+            'product[is_internal]': ['0'],
+            'product[isactive]': ['1'],
+            'product[move_bugs_on_qe]': ['0'],
+            'product[name]': ['Red Hat Ceph Storage'],
+            'product[push_targets][]': ['3', '5', '9', '8', '4'],
+            'product[short_name]': ['RHCEPH'],
+            'product[state_machine_rule_set_id]': ['1'],
+            'product[valid_bug_states][]': ['VERIFIED',
+                                            'ON_QA',
+                                            'MODIFIED',
+                                            'ASSIGNED',
+                                            'NEW',
+                                            'ON_DEV',
+                                            'POST']
+        }
+        assert body == expected
