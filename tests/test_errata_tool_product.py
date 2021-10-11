@@ -1,4 +1,5 @@
 import pytest
+import errata_tool_product
 from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import InvalidInputError
 from errata_tool_product import DocsReviewerNotFoundError
@@ -10,8 +11,14 @@ from errata_tool_product import handle_form_errors
 from errata_tool_product import create_product
 from errata_tool_product import ensure_product
 from errata_tool_product import prepare_diff_data
+from errata_tool_product import main
 from ansible.module_utils.six import PY2
 from ansible.module_utils.six.moves.urllib.parse import parse_qs
+from utils import exit_json
+from utils import fail_json
+from utils import set_module_args
+from utils import AnsibleExitJson
+from utils import AnsibleFailJson
 from utils import Mock
 from utils import load_html
 
@@ -605,3 +612,68 @@ class TestEnsureProduct(object):
                                             'POST']
         }
         assert body == expected
+
+
+class TestMain(object):
+
+    @pytest.fixture(autouse=True)
+    def fake_exits(self, monkeypatch):
+        monkeypatch.setattr(errata_tool_product.AnsibleModule,
+                            'exit_json', exit_json)
+        monkeypatch.setattr(errata_tool_product.AnsibleModule,
+                            'fail_json', fail_json)
+
+    @pytest.fixture
+    def module_args(self):
+        # Minimal required module args
+        return {
+            'short_name': 'RHCEPH',
+            'name': 'Red Hat Ceph Storage',
+            'description': 'Red Hat Ceph Storage',
+            'default_solution': 'enterprise',
+            'state_machine_rule_set': 'Default',
+            'push_targets': [],
+        }
+
+    def test_simple(self, monkeypatch, module_args):
+        """ Create a simple minimal product. """
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_product, 'ensure_product', mock_ensure)
+        set_module_args(module_args)
+        with pytest.raises(AnsibleExitJson) as ex:
+            main()
+        result = ex.value.args[0]
+        assert result['changed'] is True
+
+    def test_invalid_input(self, monkeypatch, module_args):
+        """
+        When validate_params() raises InvalidInputError, the
+        Ansible module exits with the proper error message.
+        """
+        module_args['valid_bug_states'] = ['BOGUS_STATE_LOL']
+        set_module_args(module_args)
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+        result = ex.value.args[0]
+        assert result['changed'] is False
+        expected = 'invalid valid_bug_states value "BOGUS_STATE_LOL"'
+        assert result['msg'] == expected
+
+    def test_missing_doc_reviewer(self, monkeypatch, module_args):
+        """
+        When ensure_product() raises DocsReviewerNotFoundError, the
+        Ansible module exits with the proper error message.
+        """
+        mock_ensure = Mock()
+        mock_ensure.side_effect = \
+            DocsReviewerNotFoundError('noexist@redhat.com')
+        monkeypatch.setattr(errata_tool_product, 'ensure_product', mock_ensure)
+        module_args['default_docs_reviewer'] = 'noexist@redhat.com',
+        set_module_args(module_args)
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+        result = ex.value.args[0]
+        assert result['changed'] is False
+        expected = 'default_docs_reviewer noexist@redhat.com account not found'
+        assert result['msg'] == expected
