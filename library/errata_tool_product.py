@@ -2,6 +2,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 from ansible.module_utils.common_errata_tool import UserNotFoundError
 from ansible.module_utils.six import raise_from
+from ansible.module_utils.parsing.convert_bool import boolean
 import re
 import os
 from lxml import html
@@ -445,7 +446,7 @@ def run_module():
         check_mode
         and result['changed']
         and params['default_docs_reviewer']
-        and os.getenv('ANSIBLE_STRICT_USER_CHECK_MODE', False)
+        and boolean(os.getenv('ANSIBLE_STRICT_USER_CHECK_MODE', False))
     ):
         try:
             user = common_errata_tool.get_user(
