@@ -586,7 +586,7 @@ class TestEnsureProduct(object):
                 'to Red Hat Ceph Storage Is Cool'
         # XXX BUG, issue 129
         bz_name_hack = 'changing bugzilla_product_name from None to '
-        assert result['stdout_lines'] == [expected, bz_name_hack]
+        assert set(result['stdout_lines']) == set([expected, bz_name_hack])
         history = client.adapter.request_history
         assert history[-2].method == 'POST'
         assert history[-2].url == \
