@@ -1,6 +1,8 @@
 from copy import deepcopy
 import pytest
 import errata_tool_release
+from ansible.module_utils import common_errata_tool
+from ansible.module_utils.common_errata_tool import UserNotFoundError
 from errata_tool_release import get_release
 from errata_tool_release import api_data
 from errata_tool_release import create_release
@@ -450,6 +452,19 @@ class TestMain(object):
         monkeypatch.setattr(errata_tool_release.AnsibleModule,
                             'fail_json', fail_json)
 
+    @pytest.fixture
+    def module_args(self):
+        # Minimal required module args
+        return {
+            'name': 'Test release',
+            'description': 'Test release',
+            'type': 'QuarterlyUpdate',
+            'product_versions': ['1.0.0'],
+            'enabled': False,
+            'active': False,
+            'enable_batching': False,
+        }
+
     def test_simple_async(self, monkeypatch):
         mock_ensure = Mock()
         mock_ensure.return_value = {'changed': True}
@@ -484,5 +499,33 @@ class TestMain(object):
             main()
         result = ex.value.args[0]
         assert result['changed'] is False
+        expected = 'program_manager noexist@redhat.com account not found'
+        assert result['msg'] == expected
+
+    def test_strict_user_check_missing_user(self, monkeypatch, module_args):
+        """
+        Test that the module fails when in strict user check mode
+        and the user doesn't exist.
+        """
+        monkeypatch.setenv('ANSIBLE_STRICT_USER_CHECK_MODE', 'True')
+
+        module_args['program_manager'] = 'noexist@redhat.com'
+        module_args['_ansible_check_mode'] = True
+        set_module_args(module_args)
+
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_release, 'ensure_release', mock_ensure)
+
+        mock_get_user = Mock()
+        mock_get_user.side_effect = UserNotFoundError('noexist@redhat.com')
+        monkeypatch.setattr(common_errata_tool, 'get_user', mock_get_user)
+
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+
+        result = ex.value.args[0]
+        assert result['changed'] is False
+
         expected = 'program_manager noexist@redhat.com account not found'
         assert result['msg'] == expected

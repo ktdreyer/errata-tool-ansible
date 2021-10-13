@@ -2,6 +2,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 from ansible.module_utils.common_errata_tool import UserNotFoundError
 from ansible.module_utils.six import raise_from
+from ansible.module_utils.parsing.convert_bool import boolean
+import os
 
 
 ANSIBLE_METADATA = {
@@ -439,6 +441,20 @@ def run_module():
     except ProgramManagerNotFoundError as e:
         msg = 'program_manager %s account not found' % e
         module.fail_json(msg=msg, changed=False, rc=1)
+
+    if (
+        check_mode
+        and result['changed']
+        and params['program_manager']
+        and boolean(os.getenv('ANSIBLE_STRICT_USER_CHECK_MODE', False))
+    ):
+        try:
+            _ = common_errata_tool.get_user(
+                client, params['program_manager'], True
+            )
+        except UserNotFoundError as e:
+            msg = 'program_manager %s account not found' % e
+            module.fail_json(msg=msg, changed=False, rc=1)
 
     module.exit_json(**result)
 
