@@ -20,6 +20,7 @@ cp -r $TOPDIR/module_utils/ plugins/module_utils/
 # Make our common_errata_tool imports compatible with Ansible Collections.
 sed -i \
   -e  's/from ansible.module_utils import common_errata_tool/from ansible_collections.ktdreyer.errata_tool_ansible.plugins.module_utils import common_errata_tool/' \
+  -e  's/from ansible.module_utils.common_errata_tool import /from ansible_collections.ktdreyer.errata_tool_ansible.plugins.module_utils.common_errata_tool import /' \
   plugins/modules/*.py
 
 # Sanity-check that we converted everything:
