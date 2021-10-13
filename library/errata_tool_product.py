@@ -2,7 +2,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 from ansible.module_utils.common_errata_tool import UserNotFoundError
 from ansible.module_utils.six import raise_from
+from ansible.module_utils.parsing.convert_bool import boolean
 import re
+import os
 from lxml import html
 
 
@@ -439,6 +441,27 @@ def run_module():
     except DocsReviewerNotFoundError as e:
         msg = 'default_docs_reviewer %s account not found' % e
         module.fail_json(msg=msg, changed=False, rc=1)
+
+    if (
+        check_mode
+        and result['changed']
+        and params['default_docs_reviewer']
+        and boolean(os.getenv('ANSIBLE_STRICT_USER_CHECK_MODE', False))
+    ):
+        try:
+            user = common_errata_tool.get_user(
+                client, params['default_docs_reviewer'], True
+            )
+        except UserNotFoundError as e:
+            msg = 'default_docs_reviewer %s account not found' % e
+            module.fail_json(msg=msg, changed=False, rc=1)
+
+        if 'docs' not in user['roles']:
+            msg = (
+                "User %s does not have 'docs' role in ET"
+                % params['default_docs_reviewer']
+            )
+            module.fail_json(msg=msg, changed=False, rc=1)
 
     module.exit_json(**result)
 
