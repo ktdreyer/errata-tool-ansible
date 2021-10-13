@@ -26,8 +26,8 @@ sed -i \
 # Sanity-check that we converted everything:
 set +x
 IMPORTS=$(grep "import " plugins/modules/*.py)
-COMMON_KOJI_IMPORTS=$(echo $IMPORTS | grep common_errata_tool)
-MISSED_IMPORTS=$(echo $COMMON_KOJI_IMPORTS | grep -v ansible_collections || :)
+COMMON_ET_IMPORTS=$(echo $IMPORTS | grep common_errata_tool)
+MISSED_IMPORTS=$(echo $COMMON_ET_IMPORTS | grep -v ansible_collections || :)
 set -x
 if [[ ! -z $MISSED_IMPORTS ]]; then
   echo Failed to convert some files for ansible_collections:
