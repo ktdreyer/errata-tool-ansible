@@ -1,5 +1,7 @@
 import pytest
 import errata_tool_product
+from ansible.module_utils import common_errata_tool
+from ansible.module_utils.common_errata_tool import UserNotFoundError
 from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import InvalidInputError
 from errata_tool_product import DocsReviewerNotFoundError
@@ -676,4 +678,64 @@ class TestMain(object):
         result = ex.value.args[0]
         assert result['changed'] is False
         expected = 'default_docs_reviewer noexist@redhat.com account not found'
+        assert result['msg'] == expected
+
+    def test_strict_user_check_missing_user(self, monkeypatch, module_args):
+        """
+        Test that the module fails when in strict user check mode
+        and the user doesn't exist.
+        """
+        monkeypatch.setenv('ANSIBLE_STRICT_USER_CHECK_MODE', 'True')
+
+        module_args['default_docs_reviewer'] = 'noexist@redhat.com'
+        module_args['_ansible_check_mode'] = True
+        set_module_args(module_args)
+
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_product, 'ensure_product', mock_ensure)
+
+        mock_get_user = Mock()
+        mock_get_user.side_effect = UserNotFoundError('noexist@redhat.com')
+        monkeypatch.setattr(common_errata_tool, 'get_user', mock_get_user)
+
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+
+        result = ex.value.args[0]
+        assert result['changed'] is False
+
+        expected = 'default_docs_reviewer noexist@redhat.com account not found'
+        assert result['msg'] == expected
+
+    def test_strict_user_check_missing_role(self, monkeypatch, module_args):
+        """
+        Test that the module fails when in strict user check mode
+        and the user doesn't have the 'docs' role.
+        """
+        monkeypatch.setenv('ANSIBLE_STRICT_USER_CHECK_MODE', 'True')
+
+        module_args['default_docs_reviewer'] = 'nodocsrole@redhat.com'
+        module_args['_ansible_check_mode'] = True
+        set_module_args(module_args)
+
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_product, 'ensure_product', mock_ensure)
+
+        mock_get_user = Mock()
+        mock_get_user.return_value = {
+            'roles': [
+                'qa'
+            ]
+        }
+        monkeypatch.setattr(common_errata_tool, 'get_user', mock_get_user)
+
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+
+        result = ex.value.args[0]
+        assert result['changed'] is False
+
+        expected = "User nodocsrole@redhat.com does not have 'docs' role in ET"
         assert result['msg'] == expected
