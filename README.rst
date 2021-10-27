@@ -320,7 +320,7 @@ Example of using strict user checking::
 
   ANSIBLE_STRICT_USER_CHECK_MODE=1 ansible-playbook my-et-playbook.yml -v --check
 
-It's also possible to set the environment variable in the playbook itself::
+It's also possible to set the environment variable in the playbook itself:
 
 .. code-block:: yaml
 
