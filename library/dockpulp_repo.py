@@ -278,7 +278,8 @@ def get_existing_repo(
     if not login(env, dockpulp_user, dockpulp_password):
         raise RuntimeError("Error logging into dock-pulp")
 
-    command = ["dock-pulp", "-d", "--server", env, "list", "-d", full_repo_name]
+    command = ["dock-pulp", "-d", "--server",
+               env, "list", "-d", full_repo_name]
     result = execute_command(command)
 
     if result.returncode != 0:
@@ -319,7 +320,8 @@ def ensure_dockpulp_repo(params, check_mode=True):
     :param params: The dockpulp repo to create
     :param bool check_mode: describe what would happen, but don't do it.
     """
-    result = {"returncode": 0, "changed": False, "stdout_lines": [], "diff": {}}
+    result = {"returncode": 0, "changed": False,
+              "stdout_lines": [], "diff": {}}
     env = params.get("env")
     dockpulp_user = params.get("dockpulp_user")
     dockpulp_password = params.get("dockpulp_password")
@@ -340,7 +342,8 @@ def ensure_dockpulp_repo(params, check_mode=True):
     }
     # Compare the new repo to an existing one
     old_repo = get_comparable_repo(
-        get_existing_repo(full_repo_name, env, dockpulp_user, dockpulp_password)
+        get_existing_repo(full_repo_name, env,
+                          dockpulp_user, dockpulp_password)
     )
     differences = diff_settings(old_repo, new_repo)
     result["diff"] = prepare_diff_data(old_repo, new_repo)
