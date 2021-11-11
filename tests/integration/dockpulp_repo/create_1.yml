@@ -1,0 +1,9 @@
+- name: Add rhceph-4-tools-for-rhel-8-x86_64-rpms cdn repo
+  dockpulp_repo:
+    env: stage
+    dockpulp_user:
+    dockpulp_password:
+    repo_name: redhat-rhceph-rhceph-4-rhel8
+    namespace: Primary
+    description: This is a test repo for create dockpulp repo
+    distribution: ga
