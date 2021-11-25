@@ -416,7 +416,7 @@ def run_module():
         state_machine_rule_set=dict(required=True),
         move_bugs_on_qe=dict(type='bool', default=False),
         text_only_advisories_require_dists=dict(type='bool', default=True),
-        exd_org_group=dict(choices=EXD_ORG_GROUPS.keys()),
+        exd_org_group=dict(choices=list(EXD_ORG_GROUPS.keys())),
     )
     module = AnsibleModule(
         argument_spec=module_args,
