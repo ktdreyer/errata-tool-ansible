@@ -7,6 +7,10 @@ jobs:
     runs-on:
       - self-hosted
       - et-integration
+      - '${{ matrix.os }}'
+    strategy:
+      matrix:
+        os: [rhel-7]
     steps:
       - uses: actions/checkout@v1
       - name: Reset ET server database
