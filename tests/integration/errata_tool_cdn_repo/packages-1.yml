@@ -48,15 +48,17 @@
   # "{{" and "}}" braces in the string.
   set_fact:
     removing_version_release: !unsafe 'removing "{{version}}-{{release}}" tag template from "test-container"'
+    removing_version_hotfix_advisory: !unsafe 'removing "{{version}}-{{hotfix}}-{{advisory}}" tag template from "test-container"'
 
 - name: assert module reports CDN repo changing
   assert:
     that:
       - result.changed
-      - result.stdout_lines | length == 3
+      - result.stdout_lines | length == 4
       - result.stdout_lines.0 == "changing package_names from [] to ['test-container']"
       - result.stdout_lines.1 == removing_version_release
-      - result.stdout_lines.2 == "adding \"latest\" tag template to \"test-container\""
+      - result.stdout_lines.2 == removing_version_hotfix_advisory
+      - result.stdout_lines.3 == "adding \"latest\" tag template to \"test-container\""
 
 # Assert that this CDN repo looks correct.
 
