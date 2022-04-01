@@ -39,9 +39,38 @@ options:
        - Release key (eg. robosignatory uses this value)
        - You almost certainly never want to change this value.
      choices: [master, fedora, beta, test, none, redhatrelease, rhx,
-               redhatrelease2, redhatengsystems]
+               redhatrelease2, redhatbeta2, redhatengsystems, redhate2etesting,
+               redhatdevel, containerready1, redhatimabeta, redhatimarelease]
      required: false
      default: redhatrelease2
+   container_sig_key_name:
+     description:
+       - Release Key (eg. robosignatory uses this value).
+     choices: [master, fedora, beta, test, none, redhatrelease, rhx,
+               redhatrelease2, redhatbeta2, redhatengsystems, redhate2etesting,
+               redhatdevel, containerready1, redhatimabeta, redhatimarelease]
+     required: false
+     default:  redhatrelease2
+   use_quay_for_containers:
+     description:
+       - If enabled, the Errata Tool will instruct pub to push this product
+         version's container advisories to quay.io instead of docker-pulp for
+         live pushes.
+       - Leave this unchecked unless your sure this product version
+         is ready for Quay.io.
+     choices: [true, false]
+     required: false
+     default: false
+   use_quay_for_containers_stage:
+     description:
+       - If enabled, the Errata Tool will instruct pub to push this product
+         version's container advisories to quay.io instead of docker-pulp for
+         stage pushes.
+       - Leave this unchecked unless your sure this product version
+         is ready for Quay.io.
+     choices: [true, false]
+     required: false
+     default: false
    default_brew_tag:
      description:
        - The default brew tag to use when validating that a build can be added
@@ -149,6 +178,8 @@ def get_product_version(client, product, name, check_mode):
     rhel_release = data['relationships']['rhel_release']['name']
     product_version['rhel_release_name'] = rhel_release
     product_version['sig_key_name'] = data['relationships']['sig_key']['name']
+    product_version['container_sig_key_name'] = \
+    data['relationships']['container_sig_key']['name']
     # push_targets
     push_targets = [t['name'] for t in data['relationships']['push_targets']]
     product_version['push_targets'] = push_targets
@@ -214,6 +245,9 @@ def create_product_version(client, product, params):
     pv['sig_key_name'] = params['sig_key_name']
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
     pv['push_targets'] = params['push_targets']
+    pv['container_sig_key_name'] = params['container_sig_key_name']
+    pv['use_quay_for_containers'] = int(params['use_quay_for_containers'])
+    pv['use_quay_for_containers_stage'] = int(params['use_quay_for_containers_stage'])
     data = {'product_version': pv}
     endpoint = 'api/v1/products/%s/product_versions' % product
     response = client.post(endpoint, json=data)
@@ -255,11 +289,6 @@ def prepare_diff_data(before, after):
         after=after,
         item_name=after['name'],
         item_type='product version',
-        keys_to_copy=[
-            # This field exists in ET but is not yet supported by
-            # this ansible module
-            'use_quay_for_containers',
-        ],
     )
 
 
@@ -303,6 +332,9 @@ def run_module():
         is_rhel_addon=dict(type='bool', required=True),
         push_targets=dict(type='list', required=True),
         brew_tags=dict(type='list', required=True),
+        container_sig_key_name=dict(default='redhatrelease2'),
+        use_quay_for_containers=dict(type='bool', default=False),
+        use_quay_for_containers_stage=dict(type='bool', default=False),
     )
     module = AnsibleModule(
         argument_spec=module_args,
