@@ -179,7 +179,7 @@ def get_product_version(client, product, name, check_mode):
     product_version['rhel_release_name'] = rhel_release
     product_version['sig_key_name'] = data['relationships']['sig_key']['name']
     product_version['container_sig_key_name'] = \
-    data['relationships']['container_sig_key']['name']
+        data['relationships']['container_sig_key']['name']
     # push_targets
     push_targets = [t['name'] for t in data['relationships']['push_targets']]
     product_version['push_targets'] = push_targets
@@ -247,7 +247,8 @@ def create_product_version(client, product, params):
     pv['push_targets'] = params['push_targets']
     pv['container_sig_key_name'] = params['container_sig_key_name']
     pv['use_quay_for_containers'] = int(params['use_quay_for_containers'])
-    pv['use_quay_for_containers_stage'] = int(params['use_quay_for_containers_stage'])
+    pv['use_quay_for_containers_stage'] = int(
+        params['use_quay_for_containers_stage'])
     data = {'product_version': pv}
     endpoint = 'api/v1/products/%s/product_versions' % product
     response = client.post(endpoint, json=data)
