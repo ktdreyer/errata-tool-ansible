@@ -42,6 +42,26 @@ options:
                redhatrelease2, redhatengsystems]
      required: false
      default: redhatrelease2
+   use_quay_for_containers:
+     description:
+       - If enabled, the Errata Tool will instruct pub to push this product
+         version's container advisories to quay.io instead of docker-pulp for
+         live pushes.
+       - Leave this unchecked unless this product version is ready
+         for Quay.io.
+     choices: [true, false]
+     required: false
+     default: false
+   use_quay_for_containers_stage:
+     description:
+       - If enabled, the Errata Tool will instruct pub to push this product
+         version's container advisories to quay.io instead of docker-pulp for
+         stage pushes.
+       - Leave this unchecked unless this product version is ready
+         for Quay.io.
+     choices: [true, false]
+     required: false
+     default: false
    default_brew_tag:
      description:
        - The default brew tag to use when validating that a build can be added
@@ -303,6 +323,8 @@ def run_module():
         is_rhel_addon=dict(type='bool', required=True),
         push_targets=dict(type='list', required=True),
         brew_tags=dict(type='list', required=True),
+        use_quay_for_containers=dict(type='bool'),
+        use_quay_for_containers_stage=dict(type='bool'),
     )
     module = AnsibleModule(
         argument_spec=module_args,
@@ -314,6 +336,13 @@ def run_module():
 
     client = common_errata_tool.Client()
 
+    # 'use_quay_for_containers' is optional - don't modify the server-side 
+    # value if the user has omitted it.
+    if params['use_quay_for_containers'] is None:
+        params.pop('use_quay_for_containers')
+    if params['use_quay_for_containers_stage'] is None:
+        params.pop('use_quay_for_containers_stage')
+    
     result = ensure_product_version(client, params, check_mode)
 
     module.exit_json(**result)
