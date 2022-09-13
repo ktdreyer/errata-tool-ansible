@@ -1,15 +1,16 @@
+from email.policy import default
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 
 
 ANSIBLE_METADATA = {
-    'metadata_version': '1.0',
-    'status': ['preview'],
-    'supported_by': 'community'
+    "metadata_version": "1.0",
+    "status": ["preview"],
+    "supported_by": "community",
 }
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: errata_tool_product_version
 
@@ -106,7 +107,7 @@ requirements:
   - "python >= 2.7"
   - "lxml"
   - "requests-gssapi"
-'''
+"""
 
 # The REST API requires that clients know the product name before querying the
 # product version, so we have pass the "product" variable through to the
@@ -120,8 +121,7 @@ def get_product_version(client, product, name, check_mode):
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
     # ... this would also change the returned data structure slightly (the
     # results would not be in a list.)
-    url = 'api/v1/products/%s/product_versions/?filter[name]=%s' % (
-        product, name)
+    url = "api/v1/products/%s/product_versions/?filter[name]=%s" % (product, name)
     r = client.get(url)
     # If the product does not exist but we're running in check mode it could
     # be that the product is going to be setup in the subsequent run mode
@@ -137,25 +137,25 @@ def get_product_version(client, product, name, check_mode):
     # like "does https://errata.devel.redhat.com/products/RHCEPH exist yet?"
     r.raise_for_status()
     data = r.json()
-    product_versions = data['data']
+    product_versions = data["data"]
     if not product_versions:
         return None
     if len(product_versions) > 1:
-        raise ValueError('multiple PVs named %s' % name)
+        raise ValueError("multiple PVs named %s" % name)
     # Reformat the data into something we can compare with Ansible params
     data = product_versions[0]
-    product_version = data['attributes']
-    product_version['brew_tags'] = data['brew_tags']
-    rhel_release = data['relationships']['rhel_release']['name']
-    product_version['rhel_release_name'] = rhel_release
-    product_version['sig_key_name'] = data['relationships']['sig_key']['name']
+    product_version = data["attributes"]
+    product_version["brew_tags"] = data["brew_tags"]
+    rhel_release = data["relationships"]["rhel_release"]["name"]
+    product_version["rhel_release_name"] = rhel_release
+    product_version["sig_key_name"] = data["relationships"]["sig_key"]["name"]
     # push_targets
-    push_targets = [t['name'] for t in data['relationships']['push_targets']]
-    product_version['push_targets'] = push_targets
+    push_targets = [t["name"] for t in data["relationships"]["push_targets"]]
+    product_version["push_targets"] = push_targets
     # Add in our product name, to simplify diff_settings().
-    product_version['product'] = product
+    product_version["product"] = product
     # Add in our product_version id, to support edit_product_version()
-    product_version['id'] = data['id']
+    product_version["id"] = data["id"]
     return product_version
 
 
@@ -164,10 +164,10 @@ def handle_form_errors(response):
     # with a list of the wrong fields, or just an HTTP 500 error.
     if response.status_code == 500:
         raise RuntimeError(
-            'The request to %s had a status code of %d and failed with: %s'
+            "The request to %s had a status code of %d and failed with: %s"
             % (response.url, response.status_code, response.text)
         )
-    if 'errorExplanation' in response.text:
+    if "errorExplanation" in response.text:
         raise RuntimeError(response.text)
     response.raise_for_status()
 
@@ -188,11 +188,8 @@ def set_push_targets(client, product, product_version, push_targets):
         return
     scraper = common_errata_tool.PushTargetScraper(client)
     push_target_ints = scraper.convert_to_ints(push_targets)
-    endpoint = 'products/%s/product_versions/%s' % (product, product_version)
-    data = {
-        '_method': 'patch',
-        'product_version[push_targets][]': push_target_ints
-    }
+    endpoint = "products/%s/product_versions/%s" % (product, product_version)
+    data = {"_method": "patch", "product_version[push_targets][]": push_target_ints}
     response = client.post(endpoint, data=data)
     handle_form_errors(response)
 
@@ -201,25 +198,25 @@ def create_product_version(client, product, params):
     # TODO: test this without casting the bools to ints. Since we're passing
     # JSON and that has real "true"/"false" values, it should be ok.
     pv = {}
-    pv['name'] = params['name']
-    pv['description'] = params['description']
-    pv['allow_rhn_debuginfo'] = int(params['allow_rhn_debuginfo'])
-    pv['default_brew_tag'] = params['default_brew_tag']
-    pv['enabled'] = int(params['enabled'])
-    pv['is_oval_product'] = int(params['is_oval_product'])
-    pv['is_rhel_addon'] = int(params['is_rhel_addon'])
-    pv['is_server_only'] = int(params['is_server_only'])
-    pv['brew_tags'] = params['brew_tags']
-    pv['rhel_release_name'] = params['rhel_release_name']
-    pv['sig_key_name'] = params['sig_key_name']
-    pv['allow_buildroot_push'] = params['allow_buildroot_push']
-    pv['push_targets'] = params['push_targets']
-    data = {'product_version': pv}
-    endpoint = 'api/v1/products/%s/product_versions' % product
+    pv["name"] = params["name"]
+    pv["description"] = params["description"]
+    pv["allow_rhn_debuginfo"] = int(params["allow_rhn_debuginfo"])
+    pv["default_brew_tag"] = params["default_brew_tag"]
+    pv["enabled"] = int(params["enabled"])
+    pv["is_oval_product"] = int(params["is_oval_product"])
+    pv["is_rhel_addon"] = int(params["is_rhel_addon"])
+    pv["is_server_only"] = int(params["is_server_only"])
+    pv["brew_tags"] = params["brew_tags"]
+    pv["rhel_release_name"] = params["rhel_release_name"]
+    pv["sig_key_name"] = params["sig_key_name"]
+    pv["allow_buildroot_push"] = params["allow_buildroot_push"]
+    pv["push_targets"] = params["push_targets"]
+    data = {"product_version": pv}
+    endpoint = "api/v1/products/%s/product_versions" % product
     response = client.post(endpoint, json=data)
     if response.status_code != 201:
         raise ValueError(response.json())
-    set_push_targets(client, product, params['name'], params['push_targets'])
+    set_push_targets(client, product, params["name"], params["push_targets"])
 
 
 def edit_product_version(client, product_version, differences):
@@ -238,50 +235,50 @@ def edit_product_version(client, product_version, differences):
         pv[key] = new
     if not pv:
         return
-    data = {'product_version': pv}
-    pv_id = product_version['id']
-    product = product_version['product']
-    endpoint = 'api/v1/products/%s/product_versions/%d' % (product, pv_id)
+    data = {"product_version": pv}
+    pv_id = product_version["id"]
+    product = product_version["product"]
+    endpoint = "api/v1/products/%s/product_versions/%d" % (product, pv_id)
     response = client.put(endpoint, json=data)
     if response.status_code != 200:
         raise ValueError(response.json())
-    if 'push_targets' in pv:
-        set_push_targets(client, product, pv_id, pv['push_targets'])
+    if "push_targets" in pv:
+        set_push_targets(client, product, pv_id, pv["push_targets"])
 
 
 def prepare_diff_data(before, after):
     return common_errata_tool.task_diff_data(
         before=before,
         after=after,
-        item_name=after['name'],
-        item_type='product version',
+        item_name=after["name"],
+        item_type="product version",
         keys_to_copy=[
             # This field exists in ET but is not yet supported by
             # this ansible module
-            'use_quay_for_containers',
+            "use_quay_for_stage_containers",
         ],
     )
 
 
 def ensure_product_version(client, params, check_mode):
-    result = {'changed': False, 'stdout_lines': []}
+    result = {"changed": False, "stdout_lines": []}
     params = {param: val for param, val in params.items() if val is not None}
-    product = params['product']
-    name = params['name']
+    product = params["product"]
+    name = params["name"]
     product_version = get_product_version(client, product, name, check_mode)
     if not product_version:
-        result['changed'] = True
-        result['stdout_lines'] = ['created %s product version' % name]
-        result['diff'] = prepare_diff_data(product_version, params)
+        result["changed"] = True
+        result["stdout_lines"] = ["created %s product version" % name]
+        result["diff"] = prepare_diff_data(product_version, params)
         if not check_mode:
             create_product_version(client, product, params)
         return result
     differences = common_errata_tool.diff_settings(product_version, params)
     if differences:
-        result['changed'] = True
+        result["changed"] = True
         changes = common_errata_tool.describe_changes(differences)
-        result['stdout_lines'].extend(changes)
-        result['diff'] = prepare_diff_data(product_version, params)
+        result["stdout_lines"].extend(changes)
+        result["diff"] = prepare_diff_data(product_version, params)
         if not check_mode:
             edit_product_version(client, product_version, differences)
     return result
@@ -293,21 +290,20 @@ def run_module():
         name=dict(required=True),
         description=dict(required=True),
         rhel_release_name=dict(required=True),
-        sig_key_name=dict(default='redhatrelease2'),
+        sig_key_name=dict(default="redhatrelease2"),
         default_brew_tag=dict(required=True),
-        is_server_only=dict(type='bool', required=True),
-        enabled=dict(type='bool', default=True),
-        allow_rhn_debuginfo=dict(type='bool', required=True),
-        allow_buildroot_push=dict(type='bool', required=True),
-        is_oval_product=dict(type='bool', required=True),
-        is_rhel_addon=dict(type='bool', required=True),
-        push_targets=dict(type='list', required=True),
-        brew_tags=dict(type='list', required=True),
+        is_server_only=dict(type="bool", required=True),
+        enabled=dict(type="bool", default=True),
+        allow_rhn_debuginfo=dict(type="bool", required=True),
+        allow_buildroot_push=dict(type="bool", required=True),
+        is_oval_product=dict(type="bool", required=True),
+        is_rhel_addon=dict(type="bool", required=True),
+        push_targets=dict(type="list", required=True),
+        brew_tags=dict(type="list", required=True),
+        use_quay_for_containers=dict(type="bool", default=False),
+        use_quay_for_containers_stage=dict(type="bool", default=False),
     )
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     check_mode = module.check_mode
     params = module.params
@@ -323,5 +319,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
