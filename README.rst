@@ -301,6 +301,33 @@ Here's an example playbook that calls a custom role with those variables set:
 
 There is no support for HTTP Basic auth at this time.
 
+SSL verification
+----------------
+
+This Ansible module verifies the ET server's HTTPS certificate by default.
+If you receive an SSL verification error, it's probably because you don't have
+the Red Hat IT CA set up for your Python environment (particularly if you're
+using a virtualenv). python-requests defaults to using ``certifi.where()``,
+which may not point at a CA bundle that contains the RH IT CA.
+
+You can use Ansible's ``environment`` setting with your tasks or playbooks.
+Here's an example playbook that calls a custom role with those variables set:
+
+.. code-block:: yaml
+
+    - name: ensure ET configuration
+      gather_facts: no
+      hosts: localhost
+      connection: local
+      environment:
+        REQUESTS_CA_BUNDLE: /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt
+      roles:
+        - my-custom-et-role
+
+
+Where ``RH-IT-Root-CA.crt`` is the public cert that signed the ET server's
+HTTPS certificate.
+
 Strict user checking
 --------------------
 
