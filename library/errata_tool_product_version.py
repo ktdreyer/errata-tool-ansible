@@ -121,7 +121,8 @@ def get_product_version(client, product, name, check_mode):
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
     # ... this would also change the returned data structure slightly (the
     # results would not be in a list.)
-    url = "api/v1/products/%s/product_versions/?filter[name]=%s" % (product, name)
+    url = "api/v1/products/%s/product_versions/?filter[name]=%s" % (
+        product, name)
     r = client.get(url)
     # If the product does not exist but we're running in check mode it could
     # be that the product is going to be setup in the subsequent run mode
@@ -189,7 +190,8 @@ def set_push_targets(client, product, product_version, push_targets):
     scraper = common_errata_tool.PushTargetScraper(client)
     push_target_ints = scraper.convert_to_ints(push_targets)
     endpoint = "products/%s/product_versions/%s" % (product, product_version)
-    data = {"_method": "patch", "product_version[push_targets][]": push_target_ints}
+    data = {"_method": "patch",
+            "product_version[push_targets][]": push_target_ints}
     response = client.post(endpoint, data=data)
     handle_form_errors(response)
 
