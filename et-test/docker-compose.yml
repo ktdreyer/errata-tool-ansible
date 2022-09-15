@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  python_errata:
+    image: quay.io/redhat-aqe/tox:latest
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+    volumes:
+      - /Users/sjochman/git_workspace/RedHat:/git_workspace
+    restart: always

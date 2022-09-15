@@ -1,0 +1,39 @@
+---
+- name: Test user_info module
+
+  hosts: localhost
+  connection: local
+
+  environment:
+    ERRATA_TOOL_URL: https://errata.stage.engineering.redhat.com
+    REQUESTS_CA_BUNDLE: /Users/sjochman/git_workspace/RedHat/errata-tool-ansible/et-test/RH-IT-Root-CA.crt
+
+  vars:
+    username: sbaird
+
+  tasks:
+    - name: Setup release with non-existing user
+      #errata_tool_release:
+      #  name: "Test CWFCONF-909"
+      #  type: "QuarterlyUpdate"
+      #  description: "Test CWFCONF-909"
+      #  product_versions: ["1.0.0"]
+      #  enabled: false
+      #  active: false
+      #  enable_batching: false
+      #  program_manager: "sbaird"
+      errata_tool_product_version:
+        product: HONEY
+        name: Test
+        description: Testing decription
+        rhel_release_name: RHEL-8.0.0
+        default_brew_tag: rhel-8.0.0-candidate
+        is_server_only: true
+        allow_rhn_debuginfo: true
+        allow_buildroot_push: true
+        is_oval_product: true
+        is_rhel_addon: true
+        push_targets: []
+        brew_tags: [rhel-8.0.0-candidate]
+        #use_quay_for_containers: true
+        use_quay_for_containers_stage: true
