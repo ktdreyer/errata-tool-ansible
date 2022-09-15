@@ -303,6 +303,8 @@ def run_module():
         is_rhel_addon=dict(type='bool', required=True),
         push_targets=dict(type='list', required=True),
         brew_tags=dict(type='list', required=True),
+        use_quay_for_containers=dict(type="bool", default=False),
+        use_quay_for_containers_stage=dict(type="bool", default=False),
     )
     module = AnsibleModule(
         argument_spec=module_args,
