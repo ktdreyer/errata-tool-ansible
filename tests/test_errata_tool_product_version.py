@@ -24,6 +24,8 @@ PRODUCT_VERSION = {
         "is_rhel_addon": False,
         "is_server_only": False,
         "enabled": True,
+        "use_quay_for_containers": False,
+        "use_quay_for_containers_stage": False
     },
     "brew_tags": ["ceph-4.0-rhel-8-candidate"],
     "relationships": {
@@ -36,6 +38,7 @@ PRODUCT_VERSION = {
         ],
         "rhel_release": {"id": 87, "name": "RHEL-8"},
         "sig_key": {"id": 8, "name": "redhatrelease2"},
+        "container_sig_key": {"id": 8, "name": "redhatrelease2"},
     }
 }
 
@@ -86,6 +89,8 @@ class TestGetProductVersion(object):
         expected = {
             'allow_buildroot_push': False,
             'allow_rhn_debuginfo': False,
+            'use_quay_for_containers': False,
+            'use_quay_for_containers_stage': False,
             'brew_tags': ['ceph-4.0-rhel-8-candidate'],
             'default_brew_tag': 'ceph-4.0-rhel-8-candidate',
             'description': 'Red Hat Ceph Storage 4.0',
@@ -99,7 +104,8 @@ class TestGetProductVersion(object):
             'push_targets': ['ftp', 'cdn', 'cdn_stage',
                              'cdn_docker', 'cdn_docker_stage'],
             'rhel_release_name': 'RHEL-8',
-            'sig_key_name': 'redhatrelease2'
+            'sig_key_name': 'redhatrelease2',
+            'container_sig_key_name': 'redhatrelease2'
         }
         assert product_version == expected
 
