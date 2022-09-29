@@ -336,13 +336,13 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    # 'use_quay_for_containers' is optional - don't modify the server-side 
+    # 'use_quay_for_containers' is optional - don't modify the server-side
     # value if the user has omitted it.
     if params['use_quay_for_containers'] is None:
         params.pop('use_quay_for_containers')
     if params['use_quay_for_containers_stage'] is None:
         params.pop('use_quay_for_containers_stage')
-    
+
     result = ensure_product_version(client, params, check_mode)
 
     module.exit_json(**result)
