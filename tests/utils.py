@@ -38,12 +38,14 @@ class AnsibleFailJson(Exception):
 
 
 def exit_json(*args, **kwargs):
+    """ Fake AnsibleModule.exit_json(), suitable for monkeypatching """
     if 'changed' not in kwargs:
         kwargs['changed'] = False
     raise AnsibleExitJson(kwargs)
 
 
 def fail_json(*args, **kwargs):
+    """ Fake AnsibleModule.fail_json(), suitable for monkeypatching """
     kwargs['failed'] = True
     raise AnsibleFailJson(kwargs)
 
