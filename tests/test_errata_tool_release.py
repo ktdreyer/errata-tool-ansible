@@ -529,3 +529,31 @@ class TestMain(object):
 
         expected = 'program_manager noexist@redhat.com account not found'
         assert result['msg'] == expected
+
+    def test_strict_user_check_disabled(self, monkeypatch, module_args):
+        """
+        Test that the module fails when in strict user check mode
+        and the user account is disabled.
+        """
+        monkeypatch.setenv('ANSIBLE_STRICT_USER_CHECK_MODE', 'True')
+
+        module_args['program_manager'] = 'retired@redhat.com'
+        module_args['_ansible_check_mode'] = True
+        set_module_args(module_args)
+
+        mock_ensure = Mock()
+        mock_ensure.return_value = {'changed': True}
+        monkeypatch.setattr(errata_tool_release, 'ensure_release', mock_ensure)
+
+        mock_get_user = Mock()
+        mock_get_user.return_value = {'enabled': False}
+        monkeypatch.setattr(common_errata_tool, 'get_user', mock_get_user)
+
+        with pytest.raises(AnsibleFailJson) as ex:
+            main()
+
+        result = ex.value.args[0]
+        assert result['changed'] is False
+
+        expected = 'program_manager retired@redhat.com is not enabled'
+        assert result['msg'] == expected

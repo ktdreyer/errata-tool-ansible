@@ -463,6 +463,18 @@ def run_module():
             )
             module.fail_json(msg=msg, changed=False, rc=1)
 
+        if not user.get('enabled'):
+            # Note, the ET server does not require the default_docs_reviewer
+            # account to be enabled, but normally a human release engineer
+            # would check that an account is enabled before using it. For ease
+            # of use, we'll raise that error here when
+            # ANSIBLE_STRICT_USER_CHECK_MODE is True.
+            msg = (
+                "default_docs_reviewer %s is not enabled"
+                % params['default_docs_reviewer']
+            )
+            module.fail_json(msg=msg, changed=False, rc=1)
+
     module.exit_json(**result)
 
 

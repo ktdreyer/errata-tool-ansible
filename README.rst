@@ -340,8 +340,8 @@ If ``ANSIBLE_STRICT_USER_CHECK_MODE`` is ``False`` or unset (default),
 modules will not validate user accounts during check mode.
 
 If ``ANSIBLE_STRICT_USER_CHECK_MODE`` is ``True`` and check mode is on,
-the modules will check the user account and fail if they don't exist
-or don't have required roles.
+the modules will check the user account and fail if they don't exist, are not
+enabled, or lack required roles.
 
 Example of using strict user checking::
 
