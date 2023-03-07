@@ -450,7 +450,7 @@ def run_module():
     ):
         try:
             user = common_errata_tool.get_user(
-                   client, params['program_manager'], True)
+                client, params['program_manager'], True)
         except UserNotFoundError as e:
             msg = 'program_manager %s account not found' % e
             module.fail_json(msg=msg, changed=False, rc=1)
