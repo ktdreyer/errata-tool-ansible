@@ -449,11 +449,21 @@ def run_module():
         and boolean(os.getenv('ANSIBLE_STRICT_USER_CHECK_MODE', False))
     ):
         try:
-            _ = common_errata_tool.get_user(
-                client, params['program_manager'], True
-            )
+            user = common_errata_tool.get_user(
+                   client, params['program_manager'], True)
         except UserNotFoundError as e:
             msg = 'program_manager %s account not found' % e
+            module.fail_json(msg=msg, changed=False, rc=1)
+        if not user.get('enabled'):
+            # Note, the ET server does not require the program_manager
+            # account to be enabled, but normally a human release engineer
+            # would check that an account is enabled before using it. For ease
+            # of use, we'll raise that error here when
+            # ANSIBLE_STRICT_USER_CHECK_MODE is True.
+            msg = (
+                "program_manager %s is not enabled"
+                % params['program_manager']
+            )
             module.fail_json(msg=msg, changed=False, rc=1)
 
     module.exit_json(**result)
