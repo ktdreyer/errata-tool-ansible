@@ -234,6 +234,10 @@ def create_product_version(client, product, params):
     pv['sig_key_name'] = params['sig_key_name']
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
     pv['push_targets'] = params['push_targets']
+    pv['use_quay_for_containers'] = params['use_quay_for_containers']
+    pv['use_quay_for_containers_stage'] = (
+        params['use_quay_for_containers_stage']
+    )
     data = {'product_version': pv}
     endpoint = 'api/v1/products/%s/product_versions' % product
     response = client.post(endpoint, json=data)
