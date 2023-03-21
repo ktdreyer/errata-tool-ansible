@@ -279,11 +279,6 @@ def prepare_diff_data(before, after):
         after=after,
         item_name=after['name'],
         item_type='product version',
-        keys_to_copy=[
-            # This field exists in ET but is not yet supported by
-            # this ansible module
-            'use_quay_for_containers',
-        ],
     )
 
 
