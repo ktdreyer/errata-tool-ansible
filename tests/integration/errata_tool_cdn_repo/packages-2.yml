@@ -1,0 +1,129 @@
+# Test editing the "for_hotfix" setting on a Docker CDN repo package tag.
+
+# This assumes the "AppStream-8.0.0" variant is pre-configured. The
+# errata-rails.git test/fixtures/*.yml files do this.
+---
+
+- name: Create a CDN repo with a package
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-2
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest
+
+# Assert that this CDN repo's package tag looks correct.
+
+- name: query API for this CDN repo's package tags
+  errata_tool_request:
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-2&filter[package_name]=test-container
+  register: response
+
+- name: assert latest tag does not have for_hotfix
+  assert:
+    that:
+      - response.json.data | length == 1
+      - response.json.data.0.attributes.tag_template == "latest"
+      - not response.json.data.0.attributes.for_hotfix
+
+###########
+
+- name: Add for_hotfix setting to container tag
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-2
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest:
+            for_hotfix: true
+  register: result
+
+- name: assert module reports changing for_hotfix
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["setting \"for_hotfix\" on test-container \"latest\" tag template"]
+
+# Assert that this package tag looks correct.
+
+- name: query API for this CDN repo's package tags
+  errata_tool_request:
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-2&filter[package_name]=test-container
+  register: response
+
+- name: assert latest tag has for_hotfix
+  assert:
+    that:
+      - response.json.data | length == 1
+      - response.json.data.0.attributes.tag_template == "latest"
+      - response.json.data.0.attributes.for_hotfix
+
+###########
+
+- name: do not specify for_hotfix on container tag with for_hotfix already set
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-2
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest
+  register: result
+
+- name: assert no changes
+  assert:
+    that:
+      - not result.changed
+
+# Assert that this package tag still has for_hotfix.
+
+- name: query API for this CDN repo's package tags
+  errata_tool_request:
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-2&filter[package_name]=test-container
+  register: response
+
+- name: assert latest tag still has for_hotfix
+  assert:
+    that:
+      - response.json.data | length == 1
+      - response.json.data.0.attributes.tag_template == "latest"
+      - response.json.data.0.attributes.for_hotfix
+
+###########
+
+- name: Remove for_hotfix setting to container tag
+  errata_tool_cdn_repo:
+    name: redhat-container-packages-2
+    release_type: Primary
+    content_type: Docker
+    variants: [AppStream-8.0.0]
+    packages:
+      test-container:
+        - latest:
+            for_hotfix: false
+  register: result
+
+- name: assert module reports changing for_hotfix
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["setting \"for_hotfix\" on test-container \"latest\" tag template"]
+
+# Assert that this package tag looks correct.
+
+- name: query API for this CDN repo's package tags
+  errata_tool_request:
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-2&filter[package_name]=test-container
+  register: response
+
+- name: assert latest tag has for_hotfix
+  assert:
+    that:
+      - response.json.data | length == 1
+      - response.json.data.0.attributes.tag_template == "latest"
+      - not response.json.data.0.attributes.for_hotfix
