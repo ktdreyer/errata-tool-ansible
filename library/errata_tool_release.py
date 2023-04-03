@@ -352,6 +352,10 @@ def prepare_diff_data(before, after):
             'pelc_product_version_name',
             'state_machine_rule_set',
             'zstream_target_release',
+            # https://github.com/ktdreyer/errata-tool-ansible/issues/114
+            'notify_bugzilla_about_release_status',
+            # https://github.com/ktdreyer/errata-tool-ansible/issues/265
+            'is_silent',
         ],
         keys_to_omit=[
             # I think these two are old dead schema that
