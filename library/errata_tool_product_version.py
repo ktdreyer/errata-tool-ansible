@@ -140,9 +140,8 @@ def get_product_version(client, product, name, check_mode):
     # url = 'api/v1/products/%s/product_versions/%s' % (product, name)
     # ... this would also change the returned data structure slightly (the
     # results would not be in a list.)
-    url = 'api/v1/products/%s/product_versions/?filter[name]=%s' % (
-        product, name)
-    r = client.get(url)
+    url = 'api/v1/products/%s/product_versions/' % product
+    r = client.get(url, params={'filter[name]': name})
     # If the product does not exist but we're running in check mode it could
     # be that the product is going to be setup in the subsequent run mode
     # run. In this case the query will return 404 but that would be expected

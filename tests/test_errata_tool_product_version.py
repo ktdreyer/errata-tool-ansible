@@ -1,3 +1,4 @@
+from copy import deepcopy
 from utils import Mock
 from requests.exceptions import HTTPError
 import pytest
@@ -102,6 +103,21 @@ class TestGetProductVersion(object):
             'sig_key_name': 'redhatrelease2'
         }
         assert product_version == expected
+
+    def test_plus_character_in_name(self, client):
+        """ Quote "+" characters in product version name HTTP request """
+        name = NAME + '+EUS'
+        product_version = deepcopy(PRODUCT_VERSION)
+        product_version['attributes']['name'] = name
+        check_mode = False
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/'
+            + '?filter%5Bname%5D=' + NAME + '%2BEUS',
+            json={'data': [product_version]})
+        product_version = get_product_version(
+            client, PRODUCT, name, check_mode)
+        assert product_version.get('name') == name
 
 
 class TestFormErrors(object):
