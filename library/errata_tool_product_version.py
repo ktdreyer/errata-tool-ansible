@@ -236,12 +236,14 @@ def create_product_version(client, product, params):
     if 'use_quay_for_containers' in params:
         pv['use_quay_for_containers'] = params['use_quay_for_containers']
     if 'use_quay_for_containers_stage' in params:
-        pv['use_quay_for_containers_stage'] = params['use_quay_for_containers_stage']
+        pv['use_quay_for_containers_stage'] = (
+            params['use_quay_for_containers_stage']
+        )
     data = {'product_version': pv}
     endpoint = 'api/v1/products/%s/product_versions' % product
     response = client.post(endpoint, json=data)
     if response.status_code != 201:
-        raise ValueError(response.json())
+        raise common_errata_tool.ErrataToolError(response)
     set_push_targets(client, product, params['name'], params['push_targets'])
 
 
@@ -267,7 +269,7 @@ def edit_product_version(client, product_version, differences):
     endpoint = 'api/v1/products/%s/product_versions/%d' % (product, pv_id)
     response = client.put(endpoint, json=data)
     if response.status_code != 200:
-        raise ValueError(response.json())
+        raise common_errata_tool.ErrataToolError(response)
     if 'push_targets' in pv:
         set_push_targets(client, product, pv_id, pv['push_targets'])
 

@@ -7,6 +7,20 @@ import requests
 from requests_gssapi import HTTPSPNEGOAuth, DISABLED
 
 
+class ErrataToolError(ValueError):
+    def __init__(self, response):
+        data = response.json()
+        error = data.get('error') or data.get('errors') or response.text
+        msg = 'Unexpected response from Errata Tool: %s' % error
+        request = response.request
+        msg += '\n  Request: %s %s' % (request.method, request.path_url)
+        msg += '\n  Status code: %d' % response.status_code
+        if request.body:
+            msg += '\n  Request body: %s' % request.body.decode('utf-8')
+        super(ErrataToolError, self).__init__(msg)
+        self.response = response
+
+
 class PushTargetScraper(object):
     """
     Scrape the Push Target name-to-id mappings.
