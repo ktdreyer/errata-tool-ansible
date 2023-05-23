@@ -85,11 +85,7 @@ def create_user(client, params):
 
     response = client.post(endpoint, json=params)
     if response.status_code != 201:
-        response_data = response.json()
-        if 'errors' not in response_data:
-            raise ValueError(response_data)
-        errors = response_data['errors']
-        raise ValueError(errors)
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def edit_user(client, user_id, differences):
@@ -108,7 +104,7 @@ def edit_user(client, user_id, differences):
     endpoint = 'api/v1/user/%d' % user_id
     response = client.put(endpoint, json=user)
     if response.status_code != 200:
-        raise ValueError(response.json())
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def ensure_user(client, params, check_mode):
