@@ -3,6 +3,7 @@ import pytest
 import errata_tool_release
 from ansible.module_utils import common_errata_tool
 from ansible.module_utils.common_errata_tool import UserNotFoundError
+from ansible.module_utils.six import PY2
 from errata_tool_release import get_release
 from errata_tool_release import api_data
 from errata_tool_release import create_release
@@ -337,6 +338,18 @@ class TestEnsureRelease(object):
             json=RELEASE)
         return client
 
+    @pytest.fixture
+    def client_with_brew_tags(self, client):
+        release = dict(RELEASE)
+        release['data'][0]['relationships']['brew_tags'] = [
+            {'id': 100, 'name': 'test-1'},
+        ]
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/releases?filter%5Bname%5D=rhceph-4.0',
+            json=release)
+        return client
+
     @pytest.mark.parametrize('check_mode', (True, False))
     def test_unchanged(self, client, params, check_mode):
         result = ensure_release(client, params, check_mode)
@@ -452,6 +465,22 @@ class TestEnsureRelease(object):
         assert history[-1].url == PROD + '/api/v1/releases/1017'
         assert history[-1].method == 'PUT'
         assert history[-1].json() == expected
+
+    def test_edit_check_mode_with_brew_tags(
+            self, client_with_brew_tags, params):
+        params['brew_tags'] = ['test-2']
+        result = ensure_release(client_with_brew_tags, params, check_mode=True)
+        assert result['changed'] is True
+        if PY2:
+            expected = "changing brew_tags from [u'test-1'] to ['test-2']"
+        else:
+            expected = "changing brew_tags from ['test-1'] to ['test-2']"
+        assert result['stdout_lines'] == [expected]
+
+    def test_unchanged_with_brew_tags(self, client_with_brew_tags, params):
+        params['brew_tags'] = ['test-1']
+        result = ensure_release(client_with_brew_tags, params, check_mode=True)
+        assert result['changed'] is False
 
 
 class TestMain(object):

@@ -221,7 +221,8 @@ def get_release(client, name):
         release['state_machine_rule_set'] = None
 
     # brew_tags
-    release['brew_tags'] = release_data['relationships']['brew_tags']
+    brew_tags = release_data['relationships']['brew_tags']
+    release['brew_tags'] = [tag['name'] for tag in brew_tags]
 
     # product_versions
     product_version_data = release_data['relationships']['product_versions']
