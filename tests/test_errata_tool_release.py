@@ -221,7 +221,10 @@ class TestCreateRelease(object):
             json={'error': 'Some Error Here'})
         with pytest.raises(ValueError) as err:
             create_release(client, params)
-        assert err.value.args == ({'error': 'Some Error Here'},)
+        error = str(err.value)
+        assert 'Unexpected response from Errata Tool: Some Error Here' in error
+        assert '\n  Request: POST /api/v1/releases' in error
+        assert '\n  Status code: 500' in error
 
     def test_create_async_no_product(self, client, params):
         params['product'] = None
@@ -295,7 +298,15 @@ class TestEditRelease(object):
                         'Red Hat Ceph Storage 4.0 Is Cool')]
         with pytest.raises(ValueError) as err:
             edit_release(client, 1017, differences)
-        assert err.value.args == ({'error': 'Some Error Here'},)
+        error = str(err.value)
+        assert 'Unexpected response from Errata Tool: Some Error Here' in error
+        assert '\n  Request: PUT /api/v1/releases/1017' in error
+        assert '\n  Status code: 500' in error
+        expected_request_body = (
+            '\n  Request body: {"release": {'
+            '"description": "Red Hat Ceph Storage 4.0 Is Cool"}}'
+        )
+        assert expected_request_body in error
 
     def test_state_machine_rule_set(self, client):
         """ Ensure that we send the ID number, not the name. CLOUDWF-298 """

@@ -128,8 +128,7 @@ def create_variant(client, params):
     data = {'variant': params}
     response = client.post('api/v1/variants', json=data)
     if response.status_code != 201:
-        data = response.json()
-        raise ValueError(data['error'])
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def edit_variant(client, variant_id, differences):
@@ -150,8 +149,7 @@ def edit_variant(client, variant_id, differences):
     response = client.put(endpoint, json=data)
     # TODO: verify 200 is the right code to expect here?
     if response.status_code != 200:
-        data = response.json()
-        raise ValueError(data['error'])
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def prepare_diff_data(before, after):

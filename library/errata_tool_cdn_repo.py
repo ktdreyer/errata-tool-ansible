@@ -305,10 +305,10 @@ def cdn_repo_api_data(params):
 def create_cdn_repo(client, params):
     data = cdn_repo_api_data(params)
     response = client.post('api/v1/cdn_repos', json=data)
-    data = response.json()
     if response.status_code != 201:
-        raise ValueError(data.get('error') or response.text)
+        raise common_errata_tool.ErrataToolError(response)
     name = params['name']
+    data = response.json()
     cdn_repo_data = data['data']
     return get_cdn_repo(client, name, cdn_repo_data=cdn_repo_data)
 
@@ -322,8 +322,7 @@ def edit_cdn_repo(client, cdn_repo_id, differences):
     data = cdn_repo_api_data(params)
     response = client.put('api/v1/cdn_repos/%d' % cdn_repo_id, json=data)
     if response.status_code != 200:
-        errors = response.json()
-        raise ValueError(errors)
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def add_package_tag(client, repo_name, package_name, tag_template, variant):
@@ -346,9 +345,7 @@ def add_package_tag(client, repo_name, package_name, tag_template, variant):
     json = {'cdn_repo_package_tag': json_settings}
     response = client.post(endpoint, json=json)
     if response.status_code != 201:
-        data = response.json()
-        message = 'request: %s, error: %s' % (json, data['error'])
-        raise ValueError(message)
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def edit_package_tag(client, tag_id, desired_tag):
@@ -372,8 +369,7 @@ def edit_package_tag(client, tag_id, desired_tag):
     endpoint = 'api/v1/cdn_repo_package_tags/%d' % tag_id
     response = client.put(endpoint, json=json)
     if response.status_code != 200:
-        data = response.json()
-        raise ValueError(data['error'])
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def delete_package_tag(client, tag_id):
@@ -385,8 +381,7 @@ def delete_package_tag(client, tag_id):
     """
     response = client.delete('api/v1/cdn_repo_package_tags/%d' % tag_id)
     if response.status_code != 204:
-        data = response.json()
-        raise ValueError(data['error'])
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def compare_package_tags(package_name, tag_template, current, desired):

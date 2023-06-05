@@ -327,7 +327,7 @@ def create_release(client, params):
     data = api_data(client, params)
     response = client.post('api/v1/releases', json=data)
     if response.status_code != 201:
-        raise ValueError(response.json())
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def edit_release(client, release_id, differences):
@@ -339,7 +339,7 @@ def edit_release(client, release_id, differences):
     data = api_data(client, params)
     response = client.put('api/v1/releases/%d' % release_id, json=data)
     if response.status_code != 200:
-        raise ValueError(response.json())
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def prepare_diff_data(before, after):
