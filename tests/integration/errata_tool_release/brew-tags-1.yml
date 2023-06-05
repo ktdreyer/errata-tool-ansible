@@ -1,0 +1,127 @@
+# Test editing brew_tags settings.
+#
+# This test case exercises the ability to set the brew_tags values.
+
+# This assumes the "RHEL" product is pre-configured. The errata-rails.git
+# test/fixtures/errata_products.yml file does this.
+---
+
+- name: Add prerequisite program manager Errata Tool account
+  errata_tool_user:
+    login_name: rhelpm@redhat.com
+    realname: Cool RHEL ProgramManager
+    organization: Program Management
+    receives_mail: false
+    roles:
+      - pm
+
+###########
+
+- name: Create a release with one brew tag
+  errata_tool_release:
+    product: RHEL
+    name: brew-tags-1
+    type: Async
+    description: Testing Brew Tags
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    brew_tags: ['rhel-8.0.0']
+  register: result
+
+- name: assert brew-tags-1 is a new release
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == ["created brew-tags-1"]
+
+- name: query API for brew-tags-1 release
+  errata_tool_request:
+    path: api/v1/releases/brew-tags-1
+  register: response
+
+- name: assert new release has one brew tag
+  assert:
+    that:
+      - response.json.data.relationships.brew_tags | length == 1
+      - response.json.data.relationships.brew_tags.0.name == "rhel-8.0.0"
+
+###########
+
+- name: Add a brew tag to an existing release with one brew tag
+  errata_tool_release:
+    product: RHEL
+    name: brew-tags-1
+    type: Async
+    description: Testing Brew Tags
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    brew_tags: [rhel-8.0.0, rhel-8.0.1]
+  register: result
+
+- name: set expected changed_message on py2
+  set_fact:
+    changed_message: "changing brew_tags from [u'rhel-8.0.0'] to ['rhel-8.0.0', 'rhel-8.0.1']"
+  when: ansible_python_version is version("3", "<")
+
+- name: set expected changed_message on py3
+  set_fact:
+    changed_message: "changing brew_tags from ['rhel-8.0.0'] to ['rhel-8.0.0', 'rhel-8.0.1']"
+  when: ansible_python_version is version("3", ">=")
+
+- name: assert module reports brew_tags changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == [changed_message]
+
+- name: query API for brew-tags-1 release
+  errata_tool_request:
+    path: api/v1/releases/brew-tags-1
+  register: response
+
+- name: assert release has a new rhel-8.0.1 Brew tag
+  assert:
+    that:
+      - response.json.data.relationships.brew_tags | length == 2
+      - response.json.data.relationships.brew_tags.0.name == "rhel-8.0.0"
+      - response.json.data.relationships.brew_tags.1.name == "rhel-8.0.1"
+
+###########
+
+- name: Remove brew tag from a release
+  errata_tool_release:
+    product: RHEL
+    name: brew-tags-1
+    type: Async
+    description: Testing Brew Tags
+    program_manager: rhelpm@redhat.com
+    product_versions: []
+    brew_tags: ['rhel-8.0.0']
+  register: result
+
+- name: set expected changed_message on py2
+  set_fact:
+    changed_message: "changing brew_tags from [u'rhel-8.0.0', u'rhel-8.0.1'] to ['rhel-8.0.0']"
+  when: ansible_python_version is version("3", "<")
+
+- name: set expected changed_message on py3
+  set_fact:
+    changed_message: "changing brew_tags from ['rhel-8.0.0', 'rhel-8.0.1'] to ['rhel-8.0.0']"
+  when: ansible_python_version is version("3", ">=")
+
+- name: assert module reports brew_tags changing
+  assert:
+    that:
+      - result.changed
+      - result.stdout_lines == [changed_message]
+
+- name: query API for brew-tags-1 release
+  errata_tool_request:
+    path: api/v1/releases/brew-tags-1
+  register: response
+
+- name: assert release has one brew tag
+  assert:
+    that:
+      - response.json.data.relationships.brew_tags | length == 1
+      - response.json.data.relationships.brew_tags.0.name == "rhel-8.0.0"
