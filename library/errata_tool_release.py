@@ -70,7 +70,8 @@ options:
          with the web UI, or the errata_tool_user Ansible module, or some
          other method.
        - The Errata Tool does not require a specific role for this user
-         account.
+         account but in order to actually manage releases they must have
+         the following roles: ['pm', 'product-configuration-manager', 'admin'].
      required: false
    blocker_flags:
      description:
@@ -459,6 +460,15 @@ def run_module():
         except UserNotFoundError as e:
             msg = 'program_manager %s account not found' % e
             module.fail_json(msg=msg, changed=False, rc=1)
+
+        pm_roles = ['pm', 'product-configuration-manager', 'admin']
+        if not any(role in pm_roles for role in user['roles']):
+            msg = (
+                "User %s does not have the following roles in ET: %s"
+                % (params['program_manager'], pm_roles)
+            )
+            module.fail_json(msg=msg, changed=False, rc=1)
+
         if not user.get('enabled'):
             # Note, the ET server does not require the program_manager
             # account to be enabled, but normally a human release engineer

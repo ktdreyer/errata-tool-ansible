@@ -364,6 +364,10 @@ And trying to set ``default_docs_reviewer`` without the ``docs`` role::
 
   User nodocsrole does not have 'docs' role in ET
 
+Trying to set ``program_manager`` without these roles ``['pm', 'product-configuration-manager', 'admin']`` also produces an error::
+
+  User nopmroles@redhat.com does not have the following roles in ET: ['pm', 'product-configuration-manager', 'admin']
+
 File paths
 ----------
 
