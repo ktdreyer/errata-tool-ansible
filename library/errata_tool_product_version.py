@@ -54,7 +54,8 @@ options:
      default: false
    use_quay_for_containers_stage:
      description:
-       - The Errata Tool no longer uses this parameter. It is a no-op. Remove it from your playbooks.
+       - The Errata Tool no longer uses this parameter. It is a no-op.
+         Remove it from your playbooks.
      required: false
    default_brew_tag:
      description:
@@ -229,10 +230,6 @@ def create_product_version(client, product, params):
     pv['push_targets'] = params['push_targets']
     if 'use_quay_for_containers' in params:
         pv['use_quay_for_containers'] = params['use_quay_for_containers']
-    if 'use_quay_for_containers_stage' in params:
-        pv['use_quay_for_containers_stage'] = (
-            params['use_quay_for_containers_stage']
-        )
     data = {'product_version': pv}
     endpoint = 'api/v1/products/%s/product_versions' % product
     response = client.post(endpoint, json=data)

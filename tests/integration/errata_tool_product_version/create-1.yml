@@ -36,7 +36,6 @@
       - not attributes.use_quay_for_containers
       - not attributes.is_server_only
       - not attributes.use_quay_for_containers
-      - not attributes.use_quay_for_containers_stage
       - attributes.enabled
 
       - relationships.push_targets == []
