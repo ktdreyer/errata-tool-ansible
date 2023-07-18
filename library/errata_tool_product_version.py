@@ -54,14 +54,8 @@ options:
      default: false
    use_quay_for_containers_stage:
      description:
-       - If enabled, the Errata Tool will instruct pub to push this product
-         version's container advisories to quay.io instead of docker-pulp for
-         stage pushes.
-       - Leave this unchecked unless this product version is ready
-         for Quay.io.
-     choices: [true, false]
+       - The Errata Tool no longer uses this parameter. It is a no-op. Remove it from your playbooks.
      required: false
-     default: false
    default_brew_tag:
      description:
        - The default brew tag to use when validating that a build can be added
@@ -340,8 +334,8 @@ def run_module():
     # value if the user has omitted it.
     if params['use_quay_for_containers'] is None:
         params.pop('use_quay_for_containers')
-    if params['use_quay_for_containers_stage'] is None:
-        params.pop('use_quay_for_containers_stage')
+    # 'use_quay_for_containers_stage' is deprecated.
+    params.pop('use_quay_for_containers_stage')
 
     result = ensure_product_version(client, params, check_mode)
 
