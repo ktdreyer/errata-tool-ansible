@@ -186,31 +186,6 @@ def handle_form_errors(response):
     response.raise_for_status()
 
 
-def set_push_targets(client, product, product_version, push_targets):
-    """
-    Set push targest through the web form.
-
-    This is a temporary hack until we have API support in CLOUDWF-5
-
-    :param str product: product name
-    :param str product_version: product version name (or id)
-    :param list push_targets: Push Target names
-    """
-    if not push_targets:
-        # Not implemented: not sure how to un-set all push_targets.
-        # Just skip this case for now.
-        return
-    scraper = common_errata_tool.PushTargetScraper(client)
-    push_target_ints = scraper.convert_to_ints(push_targets)
-    endpoint = 'products/%s/product_versions/%s' % (product, product_version)
-    data = {
-        '_method': 'patch',
-        'product_version[push_targets][]': push_target_ints
-    }
-    response = client.post(endpoint, data=data)
-    handle_form_errors(response)
-
-
 def create_product_version(client, product, params):
     # TODO: test this without casting the bools to ints. Since we're passing
     # JSON and that has real "true"/"false" values, it should be ok.
@@ -235,7 +210,6 @@ def create_product_version(client, product, params):
     response = client.post(endpoint, json=data)
     if response.status_code != 201:
         raise common_errata_tool.ErrataToolError(response)
-    set_push_targets(client, product, params['name'], params['push_targets'])
 
 
 def edit_product_version(client, product_version, differences):
@@ -261,8 +235,6 @@ def edit_product_version(client, product_version, differences):
     response = client.put(endpoint, json=data)
     if response.status_code != 200:
         raise common_errata_tool.ErrataToolError(response)
-    if 'push_targets' in pv:
-        set_push_targets(client, product, pv_id, pv['push_targets'])
 
 
 def prepare_diff_data(before, after):

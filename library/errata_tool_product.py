@@ -286,11 +286,7 @@ def html_form_data(client, params):
         except UserNotFoundError as e:
             raise_from(DocsReviewerNotFoundError(str(e)), e)
         data['product[default_docs_reviewer_id]'] = docs_user_id
-    # push targets need scraper
-    push_targets = params['push_targets']
-    push_target_scraper = common_errata_tool.PushTargetScraper(client)
-    push_target_ints = push_target_scraper.convert_to_ints(push_targets)
-    data['product[push_targets][]'] = push_target_ints
+    data['product[push_targets][]'] = params['push_targets']
     # This is an internal-only product thing that we can probably skip:
     # data['product[cdw_flag_prefix]'] = params['cdw_flag_prefix']
     solution = params['default_solution'].upper()
