@@ -357,13 +357,12 @@ class TestCreateProduct(object):
     def test_create(self, client, params):
         create_product(client, params)
         history = client.adapter.request_history
-        # Requests 0 and 1 are GET requests for the scrapers:
+        # Requests 0 is GET requests for the scrapers:
         assert history[0].method == 'GET'
-        assert history[1].method == 'GET'
         # This request creates the product:
-        assert history[2].method == 'POST'
-        assert history[2].url == 'https://errata.devel.redhat.com/products'
-        body = parse_qs(history[2].text)
+        assert history[1].method == 'POST'
+        assert history[1].url == 'https://errata.devel.redhat.com/products'
+        body = parse_qs(history[1].text)
         expected = {
             'product[default_solution_id]': ['2'],
             'product[description]': ['Red Hat Ceph Storage'],
@@ -376,27 +375,26 @@ class TestCreateProduct(object):
             'product[valid_bug_states][]': ['MODIFIED', 'VERIFIED'],
         }
         assert body == expected
-        # GET requests for the scrapers again:
-        assert history[4].method == 'GET'
-        assert history[5].method == 'GET'
+        # GET request for the scrapers again:
+        assert history[3].method == 'GET'
         # This request edits push_targets on the new product:
-        assert history[6].method == 'POST'
-        assert history[6].url == 'https://errata.devel.redhat.com/products/123'
-        body = parse_qs(history[6].text)
+        assert history[4].method == 'POST'
+        assert history[4].url == 'https://errata.devel.redhat.com/products/123'
+        body = parse_qs(history[4].text)
         expected['_method'] = ['patch']
-        expected['product[push_targets][]'] = ['8', '4']
+        expected['product[push_targets][]'] = ['cdn_docker', 'cdn']
         assert body == expected
 
     def test_with_docs_reviewer(self, client, params):
         params['default_docs_reviewer'] = 'superwriter@redhat.com'
         create_product(client, params)
         history = client.adapter.request_history
-        # Requests 0 and 1 are GET requests for the scrapers,
-        # request 2 is for the docs_reviewer user ID.
+        # Requests 0 is GET request for the scrapers,
+        # request 1 is for the docs_reviewer user ID.
         # This request creates the product:
-        assert history[3].method == 'POST'
-        assert history[3].url == 'https://errata.devel.redhat.com/products'
-        body = parse_qs(history[3].text)
+        assert history[2].method == 'POST'
+        assert history[2].url == 'https://errata.devel.redhat.com/products'
+        body = parse_qs(history[2].text)
         assert body['product[default_docs_reviewer_id]'] == ['1001']
 
     def test_docs_reviewer_missing(self, client, params):
@@ -409,11 +407,11 @@ class TestCreateProduct(object):
         params['exd_org_group'] = 'Cloud'
         create_product(client, params)
         history = client.adapter.request_history
-        # Requests 0 and 1 are GET requests for the scrapers.
+        # Requests 0 is GET request for the scrapers.
         # This request creates the product:
-        assert history[2].method == 'POST'
-        assert history[2].url == 'https://errata.devel.redhat.com/products'
-        body = parse_qs(history[2].text)
+        assert history[1].method == 'POST'
+        assert history[1].url == 'https://errata.devel.redhat.com/products'
+        body = parse_qs(history[1].text)
         assert body['product[exd_org_group_id]'] == ['2']
 
     def test_broken_redirect(self, client, params):
@@ -599,7 +597,8 @@ class TestEnsureProduct(object):
             'product[isactive]': ['1'],
             'product[move_bugs_on_qe]': ['0'],
             'product[name]': ['Red Hat Ceph Storage'],
-            'product[push_targets][]': ['3', '5', '9', '8', '4'],
+            'product[push_targets][]': [
+                'ftp', 'cdn_stage', 'cdn_docker_stage', 'cdn_docker', 'cdn'],
             'product[short_name]': ['RHCEPH'],
             'product[state_machine_rule_set_id]': ['1'],
             'product[valid_bug_states][]': ['VERIFIED',
