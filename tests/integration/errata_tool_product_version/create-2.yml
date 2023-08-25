@@ -12,6 +12,9 @@
     is_oval_product: true
     allow_buildroot_push: true
     is_server_only: false
+    # no-ops, just testing for backwards compatibility with older playbooks:
+    use_quay_for_containers: true
+    use_quay_for_containers_stage: true
 
 # We cannot get the name directly yet, CLOUDWF-3
 - name: query API for this product version
