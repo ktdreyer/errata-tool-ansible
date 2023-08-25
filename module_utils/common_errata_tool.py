@@ -28,13 +28,12 @@ class WorkflowRulesScraper(object):
     The ET server code also refers to Workflow Rules as "StateMachineRuleSet"s
     internally.
 
-    There are two endpoints that require us to send Workflow Rule ID numbers
+    There is one endpoint that requires us to send Workflow Rule ID numbers
     (ints) instead of names (human-readable strings):
 
-      POST to /products (see CLOUDWF-7)
       POST and PUT to /api/v1/releases (CLOUDWF-298)
 
-    When we fix these, we will no longer need this WorkflowRulesScraper class.
+    When we fix this, we will no longer need this WorkflowRulesScraper class.
     """
     def __init__(self, client):
         """
@@ -91,6 +90,7 @@ class DefaultSolutions(IntEnum):
     form for product configuration only accepts solution ID numbers, rather
     than name strings.
     """
+    # XXX rethink this now that we're using the /api/v1/products REST API
     DEFAULT = 1
     ENTERPRISE = 2
     RHN_TOOLS = 3

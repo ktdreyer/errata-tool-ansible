@@ -1,11 +1,8 @@
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import common_errata_tool
 from ansible.module_utils.common_errata_tool import UserNotFoundError
-from ansible.module_utils.six import raise_from
 from ansible.module_utils.parsing.convert_bool import boolean
-import re
 import os
-from lxml import html
 
 
 ANSIBLE_METADATA = {
@@ -156,10 +153,6 @@ class InvalidInputError(Exception):
         self.value = value
 
 
-class DocsReviewerNotFoundError(UserNotFoundError):
-    pass
-
-
 def validate_params(params):
     """
     Sanity-check user input for some parameters.
@@ -232,130 +225,51 @@ def get_product(client, short_name):
     return product
 
 
-def scrape_error_message(response):
-    """
-    Return the text inside "<div id="error-message">...</div>" in this HTML
-    response.
-
-    :param response: Requests.response object
-    :returns: message text (str)
-    """
-    content = response.text
-    doc = html.document_fromstring(content)
-    messages = doc.xpath('//div[@id="error-message"]')
-    if len(messages) != 1:
-        print('expected 1 <div id="error-message">, found %d' % len(messages))
-        raise ValueError(response.text)
-    message = messages[0]
-    message = message.text_content().strip()
-    return message
-
-
-def scrape_error_explanations(response):
-    """
-    Return the text inside "<div class="errorExplanation"> ... </div>" in this
-    HTML response.
-
-    :param response: Requests.response object
-    :returns: list of messages (str)
-    """
-    content = response.text
-    doc = html.document_fromstring(content)
-    lis = doc.xpath('//div[@class="errorExplanation"]//li/text()')
-    errors = [li.strip() for li in lis]
-    return errors
-
-
-def html_form_data(client, params):
-    """ Transform our Ansible params into an HTML form "data" for POST'ing.
-    """
-    data = {}
-    data['product[short_name]'] = params['short_name']
-    data['product[name]'] = params['name']
-    data['product[description]'] = params['description']
-    data['product[bugzilla_product_name]'] = params['bugzilla_product_name']
-    data['product[valid_bug_states][]'] = params['valid_bug_states']
-    data['product[isactive]'] = int(params['active'])
-    data['product[ftp_path]'] = params['ftp_path']
-    data['product[ftp_subdir]'] = params.get('ftp_subdir', '')
-    data['product[is_internal]'] = int(params['internal'])
-    docs_reviewer = params.get('default_docs_reviewer')
-    if docs_reviewer is not None:
-        try:
-            docs_user_id = common_errata_tool.user_id(client, docs_reviewer)
-        except UserNotFoundError as e:
-            raise_from(DocsReviewerNotFoundError(str(e)), e)
-        data['product[default_docs_reviewer_id]'] = docs_user_id
-    data['product[push_targets][]'] = params['push_targets']
-    # This is an internal-only product thing that we can probably skip:
-    # data['product[cdw_flag_prefix]'] = params['cdw_flag_prefix']
-    solution = params['default_solution'].upper()
-    solution_id = int(common_errata_tool.DefaultSolutions[solution])
-    data['product[default_solution_id]'] = solution_id
-    state_machine_rule_set = params['state_machine_rule_set']
-    rules_scraper = common_errata_tool.WorkflowRulesScraper(client)
-    state_machine_rule_set_id = int(rules_scraper.enum[state_machine_rule_set])
-    data['product[state_machine_rule_set_id]'] = state_machine_rule_set_id
-    data['product[move_bugs_on_qe]'] = int(params['move_bugs_on_qe'])
-    exd_org_group = params.get('exd_org_group')
-    if exd_org_group is not None:
-        exd_org_group_id = int(EXD_ORG_GROUPS[exd_org_group])
-        data['product[exd_org_group_id]'] = exd_org_group_id
-    return data
-
-
-def handle_form_errors(response):
-    # If there are incorrect or missing fields, we will receive a HTTP 200
-    # with a list of the wrong fields, or just an HTTP 500 error.
-    if response.status_code == 500:
-        # One way to trigger this HTTP 500 error is to send a bogus
-        # default_docs_reviewer_id that does not exist (eg. 1000000000)
-        message = scrape_error_message(response)
-        raise RuntimeError(message)
-    if 'errorExplanation' in response.text:
-        errors = scrape_error_explanations(response)
-        raise RuntimeError(*errors)
-    response.raise_for_status()
-
-
 def create_product(client, params):
-    """ See CLOUDWF-7 for official create API """
-    data = html_form_data(client, params)
+    """
+    Create a new ET product
 
-    # Hack for CLOUDWF-309:
-    # If there are any push targets, then create the product *without* push
-    # targets first, and then edit the product with the push targets.
-    saved_push_targets = data.pop('product[push_targets][]')
-
-    response = client.post('products', data=data)
-    handle_form_errors(response)
-
-    # Hack for CLOUDWF-309, part 2:
-    # Edit product we just created so that we can set the push targets.
-    if saved_push_targets:
-        # Get the new product ID for the product we just created.
-        m = re.search(r'\d+$', response.url)
-        if not m:
-            err = 'could not find new product ID from %s' % response.url
-            raise RuntimeError(err)
-        product_id = int(m.group(0))
-        edit_product(client, product_id, params)
+    :param client: Errata Client
+    :param dict params: ansible module params
+    """
+    # Send the server's name for these parameters
+    # (see comment in get_product())
+    product = params.copy()
+    if 'active' in product:
+        product['isactive'] = product.pop('active')
+    if 'internal' in product:
+        product['is_internal'] = product.pop('internal')
+    data = {'product': product}
+    response = client.post('api/v1/products', json=data)
+    if response.status_code != 201:
+        raise common_errata_tool.ErrataToolError(response)
 
 
-def edit_product(client, product_id, params):
+def edit_product(client, product_id, differences):
     """
     Edit an existing product.
 
-    See CLOUDWF-7 for official edit API.
-
     :param client: Errata Client
     :param int product_id: ID of the product we will edit
-    :param dict params: ansible module params
+    :param list differences: changes to make
     """
-    data = html_form_data(client, params)
-    data['_method'] = 'patch'
-    response = client.post('products/%d' % product_id, data=data)
-    handle_form_errors(response)
+    # Create a Ansible params-like dict for the API.
+    params = {}
+    for difference in differences:
+        key, _, new = difference
+        params[key] = new
+    # Send the server's name for these parameters
+    # (see comment in get_product())
+    if 'active' in params:
+        params['isactive'] = params.pop('active')
+    if 'internal' in params:
+        params['is_internal'] = params.pop('internal')
+    endpoint = 'api/v1/products/%d' % product_id
+    data = {'product': params}
+    response = client.put(endpoint, json=data)
+    # TODO: verify 200 is the right code to expect here?
+    if response.status_code != 200:
+        raise common_errata_tool.ErrataToolError(response)
 
 
 def prepare_diff_data(before, after):
@@ -391,7 +305,7 @@ def ensure_product(client, params, check_mode):
         result['stdout_lines'].extend(changes)
         result['diff'] = prepare_diff_data(product, params)
         if not check_mode:
-            edit_product(client, product['id'], params)
+            edit_product(client, product['id'], differences)
     return result
 
 
@@ -432,11 +346,7 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    try:
-        result = ensure_product(client, params, check_mode)
-    except DocsReviewerNotFoundError as e:
-        msg = 'default_docs_reviewer %s account not found' % e
-        module.fail_json(msg=msg, changed=False, rc=1)
+    result = ensure_product(client, params, check_mode)
 
     if (
         check_mode
