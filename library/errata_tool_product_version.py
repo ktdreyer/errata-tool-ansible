@@ -44,14 +44,9 @@ options:
      default: redhatrelease2
    use_quay_for_containers:
      description:
-       - If enabled, the Errata Tool will instruct pub to push this product
-         version's container advisories to quay.io instead of docker-pulp for
-         live pushes.
-       - Leave this unchecked unless this product version is ready
-         for Quay.io.
-     choices: [true, false]
+       - The Errata Tool no longer uses this parameter. It is a no-op.
+         Remove it from your playbooks.
      required: false
-     default: false
    use_quay_for_containers_stage:
      description:
        - The Errata Tool no longer uses this parameter. It is a no-op.
@@ -203,8 +198,6 @@ def create_product_version(client, product, params):
     pv['sig_key_name'] = params['sig_key_name']
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
     pv['push_targets'] = params['push_targets']
-    if 'use_quay_for_containers' in params:
-        pv['use_quay_for_containers'] = params['use_quay_for_containers']
     data = {'product_version': pv}
     endpoint = 'api/v1/products/%s/product_versions' % product
     response = client.post(endpoint, json=data)
@@ -299,11 +292,8 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    # 'use_quay_for_containers' is optional - don't modify the server-side
-    # value if the user has omitted it.
-    if params['use_quay_for_containers'] is None:
-        params.pop('use_quay_for_containers')
-    # 'use_quay_for_containers_stage' is deprecated.
+    # 'use_quay_for_containers' and 'use_quay_for_containers_stage' are deprecated.
+    params.pop('use_quay_for_containers')
     params.pop('use_quay_for_containers_stage')
 
     result = ensure_product_version(client, params, check_mode)
