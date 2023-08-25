@@ -33,9 +33,7 @@
       - attributes.allow_buildroot_push
       - attributes.is_oval_product
       - not attributes.is_rhel_addon
-      - not attributes.use_quay_for_containers
       - not attributes.is_server_only
-      - not attributes.use_quay_for_containers
       - attributes.enabled
 
       - relationships.push_targets == []

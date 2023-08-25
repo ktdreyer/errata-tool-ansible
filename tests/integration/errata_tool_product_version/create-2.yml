@@ -12,8 +12,6 @@
     is_oval_product: true
     allow_buildroot_push: true
     is_server_only: false
-    use_quay_for_containers: true
-    use_quay_for_containers_stage: true
 
 # We cannot get the name directly yet, CLOUDWF-3
 - name: query API for this product version
@@ -36,7 +34,6 @@
       - attributes.is_oval_product
       - not attributes.is_rhel_addon
       - not attributes.is_server_only
-      - attributes.use_quay_for_containers
       - attributes.enabled
 
       - relationships.push_targets == []
