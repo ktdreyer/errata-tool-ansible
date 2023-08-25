@@ -4,13 +4,10 @@ from ansible.module_utils import common_errata_tool
 from ansible.module_utils.common_errata_tool import UserNotFoundError
 from errata_tool_product import BUGZILLA_STATES
 from errata_tool_product import InvalidInputError
-from errata_tool_product import DocsReviewerNotFoundError
 from errata_tool_product import validate_params
 from errata_tool_product import get_product
-from errata_tool_product import scrape_error_message
-from errata_tool_product import scrape_error_explanations
-from errata_tool_product import handle_form_errors
 from errata_tool_product import create_product
+from errata_tool_product import edit_product
 from errata_tool_product import ensure_product
 from errata_tool_product import prepare_diff_data
 from errata_tool_product import main
@@ -18,106 +15,14 @@ from ansible.module_utils.six import PY2
 from ansible.module_utils.six.moves.urllib.parse import parse_qs
 from utils import exit_json
 from utils import fail_json
+from utils import load_json
 from utils import set_module_args
 from utils import AnsibleExitJson
 from utils import AnsibleFailJson
 from utils import Mock
-from utils import load_html
 
 
-PRODUCT = {
-    "id": 104,
-    "type": "products",
-    "attributes": {
-        "name": "Red Hat Ceph Storage",
-        "description": "Red Hat Ceph Storage",
-        "short_name": "RHCEPH",
-        "bugzilla_product_name": None,
-        "valid_bug_states": [
-            "VERIFIED",
-            "ON_QA",
-            "MODIFIED",
-            "ASSIGNED",
-            "NEW",
-            "ON_DEV",
-            "POST"
-        ],
-        "ftp_path": "",
-        "ftp_subdir": "RHCEPH",
-        "is_internal": False,
-        "isactive": True,
-        "move_bugs_on_qe": False
-    },
-    "relationships": {
-        "default_docs_reviewer": {
-            "id": 1,
-            "login_name": "docs-errata-list@redhat.com"
-        },
-        "default_solution": {
-            "id": 2,
-            "title": "enterprise"
-        },
-        "product_versions": [
-            {
-                "id": 929,
-                "name": "RHCEPH-4.0-RHEL-8"
-            },
-            {
-                "id": 1108,
-                "name": "RHEL-7-RHCEPH-4.0"
-            }
-        ],
-        "push_targets": [
-            {
-                "id": 3,
-                "name": "ftp"
-            },
-            {
-                "id": 7,
-                "name": "cdn_stage"
-            },
-            {
-                "id": 10,
-                "name": "cdn_docker_stage"
-            },
-            {
-                "id": 9,
-                "name": "cdn_docker"
-            },
-            {
-                "id": 4,
-                "name": "cdn"
-            }
-        ],
-        "state_machine_rule_set": {
-            "id": 1,
-            "name": "Default"
-        },
-        "exd_org_group": {
-            "id": 2,
-            "name": "Cloud",
-            "short_name": "Cloud",
-            "jira_key": "SPCLOUD",
-            "jira_ticket_project_keys": {
-                "push_request": "CLOUDDST",
-                "listings_change": "CLOUDWF"
-            }
-        }
-    }
-}
-
-
-@pytest.fixture(autouse=True)
-def fake_scraper_pages(client):
-    """ Several tests use these fake responses """
-    client.adapter.register_uri(
-        'GET',
-        'https://errata.devel.redhat.com/products/new',
-        text=load_html('products_new.html'))
-    client.adapter.register_uri(
-        'GET',
-        'https://errata.devel.redhat.com/workflow_rules',
-        text=load_html('workflow_rules.html'))
+PROD = 'https://errata.devel.redhat.com'
 
 
 def bugzilla_product_name_hack():
@@ -128,6 +33,31 @@ def bugzilla_product_name_hack():
     # The unit tests that call this method work around this behavior by
     # setting bugzilla_product_name directly to "None".
     return None
+
+
+def rhceph_product_response():
+    return load_json('RHCEPH.product.json')
+
+
+@pytest.fixture
+def params():
+    return {
+        'short_name': 'RHCEPH',
+        'name': 'Red Hat Ceph Storage',
+        'active': True,
+        'bugzilla_product_name': '',
+        'default_docs_reviewer': None,
+        'default_solution': 'enterprise',
+        'description': 'Red Hat Ceph Storage',
+        'exd_org_group': 'Cloud',
+        'ftp_path': '',
+        'ftp_subdir': None,
+        'internal': False,
+        'move_bugs_on_qe': False,
+        'push_targets': ['ftp', 'cdn_stage', 'cdn_docker_stage', 'cdn_docker', 'cdn'],
+        'state_machine_rule_set': 'Optional BugsGuard',
+        'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED', 'NEW', 'ON_DEV', 'POST']
+    }
 
 
 def test_bugzilla_states():
@@ -176,28 +106,28 @@ class TestValidateParams(object):
         assert e.value.value == 'ENTERPRIZE LOL'
 
 
-class TestGetProduct(object):
+class TestResponses(object):
 
-    def test_not_found(self, client):
+    def test_product_missing(self, client):
         client.adapter.register_uri(
             'GET',
-            'https://errata.devel.redhat.com/api/v1/products/RHCEPH',
+            PROD + '/api/v1/products/RHCEPH',
             status_code=404)
         product = get_product(client, 'RHCEPH')
         assert product is None
 
-    def test_basic(self, client):
+    def test_get_product(self, client):
         client.adapter.register_uri(
             'GET',
-            'https://errata.devel.redhat.com/api/v1/products/RHCEPH',
-            json={'data': PRODUCT})
+            PROD + '/api/v1/products/RHCEPH',
+            json=rhceph_product_response())
         product = get_product(client, 'RHCEPH')
         expected = {
             'id': 104,
             'name': 'Red Hat Ceph Storage',
             'description': 'Red Hat Ceph Storage',
             'short_name': 'RHCEPH',
-            'bugzilla_product_name': None,
+            'bugzilla_product_name': '',
             'valid_bug_states': [
                 'VERIFIED',
                 'ON_QA',
@@ -221,221 +151,77 @@ class TestGetProduct(object):
                 'cdn_docker',
                 'cdn',
             ],
-            'state_machine_rule_set': 'Default',
+            'state_machine_rule_set': 'Optional BugsGuard',
             'exd_org_group': 'Cloud',
+            'suppress_push_request_jira': True,
+            'show_bug_package_mismatch_warning': True,
         }
         assert product == expected
 
-
-class TestScrapeErrorMessage(object):
-
-    def test_found_message(self, client):
-        """ Verify that we can scrape an error message. """
+    def test_create_product(self, client, params):
         client.adapter.register_uri(
             'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=500,
-            text=load_html('products_create_500_error.html'))
-        response = client.post('products')
-        result = scrape_error_message(response)
-        assert result == ('ERROR: Mysql2::Error: Cannot add or update a child '
-                          'row: a foreign key constraint fails (... longer '
-                          'error message here ...)')
-
-    def test_message_not_found(self, client):
-        """
-        If we do not find the expected <div>, raise ValueError with the
-        entire HTTP response body text.
-
-        Note: I have not been able to hit this condition on a live server,
-        because it always prints the <div> for HTTP 500 errors, but this unit
-        test covers it anyway.
-        """
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=500,
-            text='Something went wrong!')
-        response = client.post('products')
-        with pytest.raises(ValueError) as e:
-            scrape_error_message(response)
-        assert str(e.value) == 'Something went wrong!'
-
-
-class TestScrapeErrorExplanations(object):
-
-    def test_found_explanations(self, client):
-        """ Verify that we can scrape the error explanations. """
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            text=load_html('products_create_form_errors.html'))
-        response = client.post('products')
-        result = scrape_error_explanations(response)
-        assert result == ["Name can't be blank", "Short name can't be blank"]
-
-
-class TestHandleFormErrors(object):
-
-    def test_500_response(self, client):
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=500,
-            text=load_html('products_create_500_error.html'))
-        response = client.post('products')
-        with pytest.raises(RuntimeError) as e:
-            handle_form_errors(response)
-        result = str(e.value)
-        assert result == ('ERROR: Mysql2::Error: Cannot add or update a child '
-                          'row: a foreign key constraint fails (... longer '
-                          'error message here ...)')
-
-    def test_200_response(self, client):
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            text=load_html('products_create_form_errors.html'))
-        response = client.post('products')
-        with pytest.raises(RuntimeError) as e:
-            handle_form_errors(response)
-        assert e.value.args == ("Name can't be blank",
-                                "Short name can't be blank")
-
-
-class TestCreateProduct(object):
-
-    @pytest.fixture
-    def params(self):
-        return {
-            'short_name': 'RHCEPH',
-            'name': 'Red Hat Ceph Storage',
-            'description': 'Red Hat Ceph Storage',
-            'bugzilla_product_name': '',
-            'valid_bug_states': ['MODIFIED', 'VERIFIED'],
-            'active': True,
-            'ftp_path': '',
-            'ftp_subdir': None,
-            'internal': False,
-            'default_docs_reviewer': None,
-            'push_targets': ['cdn_docker', 'cdn'],
-            'default_solution': 'enterprise',
-            'state_machine_rule_set': 'Default',
-            'move_bugs_on_qe': False,
-            'exd_org_group': None,
+            PROD + '/api/v1/products',
+            # XXX - what data to return?
+            # XXX - what headers/body does the server send on creation?
+            status_code=201)
+        create_product(client, params)
+        history = client.adapter.request_history
+        assert len(history) == 1
+        assert history[0].method == 'POST'
+        assert history[0].url == 'https://errata.devel.redhat.com/api/v1/products'
+        expected_json = {
+            'product': {
+                'name': 'Red Hat Ceph Storage',
+                'description': 'Red Hat Ceph Storage',
+                'short_name': 'RHCEPH',
+                'bugzilla_product_name': '',
+                'default_docs_reviewer': None,
+                'default_solution': 'enterprise',
+                'description': 'Red Hat Ceph Storage',
+                'exd_org_group': 'Cloud',
+                'ftp_path': '',
+                'ftp_subdir': None,
+                'is_internal': False,
+                'isactive': True,
+                'move_bugs_on_qe': False,
+                'push_targets': [
+                    'ftp',
+                    'cdn_stage',
+                    'cdn_docker_stage',
+                    'cdn_docker',
+                    'cdn',
+                ],
+                'state_machine_rule_set': 'Optional BugsGuard',
+                'valid_bug_states': [
+                    'VERIFIED',
+                    'ON_QA',
+                    'MODIFIED',
+                    'ASSIGNED',
+                    'NEW',
+                    'ON_DEV',
+                    'POST'
+                ],
+            }
         }
+        assert history[0].json() == expected_json
 
-    @pytest.fixture(autouse=True)
-    def fake_responses(self, client):
-        """ Register all the endpoints that we will load """
+    def test_edit_product(self, client, params):
         client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com'
-            '/api/v1/user/superwriter@redhat.com',
-            json={'id': 1001})
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/api/v1/user/noexist@redhat.com',
-            json={'errors': {'login_name': 'noexist@redhat.com not found.'}},
-            status_code=400)
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/products/123'})
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/products/123')
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products/123',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/products/123'})
-
-    def test_create(self, client, params):
-        create_product(client, params)
+            'PUT',
+            PROD + '/api/v1/products/104')
+        differences = [('description',
+                        'Red Hat Ceph Storage',
+                        'Red Hat Ceph Storage Is Cool')]
+        edit_product(client, 104, differences)
         history = client.adapter.request_history
-        # Requests 0 is GET requests for the scrapers:
-        assert history[0].method == 'GET'
-        # This request creates the product:
-        assert history[1].method == 'POST'
-        assert history[1].url == 'https://errata.devel.redhat.com/products'
-        body = parse_qs(history[1].text)
-        expected = {
-            'product[default_solution_id]': ['2'],
-            'product[description]': ['Red Hat Ceph Storage'],
-            'product[is_internal]': ['0'],
-            'product[isactive]': ['1'],
-            'product[move_bugs_on_qe]': ['0'],
-            'product[name]': ['Red Hat Ceph Storage'],
-            'product[short_name]': ['RHCEPH'],
-            'product[state_machine_rule_set_id]': ['1'],
-            'product[valid_bug_states][]': ['MODIFIED', 'VERIFIED'],
+        assert len(history) == 1
+        expected_json = {
+            'product': {
+                'description': 'Red Hat Ceph Storage Is Cool',
+            }
         }
-        assert body == expected
-        # GET request for the scrapers again:
-        assert history[3].method == 'GET'
-        # This request edits push_targets on the new product:
-        assert history[4].method == 'POST'
-        assert history[4].url == 'https://errata.devel.redhat.com/products/123'
-        body = parse_qs(history[4].text)
-        expected['_method'] = ['patch']
-        expected['product[push_targets][]'] = ['cdn_docker', 'cdn']
-        assert body == expected
-
-    def test_with_docs_reviewer(self, client, params):
-        params['default_docs_reviewer'] = 'superwriter@redhat.com'
-        create_product(client, params)
-        history = client.adapter.request_history
-        # Requests 0 is GET request for the scrapers,
-        # request 1 is for the docs_reviewer user ID.
-        # This request creates the product:
-        assert history[2].method == 'POST'
-        assert history[2].url == 'https://errata.devel.redhat.com/products'
-        body = parse_qs(history[2].text)
-        assert body['product[default_docs_reviewer_id]'] == ['1001']
-
-    def test_docs_reviewer_missing(self, client, params):
-        params['default_docs_reviewer'] = 'noexist@redhat.com'
-        with pytest.raises(DocsReviewerNotFoundError) as e:
-            create_product(client, params)
-        assert str(e.value) == 'noexist@redhat.com'
-
-    def test_with_exd_org_group(self, client, params):
-        params['exd_org_group'] = 'Cloud'
-        create_product(client, params)
-        history = client.adapter.request_history
-        # Requests 0 is GET request for the scrapers.
-        # This request creates the product:
-        assert history[1].method == 'POST'
-        assert history[1].url == 'https://errata.devel.redhat.com/products'
-        body = parse_qs(history[1].text)
-        assert body['product[exd_org_group_id]'] == ['2']
-
-    def test_broken_redirect(self, client, params):
-        """
-        Test the purely hypothetical case of the Errata Tool developers
-        inadvertently alterting the web form so that it redirects in a
-        different way than we expected with create_product().
-        """
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/some/other/redirect'})
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/some/other/redirect')
-        with pytest.raises(RuntimeError) as e:
-            create_product(client, params)
-        # Assert that we have a sane error message so we will know how to
-        # update the "find new product ID" regex code going forward:
-        expected = ('could not find new product ID from '
-                    'https://errata.devel.redhat.com/some/other/redirect')
-        assert str(e.value) == expected
+        assert history[0].json() == expected_json
 
 
 class TestPrepareDiffData(object):
@@ -488,38 +274,12 @@ class TestPrepareDiffData(object):
 
 class TestEnsureProduct(object):
 
-    @pytest.fixture
-    def client(self, client):
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/api/v1/products/RHCEPH',
-            json={'data': PRODUCT})
-        return client
-
-    @pytest.fixture
-    def params(self):
-        return {
-            'short_name': 'RHCEPH',
-            'name': 'Red Hat Ceph Storage',
-            'description': 'Red Hat Ceph Storage',
-            'bugzilla_product_name': '',
-            'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED',
-                                 'NEW', 'ON_DEV', 'POST'],
-            'active': True,
-            'ftp_path': '',
-            'ftp_subdir': None,
-            'internal': False,
-            'default_docs_reviewer': None,
-            'push_targets': ['ftp', 'cdn_stage', 'cdn_docker_stage',
-                             'cdn_docker', 'cdn'],
-            'default_solution': 'enterprise',
-            'state_machine_rule_set': 'Default',
-            'move_bugs_on_qe': False,
-            'exd_org_group': None,
-        }
-
     @pytest.mark.parametrize('check_mode', (True, False))
     def test_unchanged(self, client, params, check_mode):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH',
+            json=rhceph_product_response())
         params['bugzilla_product_name'] = bugzilla_product_name_hack()
         result = ensure_product(client, params, check_mode)
         assert result['changed'] is False
@@ -527,28 +287,23 @@ class TestEnsureProduct(object):
     def test_create(self, client, params):
         client.adapter.register_uri(
             'GET',
-            'https://errata.devel.redhat.com/api/v1/products/RHCEPH',
+            PROD + '/api/v1/products/RHCEPH',
             status_code=404)
         client.adapter.register_uri(
             'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/products/104'})
-        client.adapter.register_uri(
-            'GET',
-            'https://errata.devel.redhat.com/products/104')
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products/104',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/products/104'})
+            PROD + '/api/v1/products',
+            # XXX - what data to return?
+            # XXX - what headers/body does the server send on creation?
+            status_code=201)
         result = ensure_product(client, params, check_mode=False)
         assert result['changed'] is True
         assert result['stdout_lines'] == ['created RHCEPH product']
 
     def test_edit_check_mode(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH',
+            json=rhceph_product_response())
         params['bugzilla_product_name'] = bugzilla_product_name_hack()
         params['description'] = 'Red Hat Ceph Storage Is Cool'
         result = ensure_product(client, params, check_mode=True)
@@ -558,22 +313,14 @@ class TestEnsureProduct(object):
         assert result['stdout_lines'] == [expected]
 
     def test_edit_live(self, client, params):
-        params['description'] = 'Red Hat Ceph Storage Is Cool'
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/products/104'})
-        client.adapter.register_uri(
-            'POST',
-            'https://errata.devel.redhat.com/products/104',
-            status_code=302,
-            headers={'Location':
-                     'https://errata.devel.redhat.com/products/104'})
         client.adapter.register_uri(
             'GET',
-            'https://errata.devel.redhat.com/products/104')
+            PROD + '/api/v1/products/RHCEPH',
+            json=rhceph_product_response())
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/products/104')
+        params['description'] = 'Red Hat Ceph Storage Is Cool'
         result = ensure_product(client, params, check_mode=False)
         assert result['changed'] is True
         expected = 'changing description from Red Hat Ceph Storage ' \
@@ -581,35 +328,17 @@ class TestEnsureProduct(object):
         if PY2:
             expected = u'changing description from Red Hat Ceph Storage ' \
                 'to Red Hat Ceph Storage Is Cool'
-        # XXX BUG, issue 129
-        bz_name_hack = 'changing bugzilla_product_name from None to '
-        assert set(result['stdout_lines']) == set([expected, bz_name_hack])
+        assert set(result['stdout_lines']) == set([expected])
         history = client.adapter.request_history
-        assert history[-2].method == 'POST'
-        assert history[-2].url == \
-            'https://errata.devel.redhat.com/products/104'
-        body = parse_qs(history[-2].text)
-        expected = {
-            '_method': ['patch'],
-            'product[default_solution_id]': ['2'],
-            'product[description]': ['Red Hat Ceph Storage Is Cool'],
-            'product[is_internal]': ['0'],
-            'product[isactive]': ['1'],
-            'product[move_bugs_on_qe]': ['0'],
-            'product[name]': ['Red Hat Ceph Storage'],
-            'product[push_targets][]': [
-                'ftp', 'cdn_stage', 'cdn_docker_stage', 'cdn_docker', 'cdn'],
-            'product[short_name]': ['RHCEPH'],
-            'product[state_machine_rule_set_id]': ['1'],
-            'product[valid_bug_states][]': ['VERIFIED',
-                                            'ON_QA',
-                                            'MODIFIED',
-                                            'ASSIGNED',
-                                            'NEW',
-                                            'ON_DEV',
-                                            'POST']
+        assert len(history) == 2
+        assert history[1].method == 'PUT'
+        assert history[1].url == 'https://errata.devel.redhat.com/api/v1/products/104'
+        expected_json = {
+            'product': {
+                'description': 'Red Hat Ceph Storage Is Cool',
+            }
         }
-        assert body == expected
+        assert history[1].json() == expected_json
 
 
 class TestMain(object):
@@ -656,24 +385,6 @@ class TestMain(object):
         result = ex.value.args[0]
         assert result['changed'] is False
         expected = 'invalid valid_bug_states value "BOGUS_STATE_LOL"'
-        assert result['msg'] == expected
-
-    def test_missing_doc_reviewer(self, monkeypatch, module_args):
-        """
-        When ensure_product() raises DocsReviewerNotFoundError, the
-        Ansible module exits with the proper error message.
-        """
-        mock_ensure = Mock()
-        mock_ensure.side_effect = \
-            DocsReviewerNotFoundError('noexist@redhat.com')
-        monkeypatch.setattr(errata_tool_product, 'ensure_product', mock_ensure)
-        module_args['default_docs_reviewer'] = 'noexist@redhat.com',
-        set_module_args(module_args)
-        with pytest.raises(AnsibleFailJson) as ex:
-            main()
-        result = ex.value.args[0]
-        assert result['changed'] is False
-        expected = 'default_docs_reviewer noexist@redhat.com account not found'
         assert result['msg'] == expected
 
     def test_strict_user_check_missing_user(self, monkeypatch, module_args):
