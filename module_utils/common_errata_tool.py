@@ -9,7 +9,10 @@ from requests_gssapi import HTTPSPNEGOAuth, DISABLED
 
 class ErrataToolError(ValueError):
     def __init__(self, response):
-        data = response.json()
+        try:
+            data = response.json()
+        except requests.exceptions.JSONDecodeError:
+            data = {}
         error = data.get('error') or data.get('errors') or response.text
         msg = 'Unexpected response from Errata Tool: %s' % error
         request = response.request
