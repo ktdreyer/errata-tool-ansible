@@ -27,6 +27,9 @@ options:
    name:
      description:
        - "example: Red Hat Ceph Storage"
+       - The ET server requires that this name string be unique among all
+         other product names. Even if short_names differ, you cannot declare
+         two products with identical names.
      required: true
    description:
      description:
