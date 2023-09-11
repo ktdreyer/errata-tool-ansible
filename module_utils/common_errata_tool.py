@@ -178,6 +178,15 @@ def task_diff_data(before, after, item_name, item_type,
             if key in before and key not in after:
                 del before[key]
 
+        # Normalize lists (remove duplicates and sort)
+        for keys in (before, after):
+            for key, value in keys.items():
+                if isinstance(value, list):
+                    try:
+                        keys[key] = sorted(set(value))
+                    except TypeError:
+                        pass  # skip for unhashable types
+
     return {
         'before': before,
         'after': after,

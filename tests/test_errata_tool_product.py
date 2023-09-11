@@ -271,6 +271,37 @@ class TestPrepareDiffData(object):
 
         assert prepare_diff_data(before_data, after_data) == expected_output
 
+    def test_diff_data_consistent_lists(self):
+        before_data = {
+            'id': 123,
+            'short_name': 'RHDIFF',
+            'description': 'foo',
+            'push_targets': ['ftp', 'cdn', 'cdn_stage'],
+        }
+
+        after_data = {
+            'short_name': 'RHDIFF',
+            'description': 'bar',
+            'push_targets': ['ftp', 'cdn_stage', 'cdn'],
+        }
+
+        expected_output = {
+            'before': {
+                'short_name': 'RHDIFF',
+                'description': 'foo',
+                'push_targets': ['cdn', 'cdn_stage', 'ftp'],
+            },
+            'after': {
+                'short_name': 'RHDIFF',
+                'description': 'bar',
+                'push_targets': ['cdn', 'cdn_stage', 'ftp'],
+            },
+            'before_header': "Original product 'RHDIFF'",
+            'after_header': "Modified product 'RHDIFF'",
+        }
+
+        assert prepare_diff_data(before_data, after_data) == expected_output
+
 
 class TestEnsureProduct(object):
 
