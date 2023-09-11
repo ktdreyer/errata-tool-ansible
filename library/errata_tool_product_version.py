@@ -292,7 +292,8 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    # 'use_quay_for_containers' and 'use_quay_for_containers_stage' are deprecated.
+    # 'use_quay_for_containers' and 'use_quay_for_containers_stage' are
+    # deprecated.
     params.pop('use_quay_for_containers')
     params.pop('use_quay_for_containers_stage')
 
