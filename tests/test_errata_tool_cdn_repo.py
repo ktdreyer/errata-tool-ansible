@@ -32,6 +32,7 @@ CDN_REPO = {
     "type": "cdn_repos",
     "attributes": {
         "name": "redhat-rhceph-rhceph-4-rhel8",
+        "external_name": "rhceph/rhceph-4-rhel8",
         "release_type": "Primary",
         "use_for_tps": False,
         "content_type": "Docker"
@@ -174,6 +175,7 @@ class TestCdnRepoApiData(object):
     def test_complex(self):
         params = {
             'name': 'my-cool-repo',
+            'external_name': 'my-cool/repo',
             'release_type': 'Primary',
             'content_type': 'Binary',
             'variants': ['7Client'],
@@ -184,6 +186,7 @@ class TestCdnRepoApiData(object):
         expected = {
             'cdn_repo': {
                 'name': 'my-cool-repo',
+                'external_name': 'my-cool/repo',
                 'release_type': 'Primary',
                 'content_type': 'Binary',
                 'variant_names': ['7Client'],
@@ -204,6 +207,7 @@ class TestCreateCdnRepo(object):
             json={'data': CDN_REPO})
         params = {
             'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'content_type': 'Docker',
             'arch': 'multi',
@@ -216,6 +220,7 @@ class TestCreateCdnRepo(object):
         expected = {
             'cdn_repo': {
                 'name': 'redhat-rhceph-rhceph-4-rhel8',
+                'external_name': 'rhceph/rhceph-4-rhel8',
                 'release_type': 'Primary',
                 'content_type': 'Docker',
                 'arch_name': 'multi',
@@ -322,6 +327,7 @@ class TestGetCdnRepo(object):
         expected = {
             'id': 11010,
             'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'use_for_tps': False,
             'content_type': 'Docker',
@@ -348,6 +354,7 @@ class TestGetCdnRepo(object):
         expected = {
             'id': 11010,
             'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'use_for_tps': False,
             'content_type': 'Docker',
@@ -679,6 +686,7 @@ class TestEnsureCdnRepo(object):
     def params(self):
         return {
             'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'content_type': 'Docker',
             'use_for_tps': False,
@@ -720,6 +728,7 @@ class TestEnsureCdnRepo(object):
                 'after': {'arch': 'multi',
                           'content_type': 'Docker',
                           'name': 'redhat-rhceph-rhceph-4-rhel8',
+                          'external_name': 'rhceph/rhceph-4-rhel8',
                           'packages': {'rhceph-container': [
                               'latest',
                               {'my-variant-restricted-tag':
@@ -869,6 +878,7 @@ class TestMain(object):
     def container_module_args(self):
         return {
             'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'content_type': 'Docker',
             'use_for_tps': False,
