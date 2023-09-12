@@ -87,6 +87,7 @@ EXAMPLES = '''
   - name: Add rhceph-4-tools-for-rhel-8-x86_64-rpms cdn repo
     errata_tool_cdn_repo:
       name: redhat-rhceph-rhceph-4-rhel8
+      external_name: rhceph/rhceph-4-rhel8
       release_type: Primary
       content_type: Binary
       use_for_tps: True
@@ -108,6 +109,7 @@ EXAMPLES = '''
   - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
     errata_tool_cdn_repo:
       name: redhat-rhceph-rhceph-4-rhel8
+      external_name: rhceph/rhceph-4-rhel8
       release_type: Primary
       content_type: Docker
       variants:
@@ -640,6 +642,7 @@ def ensure_cdn_repo(client, check_mode, params):
 def run_module():
     module_args = dict(
         name=dict(required=True),
+        external_name=dict(required=False),
         release_type=dict(choices=CDN_RELEASE_TYPES, required=True),
         content_type=dict(choices=CDN_CONTENT_TYPES, required=True),
         arch=dict(),

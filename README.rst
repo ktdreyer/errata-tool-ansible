@@ -148,6 +148,7 @@ Errata Tool.
     - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
       errata_tool_cdn_repo:
         name: redhat-rhceph-rhceph-4-rhel8
+        external_name: rhceph/rhceph-4-rhel8
         release_type: Primary
         content_type: Docker
         variants:
