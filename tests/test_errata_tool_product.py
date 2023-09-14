@@ -56,7 +56,8 @@ def params():
         'move_bugs_on_qe': False,
         'push_targets': ['ftp', 'cdn_stage', 'cdn_docker_stage', 'cdn_docker', 'cdn'],
         'state_machine_rule_set': 'Optional BugsGuard',
-        'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED', 'NEW', 'ON_DEV', 'POST']
+        'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED', 'NEW', 'ON_DEV', 'POST'],
+        'show_bug_package_mismatch_warning': True,
     }
 
 
@@ -202,6 +203,7 @@ class TestResponses(object):
                     'ON_DEV',
                     'POST'
                 ],
+                'show_bug_package_mismatch_warning': True,
             }
         }
         assert history[0].json() == expected_json
@@ -246,7 +248,6 @@ class TestPrepareDiffData(object):
             'id': 123,
             'short_name': 'RHDIFF',
             'description': 'foo',
-            'show_bug_package_mismatch_warning': True,
         }
 
         after_data = {
@@ -258,12 +259,10 @@ class TestPrepareDiffData(object):
             'before': {
                 'short_name': 'RHDIFF',
                 'description': 'foo',
-                'show_bug_package_mismatch_warning': True,
             },
             'after': {
                 'short_name': 'RHDIFF',
                 'description': 'bar',
-                'show_bug_package_mismatch_warning': True,
             },
             'before_header': "Original product 'RHDIFF'",
             'after_header': "Modified product 'RHDIFF'",

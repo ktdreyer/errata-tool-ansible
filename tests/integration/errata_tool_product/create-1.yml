@@ -26,4 +26,5 @@
     state_machine_rule_set: Default
     move_bugs_on_qe: false  # When bugs are added to advisory
     exd_org_group: "Middleware & Management"
+    show_bug_package_mismatch_warning: true
   register: product

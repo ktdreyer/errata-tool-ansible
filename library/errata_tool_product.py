@@ -116,6 +116,17 @@ options:
          list of EXD org groups.
      choices: ['RHEL', 'Cloud', 'Middleware & Management', 'Pipeline Value']
      default: 'RHEL'
+   show_bug_package_mismatch_warning:
+     description:
+       - If true a warning will be shown for builds where the package doesn't
+         match the expected package for the advisory.
+       - The expected package is decided based on the advisory's bugs'
+         components or its synopsis.
+       - For products where this warning is not considered useful it can be
+         disabled.
+     choices: [true, false]
+     default: true
+
 requirements:
   - "python >= 2.7"
   - "lxml"
@@ -279,9 +290,8 @@ def prepare_diff_data(before, after):
         item_name=after['short_name'],
         item_type='product',
         keys_to_copy=[
-            # This field exists in ET but is not yet supported by
-            # this ansible module
-            'show_bug_package_mismatch_warning',
+            # Any field listed here exists in ET but is not
+            # yet supported by this ansible module
         ],
     )
 
@@ -327,6 +337,7 @@ def run_module():
         move_bugs_on_qe=dict(type='bool', default=False),
         text_only_advisories_require_dists=dict(type='bool', default=True),
         exd_org_group=dict(choices=list(EXD_ORG_GROUPS.keys())),
+        show_bug_package_mismatch_warning=dict(type='bool'),
     )
     module = AnsibleModule(
         argument_spec=module_args,

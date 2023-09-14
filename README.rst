@@ -51,6 +51,7 @@ Errata Tool.
         default_solution: enterprise
         state_machine_rule_set: Default
         move_bugs_on_qe: false
+        show_bug_package_mismatch_warning: true
 
 
 errata_tool_product_version
