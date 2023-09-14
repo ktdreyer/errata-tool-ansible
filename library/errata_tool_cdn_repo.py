@@ -25,6 +25,11 @@ options:
        - Pulp repo label.
        - "Example: redhat-rhceph-rhceph-4-rhel8"
      required: true
+   external_name:
+     description:
+       - External repo name.
+       - "Example: rhceph/rhceph-4-rhel8"
+     required: false
    release_type:
      description:
        - You almost always want to set "Primary" here.
