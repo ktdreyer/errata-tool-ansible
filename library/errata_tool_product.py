@@ -126,6 +126,14 @@ options:
          disabled.
      choices: [true, false]
      default: true
+   suppress_push_request_jira:
+     description:
+       - Set to true to suppress creating push request jira tickets for
+         any advisory using this product.
+       - Set to false to allow push request jira tickets.
+       - The product's product versions are able to override this setting.
+     choices: [true, false]
+     default: false
 
 requirements:
   - "python >= 2.7"
@@ -338,6 +346,7 @@ def run_module():
         text_only_advisories_require_dists=dict(type='bool', default=True),
         exd_org_group=dict(choices=list(EXD_ORG_GROUPS.keys())),
         show_bug_package_mismatch_warning=dict(type='bool'),
+        suppress_push_request_jira=dict(type='bool')
     )
     module = AnsibleModule(
         argument_spec=module_args,

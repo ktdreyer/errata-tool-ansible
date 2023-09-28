@@ -58,6 +58,7 @@ def params():
         'state_machine_rule_set': 'Optional BugsGuard',
         'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED', 'NEW', 'ON_DEV', 'POST'],
         'show_bug_package_mismatch_warning': True,
+        'suppress_push_request_jira': True,
     }
 
 
@@ -156,6 +157,7 @@ class TestResponses(object):
             'exd_org_group': 'Cloud',
             'suppress_push_request_jira': True,
             'show_bug_package_mismatch_warning': True,
+            'suppress_push_request_jira': True,
         }
         assert product == expected
 
@@ -204,6 +206,7 @@ class TestResponses(object):
                     'POST'
                 ],
                 'show_bug_package_mismatch_warning': True,
+                'suppress_push_request_jira': True,
             }
         }
         assert history[0].json() == expected_json

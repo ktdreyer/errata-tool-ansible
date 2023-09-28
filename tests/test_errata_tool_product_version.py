@@ -25,6 +25,7 @@ PRODUCT_VERSION = {
         "is_rhel_addon": False,
         "is_server_only": False,
         "enabled": True,
+        "suppress_push_request_jira": False,
     },
     "brew_tags": ["ceph-4.0-rhel-8-candidate"],
     "relationships": {
@@ -100,7 +101,8 @@ class TestGetProductVersion(object):
             'push_targets': ['ftp', 'cdn', 'cdn_stage',
                              'cdn_docker', 'cdn_docker_stage'],
             'rhel_release_name': 'RHEL-8',
-            'sig_key_name': 'redhatrelease2'
+            'sig_key_name': 'redhatrelease2',
+            'suppress_push_request_jira': False,
         }
         assert product_version == expected
 
