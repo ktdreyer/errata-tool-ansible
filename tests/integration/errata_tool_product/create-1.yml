@@ -27,4 +27,5 @@
     move_bugs_on_qe: false  # When bugs are added to advisory
     exd_org_group: "Middleware & Management"
     show_bug_package_mismatch_warning: true
+    suppress_push_request_jira: true
   register: product

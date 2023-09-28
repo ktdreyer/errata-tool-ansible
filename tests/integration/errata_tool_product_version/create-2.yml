@@ -12,6 +12,7 @@
     is_oval_product: true
     allow_buildroot_push: true
     is_server_only: false
+    suppress_push_request_jira: false
     # no-ops, just testing for backwards compatibility with older playbooks:
     use_quay_for_containers: true
     use_quay_for_containers_stage: true
@@ -38,6 +39,7 @@
       - not attributes.is_rhel_addon
       - not attributes.is_server_only
       - attributes.enabled
+      - not attributes.suppress_push_request_jira
 
       - relationships.push_targets == []
       - relationships.rhel_release.name == "RHEL-8.0.0"

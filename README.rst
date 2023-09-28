@@ -52,6 +52,7 @@ Errata Tool.
         state_machine_rule_set: Default
         move_bugs_on_qe: false
         show_bug_package_mismatch_warning: true
+        suppress_push_request_jira: false
 
 
 errata_tool_product_version
@@ -81,6 +82,7 @@ Versions within the Errata Tool.
           - cdn_docker_stage
           - cdn_docker
           - cdn
+        suppress_push_request_jira: false
 
 errata_tool_release
 -------------------

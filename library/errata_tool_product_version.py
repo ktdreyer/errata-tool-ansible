@@ -112,6 +112,14 @@ options:
        - What are the consequences of a completely empty brew_tag list? This
          might be answered in CLOUDWF-2.
      required: true
+   suppress_push_request_jira:
+     description:
+       - Set to true to suppress creating push request jira tickets.
+       - Set to false to allow push request jira tickets.
+       - If this value is different from the product's setting
+         it will override it.
+     choices: [true, false]
+     required: false
 requirements:
   - "python >= 2.7"
   - "lxml"
@@ -281,6 +289,7 @@ def run_module():
         brew_tags=dict(type='list', required=True),
         use_quay_for_containers=dict(type='bool'),
         use_quay_for_containers_stage=dict(type='bool'),
+        suppress_push_request_jira=dict(type='bool'),
     )
     module = AnsibleModule(
         argument_spec=module_args,
