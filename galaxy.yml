@@ -1,6 +1,6 @@
 namespace: ktdreyer
 name: errata_tool_ansible
-version: "{{ version }}"
+version: "0.0.318"
 description: Ansible modules to manage Red Hat Errata Tool resources
 readme: README.md
 authors:
