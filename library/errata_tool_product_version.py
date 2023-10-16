@@ -211,7 +211,8 @@ def create_product_version(client, product, params):
     pv['brew_tags'] = params['brew_tags']
     pv['rhel_release_name'] = params['rhel_release_name']
     pv['sig_key_name'] = params['sig_key_name']
-    pv['ima_sig_key_name'] = params.get('ima_sig_key_name')
+    if 'ima_sig_key_name' in params:
+        pv['ima_sig_key_name'] = params['ima_sig_key_name']
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
     pv['push_targets'] = params['push_targets']
     data = {'product_version': pv}
