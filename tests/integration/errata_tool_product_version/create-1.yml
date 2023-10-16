@@ -12,6 +12,7 @@
     is_oval_product: true
     allow_buildroot_push: true
     is_server_only: false
+    suppress_push_request_jira: false
 
 # We cannot get the name directly yet, CLOUDWF-3
 - name: query API for this product version
@@ -35,6 +36,7 @@
       - not attributes.is_rhel_addon
       - not attributes.is_server_only
       - attributes.enabled
+      - not attributes.suppress_push_request_jira
 
       - relationships.push_targets == []
       - relationships.rhel_release.name == "RHEL-8.0.0"

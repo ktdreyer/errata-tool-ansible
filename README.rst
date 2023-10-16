@@ -7,8 +7,8 @@ errata-tool-ansible
 .. image:: https://codecov.io/gh/ktdreyer/errata-tool-ansible/branch/master/graph/badge.svg
              :target: https://codecov.io/gh/ktdreyer/errata-tool-ansible
 
-.. image:: https://img.shields.io/badge/dynamic/json?style=flat&label=galaxy&prefix=v&url=https://galaxy.ansible.com/api/v2/collections/ktdreyer/errata_tool_ansible/&query=latest_version.version
-             :target: https://galaxy.ansible.com/ktdreyer/errata_tool_ansible
+.. image:: https://img.shields.io/badge/dynamic/json?style=flat&label=galaxy&prefix=v&url=https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/ktdreyer/errata_tool_ansible/&query=highest_version.version
+             :target: https://galaxy.ansible.com/ui/repo/published/ktdreyer/errata_tool_ansible/
 
 Ansible modules to manage Errata Tool resources.
 
@@ -51,6 +51,8 @@ Errata Tool.
         default_solution: enterprise
         state_machine_rule_set: Default
         move_bugs_on_qe: false
+        show_bug_package_mismatch_warning: true
+        suppress_push_request_jira: false
 
 
 errata_tool_product_version
@@ -80,6 +82,7 @@ Versions within the Errata Tool.
           - cdn_docker_stage
           - cdn_docker
           - cdn
+        suppress_push_request_jira: false
 
 errata_tool_release
 -------------------
@@ -148,6 +151,7 @@ Errata Tool.
     - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
       errata_tool_cdn_repo:
         name: redhat-rhceph-rhceph-4-rhel8
+        external_name: rhceph/rhceph-4-rhel8
         release_type: Primary
         content_type: Docker
         variants:

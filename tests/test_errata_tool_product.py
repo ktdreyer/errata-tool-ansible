@@ -56,7 +56,9 @@ def params():
         'move_bugs_on_qe': False,
         'push_targets': ['ftp', 'cdn_stage', 'cdn_docker_stage', 'cdn_docker', 'cdn'],
         'state_machine_rule_set': 'Optional BugsGuard',
-        'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED', 'NEW', 'ON_DEV', 'POST']
+        'valid_bug_states': ['VERIFIED', 'ON_QA', 'MODIFIED', 'ASSIGNED', 'NEW', 'ON_DEV', 'POST'],
+        'show_bug_package_mismatch_warning': True,
+        'suppress_push_request_jira': True,
     }
 
 
@@ -155,6 +157,7 @@ class TestResponses(object):
             'exd_org_group': 'Cloud',
             'suppress_push_request_jira': True,
             'show_bug_package_mismatch_warning': True,
+            'suppress_push_request_jira': True,
         }
         assert product == expected
 
@@ -202,6 +205,8 @@ class TestResponses(object):
                     'ON_DEV',
                     'POST'
                 ],
+                'show_bug_package_mismatch_warning': True,
+                'suppress_push_request_jira': True,
             }
         }
         assert history[0].json() == expected_json
@@ -246,7 +251,6 @@ class TestPrepareDiffData(object):
             'id': 123,
             'short_name': 'RHDIFF',
             'description': 'foo',
-            'show_bug_package_mismatch_warning': True,
         }
 
         after_data = {
@@ -258,12 +262,41 @@ class TestPrepareDiffData(object):
             'before': {
                 'short_name': 'RHDIFF',
                 'description': 'foo',
-                'show_bug_package_mismatch_warning': True,
             },
             'after': {
                 'short_name': 'RHDIFF',
                 'description': 'bar',
-                'show_bug_package_mismatch_warning': True,
+            },
+            'before_header': "Original product 'RHDIFF'",
+            'after_header': "Modified product 'RHDIFF'",
+        }
+
+        assert prepare_diff_data(before_data, after_data) == expected_output
+
+    def test_diff_data_consistent_lists(self):
+        before_data = {
+            'id': 123,
+            'short_name': 'RHDIFF',
+            'description': 'foo',
+            'push_targets': ['ftp', 'cdn', 'cdn_stage'],
+        }
+
+        after_data = {
+            'short_name': 'RHDIFF',
+            'description': 'bar',
+            'push_targets': ['ftp', 'cdn_stage', 'cdn'],
+        }
+
+        expected_output = {
+            'before': {
+                'short_name': 'RHDIFF',
+                'description': 'foo',
+                'push_targets': ['cdn', 'cdn_stage', 'ftp'],
+            },
+            'after': {
+                'short_name': 'RHDIFF',
+                'description': 'bar',
+                'push_targets': ['cdn', 'cdn_stage', 'ftp'],
             },
             'before_header': "Original product 'RHDIFF'",
             'after_header': "Modified product 'RHDIFF'",

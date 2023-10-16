@@ -42,6 +42,11 @@ options:
                redhatrelease2, redhatengsystems]
      required: false
      default: redhatrelease2
+   ima_sig_key_name:
+     description:
+       - Signing key for IMA (Integrity Measurement Architecture)
+       - "example: redhatimarelease"
+     required: false
    use_quay_for_containers:
      description:
        - The Errata Tool no longer uses this parameter. It is a no-op.
@@ -112,6 +117,14 @@ options:
        - What are the consequences of a completely empty brew_tag list? This
          might be answered in CLOUDWF-2.
      required: true
+   suppress_push_request_jira:
+     description:
+       - Set to true to suppress creating push request jira tickets.
+       - Set to false to allow push request jira tickets.
+       - If this value is different from the product's setting
+         it will override it.
+     choices: [true, false]
+     required: false
 requirements:
   - "python >= 2.7"
   - "lxml"
@@ -158,6 +171,8 @@ def get_product_version(client, product, name, check_mode):
     rhel_release = data['relationships']['rhel_release']['name']
     product_version['rhel_release_name'] = rhel_release
     product_version['sig_key_name'] = data['relationships']['sig_key']['name']
+    product_version['ima_sig_key_name'] = \
+        data['relationships'].get('ima_sig_key', {'name': None})['name']
     # push_targets
     push_targets = [t['name'] for t in data['relationships']['push_targets']]
     product_version['push_targets'] = push_targets
@@ -196,6 +211,8 @@ def create_product_version(client, product, params):
     pv['brew_tags'] = params['brew_tags']
     pv['rhel_release_name'] = params['rhel_release_name']
     pv['sig_key_name'] = params['sig_key_name']
+    if 'ima_sig_key_name' in params:
+        pv['ima_sig_key_name'] = params['ima_sig_key_name']
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
     pv['push_targets'] = params['push_targets']
     data = {'product_version': pv}
@@ -270,6 +287,7 @@ def run_module():
         description=dict(required=True),
         rhel_release_name=dict(required=True),
         sig_key_name=dict(default='redhatrelease2'),
+        ima_sig_key_name=dict(),
         default_brew_tag=dict(required=True),
         is_server_only=dict(type='bool', required=True),
         enabled=dict(type='bool', default=True),
@@ -281,6 +299,7 @@ def run_module():
         brew_tags=dict(type='list', required=True),
         use_quay_for_containers=dict(type='bool'),
         use_quay_for_containers_stage=dict(type='bool'),
+        suppress_push_request_jira=dict(type='bool'),
     )
     module = AnsibleModule(
         argument_spec=module_args,
@@ -292,7 +311,8 @@ def run_module():
 
     client = common_errata_tool.Client()
 
-    # 'use_quay_for_containers' and 'use_quay_for_containers_stage' are deprecated.
+    # 'use_quay_for_containers' and 'use_quay_for_containers_stage' are
+    # deprecated.
     params.pop('use_quay_for_containers')
     params.pop('use_quay_for_containers_stage')
 

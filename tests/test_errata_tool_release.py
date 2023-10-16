@@ -212,17 +212,18 @@ class TestCreateRelease(object):
         assert history[-1].method == 'POST'
         assert history[-1].json() == expected
 
-    @pytest.mark.parametrize('response', [
-        {'json': {'error': 'Some Error Here'}},
-        {'text': 'Some Error Here'},
+    @pytest.mark.parametrize('response_text,response_json', [
+        (None, {'error': 'Some Error Here'}),
+        ('Some Error Here', None),
     ])
-    def test_error(self, client, params, response):
+    def test_error(self, client, params, response_text, response_json):
         """ Ensure that we raise any server message to the user. """
         client.adapter.register_uri(
             'POST',
             PROD + '/api/v1/releases',
             status_code=500,
-            **response,
+            text=response_text,
+            json=response_json,
         )
         with pytest.raises(ValueError) as err:
             create_release(client, params)
