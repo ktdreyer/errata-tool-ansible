@@ -250,7 +250,7 @@ class TestEnsureProductVersion(object):
         assert history[1].method == 'POST'
         assert history[1].url == \
             'https://errata.devel.redhat.com/api/v1/products/RHCEPH/product_versions'
-        assert history[1].json()['product_version']['ima_sig_key_name'] is None
+        assert 'ima_sig_key_name' not in history[1].json()['product_version']
 
 
 class TestFormErrors(object):
