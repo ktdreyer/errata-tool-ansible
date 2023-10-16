@@ -286,7 +286,7 @@ def run_module():
         description=dict(required=True),
         rhel_release_name=dict(required=True),
         sig_key_name=dict(default='redhatrelease2'),
-        ima_sig_key_name=dict(type='str'),
+        ima_sig_key_name=dict(),
         default_brew_tag=dict(required=True),
         is_server_only=dict(type='bool', required=True),
         enabled=dict(type='bool', default=True),
