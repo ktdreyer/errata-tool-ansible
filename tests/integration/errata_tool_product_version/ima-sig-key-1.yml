@@ -1,0 +1,39 @@
+# Test setting the ima_sig_key_name field on a new PV.
+#
+---
+
+- name: Add IMA-1 Product Version with a ima_sig_key_name
+  errata_tool_product_version:
+    product: RHEL
+    name: RHEL-IMA-1
+    description: Red Hat IMA1 Product Version
+    default_brew_tag: rhel-8.0.0-candidate
+    rhel_release_name: RHEL-8.0.0
+    push_targets: []
+    is_rhel_addon: false
+    brew_tags: [rhel-8.0.0-candidate]
+    allow_rhn_debuginfo: true
+    is_oval_product: true
+    allow_buildroot_push: true
+    is_server_only: false
+    ima_sig_key_name: redhatimarelease
+  register: ima_key_1
+
+- name: assert result for creating PV
+  assert:
+    that:
+      - ima_key_1.changed
+
+# We cannot get the name directly yet, CLOUDWF-3
+- name: query API for this product version
+  errata_tool_request:
+    path: api/v1/products/RHEL/product_versions/?filter[name]=RHEL-IMA-1
+  register: response
+
+- name: parse product version JSON
+  set_fact:
+    relationships: "{{ response.json.data.0.relationships }}"
+
+- assert:
+    that:
+      - relationships.ima_sig_key.name == 'redhatimarelease'
