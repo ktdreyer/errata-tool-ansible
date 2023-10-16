@@ -42,6 +42,11 @@ options:
                redhatrelease2, redhatengsystems]
      required: false
      default: redhatrelease2
+   ima_sig_key_name:
+     description:
+       - Signing key for IMA (Integrity Measurement Architecture)
+       - "example: redhatimarelease"
+     required: false
    use_quay_for_containers:
      description:
        - The Errata Tool no longer uses this parameter. It is a no-op.
@@ -166,6 +171,8 @@ def get_product_version(client, product, name, check_mode):
     rhel_release = data['relationships']['rhel_release']['name']
     product_version['rhel_release_name'] = rhel_release
     product_version['sig_key_name'] = data['relationships']['sig_key']['name']
+    product_version['ima_sig_key_name'] = \
+        data['relationships'].get('ima_sig_key', {'name': None})['name']
     # push_targets
     push_targets = [t['name'] for t in data['relationships']['push_targets']]
     product_version['push_targets'] = push_targets
@@ -204,6 +211,7 @@ def create_product_version(client, product, params):
     pv['brew_tags'] = params['brew_tags']
     pv['rhel_release_name'] = params['rhel_release_name']
     pv['sig_key_name'] = params['sig_key_name']
+    pv['ima_sig_key_name'] = params.get('ima_sig_key_name')
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
     pv['push_targets'] = params['push_targets']
     data = {'product_version': pv}
@@ -278,6 +286,7 @@ def run_module():
         description=dict(required=True),
         rhel_release_name=dict(required=True),
         sig_key_name=dict(default='redhatrelease2'),
+        ima_sig_key_name=dict(type='str'),
         default_brew_tag=dict(required=True),
         is_server_only=dict(type='bool', required=True),
         enabled=dict(type='bool', default=True),

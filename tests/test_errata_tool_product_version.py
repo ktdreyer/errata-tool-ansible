@@ -2,8 +2,13 @@ from copy import deepcopy
 from utils import Mock
 from requests.exceptions import HTTPError
 import pytest
+from ansible.module_utils.six import PY2
 
-from errata_tool_product_version import get_product_version, handle_form_errors
+from errata_tool_product_version import (
+    ensure_product_version,
+    get_product_version,
+    handle_form_errors,
+)
 
 
 PROD = 'https://errata.devel.redhat.com'
@@ -38,8 +43,37 @@ PRODUCT_VERSION = {
         ],
         "rhel_release": {"id": 87, "name": "RHEL-8"},
         "sig_key": {"id": 8, "name": "redhatrelease2"},
+        "ima_sig_key": {"id": 15, "name": "redhatimarelease"},
     }
 }
+
+
+@pytest.fixture
+def params():
+    return {
+        "product": "RHCEPH",
+        "name": "RHCEPH-4.0-RHEL-8",
+        "description": "Red Hat Ceph Storage 4.0",
+        "default_brew_tag": "ceph-4.0-rhel-8-candidate",
+        "brew_tags": ["ceph-4.0-rhel-8-candidate"],
+        "allow_rhn_debuginfo": False,
+        "allow_buildroot_push": False,
+        "is_oval_product": False,
+        "is_rhel_addon": False,
+        "is_server_only": False,
+        "enabled": True,
+        "suppress_push_request_jira": False,
+        "push_targets": [
+            "ftp",
+            "cdn",
+            "cdn_stage",
+            "cdn_docker",
+            "cdn_docker_stage",
+        ],
+        "rhel_release_name": "RHEL-8",
+        "sig_key_name": "redhatrelease2",
+        "ima_sig_key_name": "redhatimarelease",
+    }
 
 
 class TestGetProductVersion(object):
@@ -101,8 +135,9 @@ class TestGetProductVersion(object):
             'push_targets': ['ftp', 'cdn', 'cdn_stage',
                              'cdn_docker', 'cdn_docker_stage'],
             'rhel_release_name': 'RHEL-8',
-            'sig_key_name': 'redhatrelease2',
             'suppress_push_request_jira': False,
+            'sig_key_name': 'redhatrelease2',
+            'ima_sig_key_name': 'redhatimarelease',
         }
         assert product_version == expected
 
@@ -120,6 +155,102 @@ class TestGetProductVersion(object):
         product_version = get_product_version(
             client, PRODUCT, name, check_mode)
         assert product_version.get('name') == name
+
+
+class TestEnsureProductVersion(object):
+
+    @pytest.mark.parametrize('check_mode', (True, False))
+    def test_unchanged(self, client, params, check_mode):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/',
+            json={'data': [PRODUCT_VERSION]})
+        result = ensure_product_version(client, params, check_mode)
+        assert result['changed'] is False
+
+    def test_create(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/'
+            + '?filter%5Bname%5D=' + NAME,
+            json={'data': []})
+        client.adapter.register_uri(
+            'POST',
+            PROD + '/api/v1/products/RHCEPH/product_versions',
+            status_code=201)
+        result = ensure_product_version(client, params, check_mode=False)
+        assert result['changed'] is True
+        assert result['stdout_lines'] == ['created RHCEPH-4.0-RHEL-8 product version']
+
+    def test_edit_check_mode(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/',
+            json={'data': [PRODUCT_VERSION]})
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/products/RHCEPH/product_versions/929')
+        params['description'] = 'Red Hat Ceph Storage 4.0 Is Cool'
+        result = ensure_product_version(client, params, check_mode=True)
+        assert result['changed'] is True
+        expected = 'changing description from Red Hat Ceph Storage 4.0 ' \
+                   'to Red Hat Ceph Storage 4.0 Is Cool'
+        if PY2:
+            expected = u'changing description from Red Hat Ceph Storage 4.0 ' \
+                'to Red Hat Ceph Storage 4.0 Is Cool'
+        assert set(result['stdout_lines']) == set([expected])
+
+    def test_edit_live_mode(self, client, params):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/',
+            json={'data': [PRODUCT_VERSION]})
+        client.adapter.register_uri(
+            'PUT',
+            PROD + '/api/v1/products/RHCEPH/product_versions/929')
+        params['description'] = 'Red Hat Ceph Storage 4.0 Is Cool'
+        result = ensure_product_version(client, params, check_mode=False)
+        assert result['changed'] is True
+        expected = 'changing description from Red Hat Ceph Storage 4.0 ' \
+                   'to Red Hat Ceph Storage 4.0 Is Cool'
+        if PY2:
+            expected = u'changing description from Red Hat Ceph Storage 4.0 ' \
+                'to Red Hat Ceph Storage 4.0 Is Cool'
+        assert set(result['stdout_lines']) == set([expected])
+
+        history = client.adapter.request_history
+        assert len(history) == 2
+        assert history[1].method == 'PUT'
+        assert history[1].url == \
+            'https://errata.devel.redhat.com/api/v1/products/RHCEPH/product_versions/929'
+        expected_json = {
+            'product_version': {
+                'description': 'Red Hat Ceph Storage 4.0 Is Cool',
+            }
+        }
+        assert history[1].json() == expected_json
+
+    def test_create_ima_sig_key_optional(self, client, params):
+        del params['ima_sig_key_name']
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/products/RHCEPH/product_versions/'
+            + '?filter%5Bname%5D=' + NAME,
+            json={'data': []})
+        client.adapter.register_uri(
+            'POST',
+            PROD + '/api/v1/products/RHCEPH/product_versions',
+            status_code=201)
+        result = ensure_product_version(client, params, check_mode=False)
+        assert result['changed'] is True
+        assert result['stdout_lines'] == ['created RHCEPH-4.0-RHEL-8 product version']
+
+        history = client.adapter.request_history
+        assert len(history) == 2
+        assert history[1].method == 'POST'
+        assert history[1].url == \
+            'https://errata.devel.redhat.com/api/v1/products/RHCEPH/product_versions'
+        assert history[1].json()['product_version']['ima_sig_key_name'] is None
 
 
 class TestFormErrors(object):
