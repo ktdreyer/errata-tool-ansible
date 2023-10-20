@@ -45,22 +45,24 @@
 
 - name: set expected version_release removal
   # Assign this variable here in order to use the !unsafe data type to handle
-  # "{{" and "}}" braces in the string.
+  # unsafe characters in strings for the assertions below.
   set_fact:
+    changing_package_names: !unsafe "changing package_names from [] to ['test-container']"
     removing_version_prerelease_advisory: !unsafe 'removing "{{version}}-prerelease-{{advisory}}" tag template from "test-container"'
     removing_version_release: !unsafe 'removing "{{version}}-{{release}}" tag template from "test-container"'
     removing_version_hotfix_advisory: !unsafe 'removing "{{version}}-{{hotfix}}-{{advisory}}" tag template from "test-container"'
+    adding_latest_tag: !unsafe 'adding "latest" tag template to "test-container"'
 
 - name: assert module reports CDN repo changing
   assert:
     that:
       - result.changed
       - result.stdout_lines | length == 5
-      - result.stdout_lines.0 == "changing package_names from [] to ['test-container']"
-      - result.stdout_lines.1 == removing_version_prerelease_advisory
-      - result.stdout_lines.2 == removing_version_release
-      - result.stdout_lines.3 == removing_version_hotfix_advisory
-      - result.stdout_lines.4 == "adding \"latest\" tag template to \"test-container\""
+      - changing_package_names in result.stdout_lines
+      - removing_version_prerelease_advisory in result.stdout_lines
+      - removing_version_release in result.stdout_lines
+      - removing_version_hotfix_advisory in result.stdout_lines
+      - adding_latest_tag in result.stdout_lines
 
 # Assert that this CDN repo looks correct.
 
