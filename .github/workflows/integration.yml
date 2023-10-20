@@ -10,7 +10,9 @@ jobs:
       - '${{ matrix.os }}'
     strategy:
       matrix:
-        os: [rhel-7]
+        os:
+          - rhel-7
+          - rhel-8
     steps:
       - uses: actions/checkout@v1
       - name: Reset ET server database
