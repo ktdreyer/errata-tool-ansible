@@ -257,7 +257,12 @@ On RHEL 7::
 
     yum -y install python-requests-gssapi python-lxml
 
-On RHEL 8+ and Fedora::
+On RHEL 8 and 9::
+
+    dnf copr enable -y ktdreyer/python3.11
+    yum -y install python3.11-requests-gssapi python3.11-lxml
+
+On Fedora::
 
     yum -y install python3-requests-gssapi python3-lxml
 
