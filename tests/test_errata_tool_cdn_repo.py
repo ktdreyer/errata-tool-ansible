@@ -86,7 +86,9 @@ CDN_REPO_PACKAGE_TAGS = [
         "id": 13860,
         "type": "cdn_repo_package_tags",
         "attributes": {
-            "tag_template": "latest"
+            "tag_template": "latest",
+            "for_hotfix": False,
+            "for_prerelease": False
         },
         "relationships": {
             "cdn_repo": {
@@ -103,7 +105,9 @@ CDN_REPO_PACKAGE_TAGS = [
         "id": 13859,
         "type": "cdn_repo_package_tags",
         "attributes": {
-            "tag_template": "{{version}}"
+            "tag_template": "{{version}}",
+            "for_hotfix": False,
+            "for_prerelease": False
         },
         "relationships": {
             "cdn_repo": {
@@ -120,7 +124,9 @@ CDN_REPO_PACKAGE_TAGS = [
         "id": 13858,
         "type": "cdn_repo_package_tags",
         "attributes": {
-            "tag_template": "{{version}}-{{release}}"
+            "tag_template": "{{version}}-{{release}}",
+            "for_hotfix": False,
+            "for_prerelease": False
         },
         "relationships": {
             "cdn_repo": {
@@ -137,7 +143,9 @@ CDN_REPO_PACKAGE_TAGS = [
         "id": 99999,
         "type": "cdn_repo_package_tags",
         "attributes": {
-            "tag_template": "my-variant-restricted-tag"
+            "tag_template": "my-variant-restricted-tag",
+            "for_hotfix": False,
+            "for_prerelease": False
         },
         "relationships": {
             "cdn_repo": {
@@ -152,6 +160,44 @@ CDN_REPO_PACKAGE_TAGS = [
                 "id": 9999,
                 "name": "8Base-RHCEPH-4.0-Tools"
             },
+        }
+    },
+    {
+        "id": 13861,
+        "type": "cdn_repo_package_tags",
+        "attributes": {
+            "tag_template": "{{version}}-prerelease-{{advisory}}",
+            "for_hotfix": False,
+            "for_prerelease": True
+        },
+        "relationships": {
+            "cdn_repo": {
+                "id": 11010,
+                "name": "redhat-rhceph-rhceph-4-rhel8"
+            },
+            "package": {
+                "id": 45969,
+                "name": "rhceph-container"
+            }
+        }
+    },
+    {
+        "id": 13862,
+        "type": "cdn_repo_package_tags",
+        "attributes": {
+            "tag_template": "{{version}}-{{hotfix}}-{{advisory}}",
+            "for_hotfix": True,
+            "for_prerelease": False
+        },
+        "relationships": {
+            "cdn_repo": {
+                "id": 11010,
+                "name": "redhat-rhceph-rhceph-4-rhel8"
+            },
+            "package": {
+                "id": 45969,
+                "name": "rhceph-container"
+            }
         }
     },
 ]
@@ -379,13 +425,37 @@ class TestGetPackageTags(object):
         cdn_repo = get_package_tags(client, name)
         expected = {
             'rhceph-container': {
-                '{{version}}-{{release}}': {'id': 13858},
-                '{{version}}': {'id': 13859},
-                'latest': {'id': 13860},
+                '{{version}}-{{release}}': {
+                    'id': 13858,
+                    'for_hotfix': False,
+                    'for_prerelease': False
+                },
+                '{{version}}': {
+                    'id': 13859,
+                    'for_hotfix': False,
+                    'for_prerelease': False
+                },
+                'latest': {
+                    'id': 13860,
+                    'for_hotfix': False,
+                    'for_prerelease': False
+                },
                 'my-variant-restricted-tag': {
                     'variant': '8Base-RHCEPH-4.0-Tools',
                     'id': 99999,
-                }
+                    'for_hotfix': False,
+                    'for_prerelease': False
+                },
+                '{{version}}-prerelease-{{advisory}}': {
+                    'id': 13861,
+                    'for_hotfix': False,
+                    'for_prerelease': True
+                },
+                '{{version}}-{{hotfix}}-{{advisory}}': {
+                    'id': 13862,
+                    'for_hotfix': True,
+                    'for_prerelease': False
+                },
             },
         }
         assert cdn_repo == expected
@@ -412,7 +482,9 @@ class TestAddPackageTag(object):
     def test_basic(self, client, repo_name, package_name):
         tag_template = 'latest'
         variant = None
-        add_package_tag(client, repo_name, package_name, tag_template, variant)
+        for_hotfix = False
+        for_prerelease = False
+        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
@@ -424,7 +496,9 @@ class TestAddPackageTag(object):
     def test_variant_restriction(self, client, repo_name, package_name):
         tag_template = 'restricted-tag'
         variant = 'Product-Foo'
-        add_package_tag(client, repo_name, package_name, tag_template, variant)
+        for_hotfix = False
+        for_prerelease = False
+        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
@@ -434,6 +508,36 @@ class TestAddPackageTag(object):
                      'variant_name': 'Product-Foo'}}
         assert history[0].json() == expected
 
+    def test_for_hotfix(self, client, repo_name, package_name):
+        tag_template = 'hotfix-tag'
+        variant = None
+        for_hotfix = True
+        for_prerelease = False
+        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
+        history = client.adapter.request_history
+        assert len(history) == 1
+        expected = {'cdn_repo_package_tag':
+                    {'cdn_repo_name': 'redhat-rhceph-rhceph-4-rhel8',
+                     'package_name': 'rhceph-container',
+                     'tag_template': 'hotfix-tag',
+                     'for_hotfix': True}}
+        assert history[0].json() == expected
+
+    def test_for_prerelease(self, client, repo_name, package_name):
+        tag_template = 'prerelease-tag'
+        variant = None
+        for_hotfix = False
+        for_prerelease = True
+        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
+        history = client.adapter.request_history
+        assert len(history) == 1
+        expected = {'cdn_repo_package_tag':
+                    {'cdn_repo_name': 'redhat-rhceph-rhceph-4-rhel8',
+                     'package_name': 'rhceph-container',
+                     'tag_template': 'prerelease-tag',
+                     'for_prerelease': True}}
+        assert history[0].json() == expected
+
     def test_failure(self, client):
         client.adapter.register_uri(
             'POST',
@@ -441,7 +545,7 @@ class TestAddPackageTag(object):
             status_code=400,
             json={'status': 400, 'error': 'Bad Request'})
         with pytest.raises(ValueError) as err:
-            add_package_tag(client, '', '', 'latest', None)
+            add_package_tag(client, '', '', 'latest', None, False, False)
 
         error = str(err.value)
         assert 'Unexpected response from Errata Tool: Bad Request' in error
@@ -496,7 +600,11 @@ class EnsurePackageTagsBase(object):
     def repo(self):
         return {'id': 13860,
                 'type': 'cdn_repo_package_tags',
-                'attributes': {'tag_template': 'latest'},
+                'attributes': {
+                    'tag_template': 'latest',
+                    "for_hotfix": False,
+                    "for_prerelease": False
+                },
                 'relationships': {
                     'cdn_repo': {'id': 11010,
                                  'name': 'redhat-rhceph-rhceph-4-rhel8'},
@@ -698,6 +806,8 @@ class TestEnsureCdnRepo(object):
                  {'variant': '8Base-RHCEPH-4.0-Tools'}},
                 '{{version}}',
                 '{{version}}-{{release}}',
+                {'{{version}}-prerelease-{{advisory}}': {'for_prerelease': True}},
+                {'{{version}}-{{hotfix}}-{{advisory}}': {'for_hotfix': True}}
             ]},
         }
 
@@ -729,12 +839,17 @@ class TestEnsureCdnRepo(object):
                           'content_type': 'Docker',
                           'name': 'redhat-rhceph-rhceph-4-rhel8',
                           'external_name': 'rhceph/rhceph-4-rhel8',
-                          'packages': {'rhceph-container': [
-                              'latest',
-                              {'my-variant-restricted-tag':
-                               {'variant': '8Base-RHCEPH-4.0-Tools'}},
-                              '{{version}}',
-                              '{{version}}-{{release}}']},
+                          'packages': {
+                              'rhceph-container': [
+                                'latest',
+                                {'my-variant-restricted-tag':
+                                {'variant': '8Base-RHCEPH-4.0-Tools'}},
+                                '{{version}}',
+                                {'{{version}}-prerelease-{{advisory}}': {'for_prerelease': True}},
+                                {'{{version}}-{{hotfix}}-{{advisory}}': {'for_hotfix': True}},    
+                                '{{version}}-{{release}}',       
+                              ]
+                            },
                           'release_type': 'Primary',
                           'use_for_tps': False,
                           'variants': ['8Base-RHCEPH-4.0-Tools',
@@ -761,7 +876,11 @@ class TestEnsureCdnRepo(object):
         cdn_repo_package_tags = {
             "id": 13858,
             "type": "cdn_repo_package_tags",
-            "attributes": {"tag_template": "{{version}}-{{release}}"},
+            "attributes": {
+                "tag_template": "{{version}}-{{release}}",
+                "for_hotfix": False,
+                "for_prerelease": False
+            },
             "relationships": {
                 "cdn_repo": {
                     "id": 11010,
@@ -786,6 +905,8 @@ class TestEnsureCdnRepo(object):
             ('adding "my-variant-restricted-tag" tag template'
              ' to "rhceph-container"'),
             'adding "latest" tag template to "rhceph-container"',
+            'adding "{{version}}-{{hotfix}}-{{advisory}}" tag template to "rhceph-container"',
+            'adding "{{version}}-prerelease-{{advisory}}" tag template to "rhceph-container"'
         ]
         assert result['changed'] is True
         assert set(result['stdout_lines']) == set(expected_stdout_lines)
