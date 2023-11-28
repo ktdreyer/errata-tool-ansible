@@ -71,8 +71,10 @@ options:
          name, and the value is the list of tags for the package.
        - Each tag can be a string or a dict. If the tag is a string, the
          Errata Tool will apply this package's tag to all variants. If the tag
-         is a dict, the Errata Tool will apply the package's tag to the single
-         variant that you specify in the dict.
+         is a dict with "variant" key, the Errata Tool will apply the
+         package's tag to the single variant that you specify in the dict.
+         You can specify "for_hotfix" and "for_prerelease" to indicate
+         if the tag is for hotfix or prerelease.
        - "If you omit this parameter, Ansible will remove all the existing
          packages from this repository. You should omit this parameter for
          repositories that are not content_type: Docker."
@@ -139,6 +141,34 @@ EXAMPLES = '''
         - latest
         - my-restricted-variant-tag:
             variant: 8Base-FOO-1.0-Tools
+
+  - name: Add a repo with a tag for hotfix
+    errata_tool_cdn_repo:
+      name: redhat-fooproduct-1-rhel8
+      release_type: Primary
+      content_type: Docker
+      variants:
+      - 8Base-FOO-1.0-Tools
+      - 8Base-FOO-1.1-Tools
+      packages:
+        foo-container:
+        - latest
+        - my-hotfix-tag:
+            for_hotfix: True
+
+  - name: Add a repo with a tag for prerelease
+    errata_tool_cdn_repo:
+      name: redhat-fooproduct-1-rhel8
+      release_type: Primary
+      content_type: Docker
+      variants:
+      - 8Base-FOO-1.0-Tools
+      - 8Base-FOO-1.1-Tools
+      packages:
+        foo-container:
+        - latest
+        - my-prerelease-tag:
+            for_prerelease: True
 '''
 
 CDN_RELEASE_TYPES = [
@@ -175,9 +205,11 @@ def normalize_packages(packages):
                           (possibly empty) list of tags. Each tag is either a
                           string or a dict.
     :returns: A dict of packages. Each key is a package name. Each value is a
-              dict of tags. Each tag dictionary is empty (to indicate no
-              variant restrictions), or has a "variant" key (to indicate a
-              variant restriction).
+              dict of tags. Each tag dictionary may have a "for_hotfix" key
+              (to indicate if it is for hotfix), a "for_prerelease" key
+              (to indicate if it is for prerelease). If there is no "variant"
+              key (to indicate no variant restrictions), or has a "variant"
+              key (to indicate a variant restriction), .
     """
     normalized = {}
     for package_name, tags in packages.items():
@@ -222,6 +254,8 @@ def get_package_tags(client, name):
 
     :param str name: CDN Repository name
     :returns: dict of "packages: tag_templates". Each tag_template is a dict.
+              The tag_template dict has a "id" key, a "for_hotfix" key and
+              a "for_prerelease" key.
               If it has a "variant" key, then it is restricted to a variant.
               If it has no "variant" key, there are no restrictions for this
               repo's package's tag_template. If a package in this repo has no
@@ -234,23 +268,27 @@ def get_package_tags(client, name):
     page_number = 0
     elements = []
     found = []
-    while (page_number == 0 or found == PAGE_SIZE):
+    while (page_number == 0 or len(found) == PAGE_SIZE):
         page_number += 1
         found = get_package_tags_page(client, name, page_number)
         elements += found
     packages = {}
     for element in elements:
-        id_ = element['id']
-        package_name = element['relationships']['package']['name']
-        tag_template = element['attributes']['tag_template']
-        if package_name not in packages:
-            packages[package_name] = {}
+        attributes = element['attributes']
+        tag_template = attributes['tag_template']
+        package = packages.setdefault(
+            element['relationships']['package']['name'],
+            {}
+        )
+        package[tag_template] = {
+            'id': element['id'],
+            'for_hotfix': attributes['for_hotfix'],
+            'for_prerelease': attributes['for_prerelease']
+        }
         if 'variant' in element['relationships']:
-            variant_name = element['relationships']['variant']['name']
-            packages[package_name][tag_template] = {'variant': variant_name,
-                                                    'id': id_}
-        else:
-            packages[package_name][tag_template] = {'id': id_}
+            package[tag_template]['variant'] = (
+                element['relationships']['variant']['name']
+            )
     return packages
 
 
@@ -332,7 +370,8 @@ def edit_cdn_repo(client, cdn_repo_id, differences):
         raise common_errata_tool.ErrataToolError(response)
 
 
-def add_package_tag(client, repo_name, package_name, tag_template, variant):
+def add_package_tag(client, repo_name, package_name, tag_template,
+                    variant, for_hotfix, for_prerelease):
     """
     Create a new package tag for this CDN repo.
 
@@ -342,13 +381,21 @@ def add_package_tag(client, repo_name, package_name, tag_template, variant):
     :param str tag_template: tag template, eg. "latest" or "{{version}}"
     :param str variant: Restrict this tag to this variant. If this value is
                         None, do not set a variant restriction on this tag.
+    :param bool for_hotfix: Indicates it is for hotfix.
+    :param bool for_prerelease: Indicates it is for prerelease.
     """
     endpoint = 'api/v1/cdn_repo_package_tags'
-    json_settings = {'cdn_repo_name': repo_name,
-                     'package_name': package_name,
-                     'tag_template': tag_template}
+    json_settings = {
+        'cdn_repo_name': repo_name,
+        'package_name': package_name,
+        'tag_template': tag_template,
+    }
     if variant:
         json_settings['variant_name'] = variant
+    if for_hotfix:
+        json_settings['for_hotfix'] = True
+    if for_prerelease:
+        json_settings['for_prerelease'] = True
     json = {'cdn_repo_package_tag': json_settings}
     response = client.post(endpoint, json=json)
     if response.status_code != 201:
@@ -357,7 +404,7 @@ def add_package_tag(client, repo_name, package_name, tag_template, variant):
 
 def edit_package_tag(client, tag_id, desired_tag):
     """
-    Edit the settings (variant) for a package tag.
+    Edit the settings for a package tag.
 
     :param client: Errata Client
     :param int tag_id: ID of the package tag to edit.
@@ -367,11 +414,15 @@ def edit_package_tag(client, tag_id, desired_tag):
                              key, then we will remove the variant for this
                              tag.
     """
+    settings = {
+        'for_hotfix': desired_tag.get('for_hotfix', False),
+        'for_prerelease': desired_tag.get('for_prerelease', False)
+    }
     variant = desired_tag.get('variant')
     if variant:
-        settings = {'variant_name': variant}
+        settings['variant_name'] = variant
     else:
-        settings = {'variant_id': None}
+        settings['variant_id'] = None
     json = {'cdn_repo_package_tag': settings}
     endpoint = 'api/v1/cdn_repo_package_tags/%d' % tag_id
     response = client.put(endpoint, json=json)
@@ -393,7 +444,7 @@ def delete_package_tag(client, tag_id):
 
 def compare_package_tags(package_name, tag_template, current, desired):
     """
-    Compare the (variant) settings for a tag_template.
+    Compare the settings for a tag_template.
 
     Describe the changes from "current" to "desired".
     If there are no differences, return an empty list.
@@ -405,21 +456,67 @@ def compare_package_tags(package_name, tag_template, current, desired):
                          have in the ET.
     :returns: list of human-readable changes.
     """
+    variant_changes = compare_package_tags_key(
+        'variant',
+        package_name,
+        tag_template,
+        current,
+        desired
+    )
+    for_hotfix_changes = compare_package_tags_key(
+        'for_hotfix',
+        package_name,
+        tag_template,
+        current,
+        desired,
+        False
+    )
+    for_prerelease_changes = compare_package_tags_key(
+        'for_prerelease',
+        package_name,
+        tag_template,
+        current,
+        desired,
+        False
+    )
+    return variant_changes + for_hotfix_changes + for_prerelease_changes
+
+
+def compare_package_tags_key(key, package_name, tag_template, current,
+                             desired, default=None):
+    """
+    Compare the settings of specific key for a tag_template.
+
+    Describe the changes from "current" to "desired".
+    If there are no differences, return an empty list.
+
+    :param str key: The key of a specific setting
+    :param str package_name: The package name, eg "rhceph-container"
+    :param str tag_template: The tag_template value, eg "latest".
+    :param dict current: The "current" tag template settings stored in the ET.
+    :param dict desired: The tag template settings that the user wants to
+                         have in the ET.
+    :param any default: The default value for the key
+    :returns: list of human-readable changes.
+    """
     # This is not a generalized dict diff tool, because we only look at one
-    # single key ("variant") here for now.
-    current_variant = current.get('variant')
-    desired_variant = desired.get('variant')
-    if current_variant == desired_variant:
-        return []
-    if current_variant and not desired_variant:
-        return ['removing "%s" variant from %s "%s" tag template' %
-                (current_variant, package_name, tag_template)]
-    if not current_variant and desired_variant:
-        return ['adding "%s" variant to %s "%s" tag template' %
-                (desired_variant, package_name, tag_template)]
-    if current_variant != desired_variant:
-        return ['changing %s "%s" variant from "%s" to "%s"' %
-                (package_name, tag_template, current_variant, desired_variant)]
+    # single key here for now.
+    current_value = current.get(key, default)
+    desired_value = desired.get(key, default)
+    if current_value is not None and desired_value is None:
+        return ['removing "%s" %s from %s "%s" tag template' %
+                (current_value, key, package_name, tag_template)]
+    if current_value is None and desired_value is not None:
+        return ['adding "%s" %s to %s "%s" tag template' %
+                (desired_value, key, package_name, tag_template)]
+    if current_value != desired_value:
+        return ['changing %s "%s" %s from "%s" to "%s"' %
+                (package_name,
+                 tag_template,
+                 key,
+                 current_value,
+                 desired_value)]
+    return []
 
 
 def ensure_package_tags(client, repo_name, package_name, check_mode,
@@ -437,14 +534,16 @@ def ensure_package_tags(client, repo_name, package_name, check_mode,
     :param dict current_tags: Each key is a tag template, and each value is
                               a dict (the settings for those tag templates).
                               Each value dict has an "id" key that provides
-                              the current ID number of this tag template. They
-                              also may havee a "variant" key.
+                              the current ID number of this tag template,
+                              a "for_hotfix" key and a "for_prerelease" key.
+                              They also may have a "variant" key.
     :param dict desired_tags: Each key is a tag template, and each value is
                               a dict (the settings for those tag templates).
                               The value dicts may have a "variant" key if the
                               user wants to restrict thist tag to a single
-                              variant, or else the value dicts are empty if
-                              the tag is unrestricted.
+                              variant, a "for_hotfix" key to indicate it is
+                              for hotfix, or a "for_prerelease" key
+                              to indicate it is for prerelease.
     :returns: a (possibly-empty) list of human-readable changes.
     """
     changes = []
@@ -484,7 +583,17 @@ def ensure_package_tags(client, repo_name, package_name, check_mode,
             continue
         tag = desired_tags[tag_template]
         variant = tag.get('variant')
-        add_package_tag(client, repo_name, package_name, tag_template, variant)
+        for_hotfix = tag.get('for_hotfix', False)
+        for_prerelease = tag.get('for_prerelease', False)
+        add_package_tag(
+            client,
+            repo_name,
+            package_name,
+            tag_template,
+            variant,
+            for_hotfix,
+            for_prerelease
+        )
     return changes
 
 
@@ -530,12 +639,20 @@ def ensure_packages_tags(client, name, check_mode, packages):
 # The end result should match the format of the module
 # params, so refer to the examples in the module docs above.
 def tag_name_or_variant_dict(tag_name, tag_info):
-    if 'variant' in tag_info:
-        return {
-            tag_name: {
-                'variant': tag_info['variant'],
-            }
-        }
+    tag_dict = {}
+
+    variant = tag_info.get('variant')
+    if variant:
+        tag_dict['variant'] = variant
+    for_hotfix = tag_info.get('for_hotfix', False)
+    if for_hotfix:
+        tag_dict['for_hotfix'] = for_hotfix
+    for_prerelease = tag_info.get('for_prerelease', False)
+    if for_prerelease:
+        tag_dict['for_prerelease'] = for_prerelease
+
+    if tag_dict:
+        return {tag_name: tag_dict}
     else:
         return tag_name
 
