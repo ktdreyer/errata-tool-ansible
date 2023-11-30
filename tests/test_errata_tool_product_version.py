@@ -31,6 +31,7 @@ PRODUCT_VERSION = {
         "is_server_only": False,
         "enabled": True,
         "suppress_push_request_jira": False,
+        "allow_unreleased_rpms": True,
     },
     "brew_tags": ["ceph-4.0-rhel-8-candidate"],
     "relationships": {
@@ -63,6 +64,7 @@ def params():
         "is_server_only": False,
         "enabled": True,
         "suppress_push_request_jira": False,
+        "allow_unreleased_rpms": True,
         "push_targets": [
             "ftp",
             "cdn",
@@ -136,6 +138,7 @@ class TestGetProductVersion(object):
                              'cdn_docker', 'cdn_docker_stage'],
             'rhel_release_name': 'RHEL-8',
             'suppress_push_request_jira': False,
+            'allow_unreleased_rpms': True,
             'sig_key_name': 'redhatrelease2',
             'ima_sig_key_name': 'redhatimarelease',
         }
