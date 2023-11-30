@@ -484,7 +484,8 @@ class TestAddPackageTag(object):
         variant = None
         for_hotfix = False
         for_prerelease = False
-        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
+        add_package_tag(client, repo_name, package_name, tag_template,
+                        variant, for_hotfix, for_prerelease)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
@@ -498,7 +499,8 @@ class TestAddPackageTag(object):
         variant = 'Product-Foo'
         for_hotfix = False
         for_prerelease = False
-        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
+        add_package_tag(client, repo_name, package_name, tag_template,
+                        variant, for_hotfix, for_prerelease)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
@@ -513,7 +515,8 @@ class TestAddPackageTag(object):
         variant = None
         for_hotfix = True
         for_prerelease = False
-        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
+        add_package_tag(client, repo_name, package_name, tag_template,
+                        variant, for_hotfix, for_prerelease)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
@@ -528,7 +531,8 @@ class TestAddPackageTag(object):
         variant = None
         for_hotfix = False
         for_prerelease = True
-        add_package_tag(client, repo_name, package_name, tag_template, variant, for_hotfix, for_prerelease)
+        add_package_tag(client, repo_name, package_name, tag_template,
+                        variant, for_hotfix, for_prerelease)
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
@@ -602,8 +606,8 @@ class EnsurePackageTagsBase(object):
                 'type': 'cdn_repo_package_tags',
                 'attributes': {
                     'tag_template': 'latest',
-                    "for_hotfix": False,
-                    "for_prerelease": False
+                    'for_hotfix': False,
+                    'for_prerelease': False
                 },
                 'relationships': {
                     'cdn_repo': {'id': 11010,
@@ -618,6 +622,18 @@ class EnsurePackageTagsBase(object):
         repo = self.repo
         repo['relationships']['variant'] = {'id': 9999,
                                             'name': '8Base-RHCEPH-4.0-Tools'}
+        return repo
+
+    @property
+    def repo_for_hotfix(self):
+        repo = self.repo
+        repo['attributes']['for_hotfix'] = True
+        return repo
+
+    @property
+    def repo_for_prerelease(self):
+        repo = self.repo
+        repo['attributes']['for_prerelease'] = True
         return repo
 
     @pytest.fixture
@@ -671,6 +687,58 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
         assert result == expected
         assert len(client.adapter.request_history) == 2
         assert client.adapter.request_history[1].method == 'POST'
+
+    def test_add_one_for_hotfix(self, client, name, check_mode):
+        package_name = 'rhceph-container'
+        hotfix_tag = 'hotfix-tag'
+        cdn_repo_name = self.repo['relationships']['cdn_repo']['name']
+        packages = {
+            package_name: {
+                'latest': {},
+                hotfix_tag: {'for_hotfix': True}
+            }
+        }
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
+        expected_changes = [f'adding "{hotfix_tag}" tag template'
+                            f' to "rhceph-container"']
+        expected_settings = {
+            'cdn_repo_package_tag': {
+                'cdn_repo_name': cdn_repo_name,
+                'package_name': package_name,
+                'tag_template': hotfix_tag,
+                'for_hotfix': True
+            }
+        }
+        assert result == expected_changes
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'POST'
+        assert client.adapter.request_history[1].json() == expected_settings
+
+    def test_add_one_for_prerelease(self, client, name, check_mode):
+        package_name = 'rhceph-container'
+        prerelease_tag = 'prerelease-tag'
+        cdn_repo_name = self.repo['relationships']['cdn_repo']['name']
+        packages = {
+            package_name: {
+                'latest': {},
+                prerelease_tag: {'for_prerelease': True}
+            }
+        }
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
+        expected_changes = [f'adding "{prerelease_tag}" tag template'
+                            f' to "rhceph-container"']
+        expected_settings = {
+            'cdn_repo_package_tag': {
+                'cdn_repo_name': cdn_repo_name,
+                'package_name': package_name,
+                'tag_template': prerelease_tag,
+                'for_prerelease': True
+            }
+        }
+        assert result == expected_changes
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'POST'
+        assert client.adapter.request_history[1].json() == expected_settings
 
     def test_remove_one(self, client, name, check_mode):
         packages = {'rhceph-container': {}}
@@ -726,6 +794,98 @@ class TestEnsurePackageTags(EnsurePackageTagsBase):
         assert result == expected
         assert len(client.adapter.request_history) == 2
         assert client.adapter.request_history[1].method == 'PUT'
+
+    def test_update_for_hotfix_to_true(self, client, name, check_mode):
+        packages = {
+            'rhceph-container': {
+                'latest': {'for_hotfix': True}
+            }
+        }
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
+        expected_changes = ['changing rhceph-container "latest" for_hotfix'
+                            ' from "False" to "True"']
+        expected_settings = {
+            'cdn_repo_package_tag': {
+                'for_hotfix': True,
+                'for_prerelease': False,
+                'variant_id': None
+            }
+        }
+        assert result == expected_changes
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'PUT'
+        assert client.adapter.request_history[1].json() == expected_settings
+
+    def test_update_for_hotfix_to_false(self, client, name, check_mode):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/cdn_repo_package_tags',
+            json={'data': [self.repo_for_hotfix]})
+        packages = {
+            'rhceph-container': {
+                'latest': {}
+            }
+        }
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
+        expected_changes = ['changing rhceph-container "latest" for_hotfix'
+                            ' from "True" to "False"']
+        expected_settings = {
+            'cdn_repo_package_tag': {
+                'for_hotfix': False,
+                'for_prerelease': False,
+                'variant_id': None
+            }
+        }
+        assert result == expected_changes
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'PUT'
+        assert client.adapter.request_history[1].json() == expected_settings
+
+    def test_update_for_prerelease_to_true(self, client, name, check_mode):
+        packages = {
+            'rhceph-container': {
+                'latest': {'for_prerelease': True}
+            }
+        }
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
+        expected_changes = ['changing rhceph-container "latest" for_prerelease'
+                            ' from "False" to "True"']
+        expected_settings = {
+            'cdn_repo_package_tag': {
+                'for_hotfix': False,
+                'for_prerelease': True,
+                'variant_id': None
+            }
+        }
+        assert result == expected_changes
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'PUT'
+        assert client.adapter.request_history[1].json() == expected_settings
+
+    def test_update_for_prerelease_to_false(self, client, name, check_mode):
+        client.adapter.register_uri(
+            'GET',
+            PROD + '/api/v1/cdn_repo_package_tags',
+            json={'data': [self.repo_for_prerelease]})
+        packages = {
+            'rhceph-container': {
+                'latest': {}
+            }
+        }
+        result, _ = ensure_packages_tags(client, name, check_mode, packages)
+        expected_changes = ['changing rhceph-container "latest" for_prerelease'
+                            ' from "True" to "False"']
+        expected_settings = {
+            'cdn_repo_package_tag': {
+                'for_hotfix': False,
+                'for_prerelease': False,
+                'variant_id': None
+            }
+        }
+        assert result == expected_changes
+        assert len(client.adapter.request_history) == 2
+        assert client.adapter.request_history[1].method == 'PUT'
+        assert client.adapter.request_history[1].json() == expected_settings
 
     def test_add_one_from_zero(self, client, name, check_mode):
         client.adapter.register_uri(
@@ -806,8 +966,10 @@ class TestEnsureCdnRepo(object):
                  {'variant': '8Base-RHCEPH-4.0-Tools'}},
                 '{{version}}',
                 '{{version}}-{{release}}',
-                {'{{version}}-prerelease-{{advisory}}': {'for_prerelease': True}},
-                {'{{version}}-{{hotfix}}-{{advisory}}': {'for_hotfix': True}}
+                {'{{version}}-prerelease-{{advisory}}':
+                 {'for_prerelease': True}},
+                {'{{version}}-{{hotfix}}-{{advisory}}':
+                 {'for_hotfix': True}}
             ]},
         }
 
@@ -843,11 +1005,13 @@ class TestEnsureCdnRepo(object):
                               'rhceph-container': [
                                 'latest',
                                 {'my-variant-restricted-tag':
-                                {'variant': '8Base-RHCEPH-4.0-Tools'}},
+                                 {'variant': '8Base-RHCEPH-4.0-Tools'}},
                                 '{{version}}',
-                                {'{{version}}-prerelease-{{advisory}}': {'for_prerelease': True}},
-                                {'{{version}}-{{hotfix}}-{{advisory}}': {'for_hotfix': True}},    
-                                '{{version}}-{{release}}',       
+                                {'{{version}}-prerelease-{{advisory}}':
+                                 {'for_prerelease': True}},
+                                {'{{version}}-{{hotfix}}-{{advisory}}':
+                                 {'for_hotfix': True}},
+                                '{{version}}-{{release}}',
                               ]
                             },
                           'release_type': 'Primary',
@@ -905,8 +1069,10 @@ class TestEnsureCdnRepo(object):
             ('adding "my-variant-restricted-tag" tag template'
              ' to "rhceph-container"'),
             'adding "latest" tag template to "rhceph-container"',
-            'adding "{{version}}-{{hotfix}}-{{advisory}}" tag template to "rhceph-container"',
-            'adding "{{version}}-prerelease-{{advisory}}" tag template to "rhceph-container"'
+            'adding "{{version}}-{{hotfix}}-{{advisory}}"'
+            ' tag template to "rhceph-container"',
+            'adding "{{version}}-prerelease-{{advisory}}"'
+            ' tag template to "rhceph-container"'
         ]
         assert result['changed'] is True
         assert set(result['stdout_lines']) == set(expected_stdout_lines)

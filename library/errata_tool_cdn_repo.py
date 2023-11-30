@@ -207,9 +207,9 @@ def normalize_packages(packages):
     :returns: A dict of packages. Each key is a package name. Each value is a
               dict of tags. Each tag dictionary may have a "for_hotfix" key
               (to indicate if it is for hotfix), a "for_prerelease" key
-              (to indicate if it is for prerelease). If there is no "variant"
-              key (to indicate no variant restrictions), or has a "variant"
-              key (to indicate a variant restriction), .
+              (to indicate if it is for prerelease). There is no "variant"
+              key (to indicate no variant restrictions), or It has a "variant"
+              key (to indicate a variant restriction).
     """
     normalized = {}
     for package_name, tags in packages.items():
@@ -633,12 +633,12 @@ def ensure_packages_tags(client, name, check_mode, packages):
     return (changes, current)
 
 
-# If the variant key is present in tag_info then the tag is
-# variant-specific, and the list item is a dict with a single
-# key, otherwise it's just a string with the tag name.
+# If the variant, for_hotfix or for_prerelease key is present
+# in tag_info then the list item is a dict with the keys,
+# otherwise it's just a string with the tag name.
 # The end result should match the format of the module
 # params, so refer to the examples in the module docs above.
-def tag_name_or_variant_dict(tag_name, tag_info):
+def tag_name_or_dict(tag_name, tag_info):
     tag_dict = {}
 
     variant = tag_info.get('variant')
@@ -662,7 +662,7 @@ def tag_name_or_variant_dict(tag_name, tag_info):
 def package_list_for_diff(all_packages):
     return {
         package_name: [
-            tag_name_or_variant_dict(tag_name, tag_info)
+            tag_name_or_dict(tag_name, tag_info)
             for (tag_name, tag_info)
             # Without sorting the order is different in py2 vs py3 causing
             # a test failure in py27. So sort here to make sure the tests
