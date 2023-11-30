@@ -125,6 +125,13 @@ options:
          it will override it.
      choices: [true, false]
      required: false
+   allow_unreleased_rpms:
+     description:
+       - Determines if the product version is allowed to push containers
+         with unreleased rpms.
+     choices: [true, false]
+     required: false
+     default: false
 requirements:
   - "python >= 2.7"
   - "lxml"
@@ -300,6 +307,7 @@ def run_module():
         use_quay_for_containers=dict(type='bool'),
         use_quay_for_containers_stage=dict(type='bool'),
         suppress_push_request_jira=dict(type='bool'),
+        allow_unreleased_rpms=dict(type='bool')
     )
     module = AnsibleModule(
         argument_spec=module_args,

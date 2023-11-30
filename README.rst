@@ -83,6 +83,7 @@ Versions within the Errata Tool.
           - cdn_docker
           - cdn
         suppress_push_request_jira: false
+        allow_unreleased_rpms: false
 
 errata_tool_release
 -------------------
