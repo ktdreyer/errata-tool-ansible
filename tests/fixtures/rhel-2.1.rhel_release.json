@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "type": "rhel_releases",
+      "attributes": {
+        "name": "RHEL-2.1",
+        "description": "Red Hat Advanced Server 2.1",
+        "version_number": 2,
+        "exclude_ftp_debuginfo": false,
+        "is_zstream": false
+      }
+    }
+  ],
+  "page": {
+    "current_page": 1,
+    "total_pages": 1,
+    "result_count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "data": [
+    {
+      "id": 105,
+      "type": "rhel_releases",
+      "attributes": {
+        "name": "RHEL-8.1.0.Z.MAIN+EUS",
+        "description": "RHEL-8.1.0.Z.MAIN+EUS",
+        "version_number": 8,
+        "exclude_ftp_debuginfo": true,
+        "is_zstream": true
+      }
+    }
+  ],
+  "page": {
+    "current_page": 1,
+    "total_pages": 1,
+    "result_count": 1
+  }
+}
