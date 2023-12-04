@@ -1,0 +1,104 @@
+# Configures three minimal RHEL releases
+#
+---
+
+- name: Add a new RHEL release RHEL-7000
+  errata_tool_rhel_release:
+    name: RHEL-7000
+    description: RHEL Server 7000
+    exclude_ftp_debuginfo: false
+  register: rhel_7k
+
+
+- name: Add a new RHEL release RHEL-11
+  errata_tool_rhel_release:
+    name: RHEL-11
+    description: RHEL Server 11
+  register: rhel_11
+
+- name: Add a new RHEL release RHEL-12.Z.MAIN+EUS
+  errata_tool_rhel_release:
+    name: RHEL-12.Z.MAIN+EUS
+    description: RHEL Server 12 Z.MAIN+EUS
+    exclude_ftp_debuginfo: true
+  register: rhel_12_z_plus
+
+- name: Assert module responses are correct
+  assert:
+    that:
+      - rhel_7k.changed
+      - rhel_7k.stdout_lines == ['created RHEL-7000']
+      - rhel_11.changed
+      - rhel_11.stdout_lines == ['created RHEL-11']
+      - rhel_12_z_plus.changed
+      - rhel_12_z_plus.stdout_lines == ['created RHEL-12.Z.MAIN+EUS']
+
+# Assert that these rhel releases look correct
+
+- name: Query API for RHEL-7000
+  errata_tool_request:
+    path: api/v1/rhel_releases?filter[name]=RHEL-7000
+  register: rhel_7k_data
+
+- name: Query API for RHEL-11
+  errata_tool_request:
+    path: api/v1/rhel_releases?filter[name]=RHEL-11
+  register: rhel_11_data
+
+- name: Query API for RHEL-12.Z.MAIN+EUS
+  errata_tool_request:
+    # Url-encoded because of the +
+    path: api/v1/rhel_releases?filter[name]=RHEL-12.Z.MAIN%2BEUS
+  register: rhel_12_z_plus_data
+
+- name: Parse rhel release JSON
+  set_fact:
+    rhel_7k_attributes: "{{ rhel_7k_data.json.data[0].attributes }}"
+    rhel_11_attributes: "{{ rhel_11_data.json.data[0].attributes }}"
+    rhel_12_z_plus_attributes: "{{ rhel_12_z_plus_data.json.data[0].attributes }}"
+
+- assert:
+    that:
+      - rhel_7k_attributes.name == 'RHEL-7000'
+      - rhel_7k_attributes.description == 'RHEL Server 7000'
+      - not rhel_7k_attributes.exclude_ftp_debuginfo # False
+
+      - rhel_11_attributes.name == 'RHEL-11'
+      - rhel_11_attributes.description == 'RHEL Server 11'
+      - rhel_11_attributes.exclude_ftp_debuginfo # True
+
+      - rhel_12_z_plus_attributes.name == 'RHEL-12.Z.MAIN+EUS'
+      - rhel_12_z_plus_attributes.description == 'RHEL Server 12 Z.MAIN+EUS'
+      - rhel_12_z_plus_attributes.exclude_ftp_debuginfo # True
+
+# Errata Tool uses two param formats depending on whether we
+# create or update an rhel release.
+# Lets update one of the rhel releases to ensure that there are no issues.
+
+- name: Update RHEL release RHEL-7000
+  errata_tool_rhel_release:
+    name: RHEL-7000
+    description: RHEL Server 7K
+    exclude_ftp_debuginfo: false
+  register: rhel_7k_updated
+
+- name: Assert module responses are correct
+  assert:
+    that:
+      - rhel_7k_updated.changed
+      - rhel_7k_updated.stdout_lines == ['changing description from RHEL Server 7000 to RHEL Server 7K']
+
+- name: Query API for updated RHEL-7000
+  errata_tool_request:
+    path: api/v1/rhel_releases?filter[name]=RHEL-7000
+  register: rhel_7k_updated_data
+
+- name: Parse updated rhel release JSON
+  set_fact:
+    rhel_7k_updated_attributes: "{{ rhel_7k_updated_data.json.data[0].attributes }}"
+
+- assert:
+    that:
+      - rhel_7k_updated_attributes.name == 'RHEL-7000'
+      - rhel_7k_updated_attributes.description == 'RHEL Server 7K'
+      - not rhel_7k_updated_attributes.exclude_ftp_debuginfo # False

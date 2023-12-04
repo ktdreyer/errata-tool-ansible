@@ -168,6 +168,20 @@ package, you must escape the double brackets for Ansible with the
 ``{% raw %} ... {% endraw %}`` syntax. If you pass the values into Ansible
 Tower's REST API, you may not need to escape the values like this.
 
+errata_tool_rhel_release
+----------------
+
+The ``errata_tool_rhel_release`` module can create or update Rhel Releases within the Errata
+Tool.
+
+.. code-block:: yaml
+
+    - name: Add RHEL-2.1 rhel release
+      errata_tool_rhel_release:
+        name: RHEL-2.1
+        description: Red Hat Advanced Server 2.1
+        exclude_ftp_debuginfo: true
+
 errata_tool_user
 ----------------
 
