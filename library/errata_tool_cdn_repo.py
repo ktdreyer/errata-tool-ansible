@@ -93,8 +93,7 @@ EXAMPLES = '''
 
   - name: Add rhceph-4-tools-for-rhel-8-x86_64-rpms cdn repo
     errata_tool_cdn_repo:
-      name: redhat-rhceph-rhceph-4-rhel8
-      external_name: rhceph/rhceph-4-rhel8
+      name: rhceph-4-tools-for-rhel-8-x86_64-rpms
       release_type: Primary
       content_type: Binary
       use_for_tps: True
