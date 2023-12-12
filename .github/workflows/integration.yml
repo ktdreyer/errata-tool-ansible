@@ -18,7 +18,7 @@ jobs:
       - name: Reset ET server database
         run: |
           pushd /home/cloud-user/errata-rails
-          sudo -E docker-compose exec -T dev /code/bin/rake db:reset db:fixtures:load > /dev/null
+          sudo -E docker-compose exec -T dev rake db:reset db:fixtures:load > /dev/null
           popd
       - name: Run integration tests
         run: |
