@@ -25,13 +25,13 @@ from utils import Mock
 
 PROD = 'https://errata.devel.redhat.com'
 
-# From /api/v1/cdn_repos/?filter[name]=redhat-rhceph-rhceph-4-rhel8
+# From /api/v1/cdn_repos/?filter[name]=rhceph/rhceph-4-rhel8
 # See CLOUDWF-316
 CDN_REPO = {
     "id": 11010,
     "type": "cdn_repos",
     "attributes": {
-        "name": "redhat-rhceph-rhceph-4-rhel8",
+        "name": "rhceph/rhceph-4-rhel8",
         "external_name": "rhceph/rhceph-4-rhel8",
         "release_type": "Primary",
         "use_for_tps": False,
@@ -80,7 +80,7 @@ CDN_REPO = {
 }
 
 # From
-# /api/v1/cdn_repo_package_tags?filter[cdn_repo_name]=redhat-rhceph-rhceph-4-rhel8
+# /api/v1/cdn_repo_package_tags?filter[cdn_repo_name]=rhceph/rhceph-4-rhel8
 CDN_REPO_PACKAGE_TAGS = [
     {
         "id": 13860,
@@ -93,7 +93,7 @@ CDN_REPO_PACKAGE_TAGS = [
         "relationships": {
             "cdn_repo": {
                 "id": 11010,
-                "name": "redhat-rhceph-rhceph-4-rhel8"
+                "name": "rhceph/rhceph-4-rhel8"
             },
             "package": {
                 "id": 45969,
@@ -112,7 +112,7 @@ CDN_REPO_PACKAGE_TAGS = [
         "relationships": {
             "cdn_repo": {
                 "id": 11010,
-                "name": "redhat-rhceph-rhceph-4-rhel8"
+                "name": "rhceph/rhceph-4-rhel8"
             },
             "package": {
                 "id": 45969,
@@ -131,7 +131,7 @@ CDN_REPO_PACKAGE_TAGS = [
         "relationships": {
             "cdn_repo": {
                 "id": 11010,
-                "name": "redhat-rhceph-rhceph-4-rhel8"
+                "name": "rhceph/rhceph-4-rhel8"
             },
             "package": {
                 "id": 45969,
@@ -150,7 +150,7 @@ CDN_REPO_PACKAGE_TAGS = [
         "relationships": {
             "cdn_repo": {
                 "id": 11010,
-                "name": "redhat-rhceph-rhceph-4-rhel8"
+                "name": "rhceph/rhceph-4-rhel8"
             },
             "package": {
                 "id": 45969,
@@ -173,7 +173,7 @@ CDN_REPO_PACKAGE_TAGS = [
         "relationships": {
             "cdn_repo": {
                 "id": 11010,
-                "name": "redhat-rhceph-rhceph-4-rhel8"
+                "name": "rhceph/rhceph-4-rhel8"
             },
             "package": {
                 "id": 45969,
@@ -192,7 +192,7 @@ CDN_REPO_PACKAGE_TAGS = [
         "relationships": {
             "cdn_repo": {
                 "id": 11010,
-                "name": "redhat-rhceph-rhceph-4-rhel8"
+                "name": "rhceph/rhceph-4-rhel8"
             },
             "package": {
                 "id": 45969,
@@ -252,7 +252,7 @@ class TestCreateCdnRepo(object):
             status_code=201,
             json={'data': CDN_REPO})
         params = {
-            'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'name': 'rhceph/rhceph-4-rhel8',
             'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'content_type': 'Docker',
@@ -265,7 +265,7 @@ class TestCreateCdnRepo(object):
         assert len(history) == 1
         expected = {
             'cdn_repo': {
-                'name': 'redhat-rhceph-rhceph-4-rhel8',
+                'name': 'rhceph/rhceph-4-rhel8',
                 'external_name': 'rhceph/rhceph-4-rhel8',
                 'release_type': 'Primary',
                 'content_type': 'Docker',
@@ -359,7 +359,7 @@ class TestGetCdnRepo(object):
             'GET',
             PROD + '/api/v1/cdn_repos',
             json={'data': []})
-        name = 'redhat-rhceph-rhceph-4-rhel8'
+        name = 'rhceph/rhceph-4-rhel8'
         cdn_repo = get_cdn_repo(client, name)
         assert cdn_repo is None
 
@@ -368,11 +368,11 @@ class TestGetCdnRepo(object):
             'GET',
             PROD + '/api/v1/cdn_repos',
             json={'data': [CDN_REPO]})
-        name = 'redhat-rhceph-rhceph-4-rhel8'
+        name = 'rhceph/rhceph-4-rhel8'
         cdn_repo = get_cdn_repo(client, name)
         expected = {
             'id': 11010,
-            'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'name': 'rhceph/rhceph-4-rhel8',
             'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'use_for_tps': False,
@@ -395,11 +395,11 @@ class TestGetCdnRepo(object):
             'GET',
             PROD + '/api/v1/cdn_repos',
             json={'data': [cdn_repo]})
-        name = 'redhat-rhceph-rhceph-4-rhel8'
+        name = 'rhceph/rhceph-4-rhel8'
         cdn_repo = get_cdn_repo(client, name)
         expected = {
             'id': 11010,
-            'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'name': 'rhceph/rhceph-4-rhel8',
             'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'use_for_tps': False,
@@ -421,7 +421,7 @@ class TestGetPackageTags(object):
             'GET',
             PROD + '/api/v1/cdn_repo_package_tags',
             json={'data': CDN_REPO_PACKAGE_TAGS})
-        name = 'redhat-rhceph-rhceph-4-rhel8'
+        name = 'rhceph/rhceph-4-rhel8'
         cdn_repo = get_package_tags(client, name)
         expected = {
             'rhceph-container': {
@@ -473,7 +473,7 @@ class TestAddPackageTag(object):
 
     @pytest.fixture
     def repo_name(self):
-        return 'redhat-rhceph-rhceph-4-rhel8'
+        return 'rhceph/rhceph-4-rhel8'
 
     @pytest.fixture
     def package_name(self):
@@ -489,7 +489,7 @@ class TestAddPackageTag(object):
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
-                    {'cdn_repo_name': 'redhat-rhceph-rhceph-4-rhel8',
+                    {'cdn_repo_name': 'rhceph/rhceph-4-rhel8',
                      'package_name': 'rhceph-container',
                      'tag_template': 'latest'}}
         assert history[0].json() == expected
@@ -504,7 +504,7 @@ class TestAddPackageTag(object):
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
-                    {'cdn_repo_name': 'redhat-rhceph-rhceph-4-rhel8',
+                    {'cdn_repo_name': 'rhceph/rhceph-4-rhel8',
                      'package_name': 'rhceph-container',
                      'tag_template': 'restricted-tag',
                      'variant_name': 'Product-Foo'}}
@@ -520,7 +520,7 @@ class TestAddPackageTag(object):
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
-                    {'cdn_repo_name': 'redhat-rhceph-rhceph-4-rhel8',
+                    {'cdn_repo_name': 'rhceph/rhceph-4-rhel8',
                      'package_name': 'rhceph-container',
                      'tag_template': 'hotfix-tag',
                      'for_hotfix': True}}
@@ -536,7 +536,7 @@ class TestAddPackageTag(object):
         history = client.adapter.request_history
         assert len(history) == 1
         expected = {'cdn_repo_package_tag':
-                    {'cdn_repo_name': 'redhat-rhceph-rhceph-4-rhel8',
+                    {'cdn_repo_name': 'rhceph/rhceph-4-rhel8',
                      'package_name': 'rhceph-container',
                      'tag_template': 'prerelease-tag',
                      'for_prerelease': True}}
@@ -611,7 +611,7 @@ class EnsurePackageTagsBase(object):
                 },
                 'relationships': {
                     'cdn_repo': {'id': 11010,
-                                 'name': 'redhat-rhceph-rhceph-4-rhel8'},
+                                 'name': 'rhceph/rhceph-4-rhel8'},
                     'package': {'id': 45969, 'name': 'rhceph-container'},
                 }
                 }
@@ -638,7 +638,7 @@ class EnsurePackageTagsBase(object):
 
     @pytest.fixture
     def name(self):
-        return 'redhat-rhceph-rhceph-4-rhel8'
+        return 'rhceph/rhceph-4-rhel8'
 
 
 class TestEnsurePackageTags(EnsurePackageTagsBase):
@@ -953,7 +953,7 @@ class TestEnsureCdnRepo(object):
     @pytest.fixture
     def params(self):
         return {
-            'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'name': 'rhceph/rhceph-4-rhel8',
             'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'content_type': 'Docker',
@@ -995,11 +995,11 @@ class TestEnsureCdnRepo(object):
         result = ensure_cdn_repo(client, check_mode, params)
         expected = {
             'changed': True,
-            'stdout_lines': ['created redhat-rhceph-rhceph-4-rhel8'],
+            'stdout_lines': ['created rhceph/rhceph-4-rhel8'],
             'diff': {
                 'after': {'arch': 'multi',
                           'content_type': 'Docker',
-                          'name': 'redhat-rhceph-rhceph-4-rhel8',
+                          'name': 'rhceph/rhceph-4-rhel8',
                           'external_name': 'rhceph/rhceph-4-rhel8',
                           'packages': {
                               'rhceph-container': [
@@ -1018,7 +1018,7 @@ class TestEnsureCdnRepo(object):
                           'use_for_tps': False,
                           'variants': ['8Base-RHCEPH-4.0-Tools',
                                        '8Base-RHCEPH-4.1-Tools']},
-                'after_header': "New cdn repo 'redhat-rhceph-rhceph-4-rhel8'",
+                'after_header': "New cdn repo 'rhceph/rhceph-4-rhel8'",
                 'before': {},
                 'before_header': 'Not present'}}
 
@@ -1048,7 +1048,7 @@ class TestEnsureCdnRepo(object):
             "relationships": {
                 "cdn_repo": {
                     "id": 11010,
-                    "name": "redhat-rhceph-rhceph-4-rhel8"
+                    "name": "rhceph/rhceph-4-rhel8"
                 },
                 "package": {"id": 45969, "name": "rhceph-container"}
             }
@@ -1064,7 +1064,7 @@ class TestEnsureCdnRepo(object):
         check_mode = False
         result = ensure_cdn_repo(client, check_mode, params)
         expected_stdout_lines = [
-            'created redhat-rhceph-rhceph-4-rhel8',
+            'created rhceph/rhceph-4-rhel8',
             'adding "{{version}}" tag template to "rhceph-container"',
             ('adding "my-variant-restricted-tag" tag template'
              ' to "rhceph-container"'),
@@ -1164,7 +1164,7 @@ class TestMain(object):
     @pytest.fixture
     def container_module_args(self):
         return {
-            'name': 'redhat-rhceph-rhceph-4-rhel8',
+            'name': 'rhceph/rhceph-4-rhel8',
             'external_name': 'rhceph/rhceph-4-rhel8',
             'release_type': 'Primary',
             'content_type': 'Docker',

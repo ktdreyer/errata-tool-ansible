@@ -4,9 +4,9 @@
 # errata-rails.git test/fixtures/*.yml files do this.
 ---
 
-- name: Add redhat-container-create-2 cdn repo
+- name: Add testproduct/container-create-2 cdn repo
   errata_tool_cdn_repo:
-    name: redhat-container-create-2
+    name: testproduct/container-create-2
     release_type: Primary
     content_type: Docker
     variants:
@@ -21,7 +21,7 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-create-2
+    path: api/v1/cdn_repos/testproduct/container-create-2
   register: response
 
 - name: parse cdn repo JSON
@@ -31,7 +31,7 @@
 
 - assert:
     that:
-      - attributes.name == "redhat-container-create-2"
+      - attributes.name == "testproduct/container-create-2"
       - attributes.release_type == "Primary"
       - attributes.content_type == "Docker"
       - not attributes.use_for_tps

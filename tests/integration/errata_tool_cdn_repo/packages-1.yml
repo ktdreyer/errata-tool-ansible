@@ -6,23 +6,23 @@
 
 - name: Create cdn repo with no packages
   errata_tool_cdn_repo:
-    name: redhat-container-packages-1
+    name: testproduct/container-packages-1
     release_type: Primary
     content_type: Docker
     variants: [AppStream-8.0.0]
   register: result
 
-- name: assert redhat-container-packages-1 is a new cdn repo
+- name: assert testproduct/container-packages-1 is a new cdn repo
   assert:
     that:
       - result.changed
-      - result.stdout_lines == ["created redhat-container-packages-1"]
+      - result.stdout_lines == ["created testproduct/container-packages-1"]
 
 # Assert that this CDN repo looks correct.
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-packages-1
+    path: api/v1/cdn_repos/testproduct/container-packages-1
   register: response
 
 - name: assert new cdn repo has no packages
@@ -34,7 +34,7 @@
 
 - name: Add a container package to an existing CDN repo with no packages
   errata_tool_cdn_repo:
-    name: redhat-container-packages-1
+    name: testproduct/container-packages-1
     release_type: Primary
     content_type: Docker
     variants: [AppStream-8.0.0]
@@ -68,7 +68,7 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-packages-1
+    path: api/v1/cdn_repos/testproduct/container-packages-1
   register: response
 
 - name: assert CDN repo has our new container package
@@ -81,7 +81,7 @@
 
 - name: Add a variant restriction to container tag
   errata_tool_cdn_repo:
-    name: redhat-container-packages-1
+    name: testproduct/container-packages-1
     release_type: Primary
     content_type: Docker
     variants: [AppStream-8.0.0]
@@ -101,7 +101,7 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-packages-1
+    path: api/v1/cdn_repos/testproduct/container-packages-1
   register: response
 
 - name: assert CDN repo still has our one container package
@@ -112,7 +112,7 @@
 
 - name: query API for this CDN repo's package tags
   errata_tool_request:
-    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-1&filter[package_name]=test-container
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=testproduct/container-packages-1&filter[package_name]=test-container
   register: response
 
 - name: assert latest tag has variant restriction
@@ -126,7 +126,7 @@
 
 - name: Remove a variant restriction from container tag
   errata_tool_cdn_repo:
-    name: redhat-container-packages-1
+    name: testproduct/container-packages-1
     release_type: Primary
     content_type: Docker
     variants: [AppStream-8.0.0]
@@ -145,7 +145,7 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-packages-1
+    path: api/v1/cdn_repos/testproduct/container-packages-1
   register: response
 
 - name: assert CDN repo still has our one container package
@@ -156,7 +156,7 @@
 
 - name: query API for this CDN repo's package tags
   errata_tool_request:
-    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=redhat-container-packages-1&filter[package_name]=test-container
+    path: api/v1/cdn_repo_package_tags/?filter[cdn_repo_name]=testproduct/container-packages-1&filter[package_name]=test-container
   register: response
 
 - name: assert latest tag exists and has no variant restriction
@@ -170,7 +170,7 @@
 
 - name: Remove all container packages from an existing CDN repo
   errata_tool_cdn_repo:
-    name: redhat-container-packages-1
+    name: testproduct/container-packages-1
     release_type: Primary
     content_type: Docker
     variants: [AppStream-8.0.0]
@@ -197,7 +197,7 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-packages-1
+    path: api/v1/cdn_repos/testproduct/container-packages-1
   register: response
 
 - name: assert CDN repo has no container packages

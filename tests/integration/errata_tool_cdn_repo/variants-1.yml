@@ -31,27 +31,27 @@
 
 - name: Create cdn repo with one variant
   errata_tool_cdn_repo:
-    name: redhat-container-variants-1
+    name: testproduct/container-variants-1
     release_type: Primary
     content_type: Docker
     variants:
       - AppStream-8.0.0
   register: result
 
-- name: assert redhat-container-variants-1 is a new cdn repo
+- name: assert testproduct/container-variants-1 is a new cdn repo
   assert:
     that:
       - result.changed
-      - result.stdout_lines == ["created redhat-container-variants-1"]
+      - result.stdout_lines == ["created testproduct/container-variants-1"]
 
 # Assert that this CDN repo looks correct.
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-variants-1
+    path: api/v1/cdn_repos/testproduct/container-variants-1
   register: response
 
-- name: assert redhat-container-variants-1 has one variant
+- name: assert testproduct/container-variants-1 has one variant
   assert:
     that:
       - response.json.data.relationships.variants | length == 1
@@ -61,7 +61,7 @@
 
 - name: Add a second variant to existing cdn repo
   errata_tool_cdn_repo:
-    name: redhat-container-variants-1
+    name: testproduct/container-variants-1
     release_type: Primary
     content_type: Docker
     variants:
@@ -89,10 +89,10 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-variants-1
+    path: api/v1/cdn_repos/testproduct/container-variants-1
   register: response
 
-- name: assert redhat-container-variants-1 now has two variants
+- name: assert testproduct/container-variants-1 now has two variants
   assert:
     that:
       - response.json.data.relationships.variants | length == 2
@@ -107,7 +107,7 @@
 
 - name: Remove the second variant from an existing cdn repo
   errata_tool_cdn_repo:
-    name: redhat-container-variants-1
+    name: testproduct/container-variants-1
     release_type: Primary
     content_type: Docker
     variants:
@@ -134,10 +134,10 @@
 
 - name: query API for this CDN repo
   errata_tool_request:
-    path: api/v1/cdn_repos/redhat-container-variants-1
+    path: api/v1/cdn_repos/testproduct/container-variants-1
   register: response
 
-- name: assert redhat-container-variants-1 now has one variant
+- name: assert testproduct/container-variants-1 now has one variant
   assert:
     that:
       - response.json.data.relationships.variants | length == 1
