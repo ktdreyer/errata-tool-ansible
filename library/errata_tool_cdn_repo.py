@@ -22,8 +22,8 @@ description:
 options:
    name:
      description:
-       - Pulp repo label.
-       - "Example: redhat-rhceph-rhceph-4-rhel8"
+       - Public repo name
+       - "Example: rhceph/rhceph-4-rhel8"
      required: true
    external_name:
      description:
@@ -112,9 +112,9 @@ EXAMPLES = '''
       variants:
         - RHEL-8-RHOCS-4.6
 
-  - name: Add redhat-rhceph-rhceph-4-rhel8 cdn repo
+  - name: Add rhceph/rhceph-4-rhel8 cdn repo
     errata_tool_cdn_repo:
-      name: redhat-rhceph-rhceph-4-rhel8
+      name: rhceph/rhceph-4-rhel8
       external_name: rhceph/rhceph-4-rhel8
       release_type: Primary
       content_type: Docker
@@ -129,7 +129,7 @@ EXAMPLES = '''
 
   - name: Add a repo with a restricted tag
     errata_tool_cdn_repo:
-      name: redhat-fooproduct-1-rhel8
+      name: fooproduct/foo-1-rhel8
       release_type: Primary
       content_type: Docker
       variants:
@@ -143,7 +143,7 @@ EXAMPLES = '''
 
   - name: Add a repo with a tag for hotfix
     errata_tool_cdn_repo:
-      name: redhat-fooproduct-1-rhel8
+      name: fooproduct/foo-1-rhel8
       release_type: Primary
       content_type: Docker
       variants:
@@ -157,7 +157,7 @@ EXAMPLES = '''
 
   - name: Add a repo with a tag for prerelease
     errata_tool_cdn_repo:
-      name: redhat-fooproduct-1-rhel8
+      name: fooproduct/foo-1-rhel8
       release_type: Primary
       content_type: Docker
       variants:
@@ -263,7 +263,7 @@ def get_package_tags(client, name):
     """
     # We will query all the packages' tags for this repo.
     # Example for looking up one single package in one single repo:
-    # https://errata.devel.redhat.com/api/v1/cdn_repo_package_tags?filter[package_name]=ubi8-container&filter[cdn_repo_name]=redhat-ubi8
+    # https://errata.devel.redhat.com/api/v1/cdn_repo_package_tags?filter[package_name]=ubi8-container&filter[cdn_repo_name]=ubi8
     page_number = 0
     elements = []
     found = []
