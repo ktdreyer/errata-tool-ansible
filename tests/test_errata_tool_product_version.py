@@ -44,6 +44,7 @@ PRODUCT_VERSION = {
         ],
         "rhel_release": {"id": 87, "name": "RHEL-8"},
         "sig_key": {"id": 8, "name": "redhatrelease2"},
+        "container_sig_key": {"id": 8, "name": "redhatrelease2"},
         "ima_sig_key": {"id": 15, "name": "redhatimarelease"},
     }
 }
@@ -74,6 +75,7 @@ def params():
         ],
         "rhel_release_name": "RHEL-8",
         "sig_key_name": "redhatrelease2",
+        "container_sig_key_name": "redhatrelease2",
         "ima_sig_key_name": "redhatimarelease",
     }
 
@@ -140,6 +142,7 @@ class TestGetProductVersion(object):
             'suppress_push_request_jira': False,
             'allow_unreleased_rpms': True,
             'sig_key_name': 'redhatrelease2',
+            'container_sig_key_name': 'redhatrelease2',
             'ima_sig_key_name': 'redhatimarelease',
         }
         assert product_version == expected
