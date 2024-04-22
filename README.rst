@@ -170,7 +170,7 @@ package, you must escape the double brackets for Ansible with the
 Tower's REST API, you may not need to escape the values like this.
 
 errata_tool_rhel_release
-----------------
+------------------------
 
 The ``errata_tool_rhel_release`` module can create or update Rhel Releases within the Errata
 Tool.
