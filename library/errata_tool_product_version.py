@@ -42,6 +42,14 @@ options:
                redhatrelease2, redhatengsystems]
      required: false
      default: redhatrelease2
+   container_sig_key_name:
+      description:
+       - Signing key used for container images
+       - You almost certainly never want to change this value.
+      choices: [master, fedora, beta, test, none, redhatrelease, rhx,
+               redhatrelease2, redhatengsystems]
+      required: false
+      default: redhatrelease2
    ima_sig_key_name:
      description:
        - Signing key for IMA (Integrity Measurement Architecture)
@@ -178,6 +186,8 @@ def get_product_version(client, product, name, check_mode):
     rhel_release = data['relationships']['rhel_release']['name']
     product_version['rhel_release_name'] = rhel_release
     product_version['sig_key_name'] = data['relationships']['sig_key']['name']
+    product_version['container_sig_key_name'] = \
+        data['relationships']['container_sig_key']['name']
     product_version['ima_sig_key_name'] = \
         data['relationships'].get('ima_sig_key', {'name': None})['name']
     # push_targets
@@ -218,6 +228,7 @@ def create_product_version(client, product, params):
     pv['brew_tags'] = params['brew_tags']
     pv['rhel_release_name'] = params['rhel_release_name']
     pv['sig_key_name'] = params['sig_key_name']
+    pv['container_sig_key_name'] = params['container_sig_key_name']
     if 'ima_sig_key_name' in params:
         pv['ima_sig_key_name'] = params['ima_sig_key_name']
     pv['allow_buildroot_push'] = params['allow_buildroot_push']
@@ -294,6 +305,7 @@ def run_module():
         description=dict(required=True),
         rhel_release_name=dict(required=True),
         sig_key_name=dict(default='redhatrelease2'),
+        container_sig_key_name=dict(default='redhatrelease2'),
         ima_sig_key_name=dict(),
         default_brew_tag=dict(required=True),
         is_server_only=dict(type='bool', required=True),
