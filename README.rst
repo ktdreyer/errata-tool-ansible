@@ -141,6 +141,7 @@ Errata Tool.
         product_version: RHCEPH-4.0-RHEL-8
         rhel_variant: 8Base
         push_targets: []
+        override_ftp_base_folder: "8Base"
 
 errata_tool_cdn_repo
 --------------------

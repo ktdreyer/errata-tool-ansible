@@ -10,6 +10,7 @@
         "enabled": true,
         "buildroot": false,
         "tps_stream": "RHEL-8-Main-Base",
+        "override_ftp_base_folder": "8Base",
         "relationships": {
           "product": {
             "id": 104,
