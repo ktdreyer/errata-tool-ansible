@@ -9,6 +9,7 @@
         "cpe": "",
         "enabled": true,
         "buildroot": false,
+        "override_ftp_base_folder": "8Base",
         "relationships": {
           "product": {
             "id": 16,

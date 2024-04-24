@@ -33,6 +33,7 @@ def params():
         'push_targets': ['cdn'],
         'buildroot': False,
         'product_version': 'RHCEPH-4.0-RHEL-8',
+        'override_ftp_base_folder': '8Base',
     }
 
 
@@ -55,6 +56,7 @@ class TestResponses(object):
                 'product_version': 'RHCEPH-4.0-RHEL-8',
                 'push_targets': ['cdn'],
                 'buildroot': False,
+                'override_ftp_base_folder': '8Base',
             }
         }
         assert history[0].json() == expected

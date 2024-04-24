@@ -75,6 +75,12 @@ options:
      choices: [rhn_live, rhn_stage, cdn, cdn_stage, cdn_docker,
                cdn_docker_stage]
      required: true
+   override_ftp_base_folder:
+     description:
+       - Override the default base folder derived from Variant
+       - "example: 9Base"
+     required: false
+
 requirements:
   - "python >= 2.7"
   - "lxml"
@@ -159,10 +165,6 @@ def prepare_diff_data(before, after):
         item_name=after['name'],
         item_type='variant',
         keys_to_copy=[
-            # This field exists in ET but is not yet supported by
-            # this ansible module
-            'override_ftp_base_folder',
-
             # The params may contain one or other of these
             # but both are present in the before data
             'tps_stream',
@@ -211,6 +213,7 @@ def run_module():
         rhel_variant=dict(),
         tps_stream=dict(),
         push_targets=dict(type='list', required=True),
+        override_ftp_base_folder=dict(),
     )
     module = AnsibleModule(
         argument_spec=module_args,
