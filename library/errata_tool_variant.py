@@ -223,15 +223,8 @@ def run_module():
     check_mode = module.check_mode
     params = module.params
 
-    # When a user omits rhel_variant, then this is a RHEL variant and we
-    # require tps_stream.
     if params['rhel_variant'] is None:
         params.pop('rhel_variant')
-        if params['tps_stream'] is None:
-            module.fail_json(msg='RHEL variants require tps_stream.')
-    else:
-        # This is a layered product and we ignore tps_stream.
-        params.pop('tps_stream')
 
     client = common_errata_tool.Client()
 
