@@ -56,12 +56,13 @@ options:
        - If you omit a rhel_variant setting, the Errata Tool will assume you
          are configuring RHEL itself, and it will mark this variant as a RHEL
          variant.
-       - When you omit rhel_variant, you must define tps_stream.
      required: false
    tps_stream:
      description:
-       - Required for base (RHEL) variants which do not have a rhel_variant.
-       - "example: RHEL-7"
+       - DEPRECATED. This is now optional and has no effect. It was previously
+         required for base (RHEL) variants which do not have a rhel_variant.
+         Now tps_stream is auto retrieved from rhsm-pulp and stored in Errata Tool's
+         CDN repo table instead.
      required: false
    push_targets:
      description:
@@ -225,8 +226,8 @@ def run_module():
 
     if params['rhel_variant'] is None:
         params.pop('rhel_variant')
-    if params['tps_stream'] is None:
-        params.pop('tps_stream')
+    # Drop the deprecated tps_stream field for Variant, it is now ignored by Errata Tool
+    params.pop('tps_stream', None)
 
     client = common_errata_tool.Client()
 
