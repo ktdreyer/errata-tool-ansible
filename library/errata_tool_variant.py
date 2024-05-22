@@ -225,6 +225,8 @@ def run_module():
 
     if params['rhel_variant'] is None:
         params.pop('rhel_variant')
+    if params['tps_stream'] is None:
+        params.pop('tps_stream')
 
     client = common_errata_tool.Client()
 
